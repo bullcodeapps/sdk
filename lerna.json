@@ -2,12 +2,5 @@
   "packages": [
     "packages/*"
   ],
-  "command": {
-    "publish": {
-      "ignoreChanges": ["*.md"],
-      "message": "chore(release): publish %s",
-      "registry": "https://npm.pkg.github.com"
-    }
-  },
   "version": "independent"
 }
