@@ -1,6 +1,6 @@
 {
   "name": "@bullcode/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An SDK made to facilitate and organize the development of applications made by Bullcode, which makes available the most common types of components, hooks and utilities.",
   "main": "index.ts",
   "scripts": {
@@ -30,7 +30,7 @@
   "peerDependencies": {
     "@brazilian-utils/brazilian-utils": "^1.0.0-rc.7",
     "date-fns": "^2.12.0",
-    "yup": "^0.28.3",
-    "react": "16.12.0"
+    "react": "16.12.0",
+    "yup": "^0.28.3"
   }
 }
