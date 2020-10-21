@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30.39 36.06">
+  <g id="Camada_2" data-name="Camada 2">
+    <g id="Camada_1-2" data-name="Camada 1">
+      <line x1="14.51" y1="26.86" x2="14.51" y2="16.33" style="fill:none;stroke:#e5f4fd;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/>
+      <path d="M20.87,9.58a6.36,6.36,0,1,1-6.36-6.36A6.36,6.36,0,0,1,20.87,9.58Z" style="fill:none;stroke:#e5f4fd;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/>
+      <line x1="16.08" y1="26.04" x2="16.08" y2="14.21" style="fill:none;stroke:#0097eb;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/>
+      <path d="M4.09,23.63a5.22,5.22,0,0,0-2.59,4.1c0,3.77,5.74,6.83,12.82,6.83s12.82-3.06,12.82-6.83a5.19,5.19,0,0,0-2.5-4.05l-.08-.05" style="fill:none;stroke:#e5f4fd;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/>
+      <path d="M26.32,22.25l.08.06a5.15,5.15,0,0,1,2.49,4c0,3.77-5.74,6.83-12.81,6.83S3.26,30.12,3.26,26.35a5.25,5.25,0,0,1,2.58-4.1" style="fill:none;stroke:#00eccf;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/>
+      <path d="M22.43,7.86A6.36,6.36,0,1,1,16.08,1.5,6.35,6.35,0,0,1,22.43,7.86Z" style="fill:none;stroke:#0097eb;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px"/>
+    </g>
+  </g>
+</svg>
