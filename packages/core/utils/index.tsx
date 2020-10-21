@@ -1,7 +1,6 @@
 import { formatRelative, format, parseISO } from 'date-fns';
 import { StringSchema } from 'yup';
 
-import i18n from '../../../languages';
 import { isValidCPF, isValidCNPJ } from '@brazilian-utils/brazilian-utils';
 
 export type WeekDays = 0 | 1 | 2 | 3 | 4 | 5 | 6;

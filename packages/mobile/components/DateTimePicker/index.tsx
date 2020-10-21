@@ -24,7 +24,6 @@ import {
   toDate,
   isValid as isValidDate,
 } from 'date-fns';
-import i18n from '../../../../languages';
 import { useField } from '@unform/core';
 
 const isIOS14 = Platform.OS === 'ios' && +Platform.Version >= 14;

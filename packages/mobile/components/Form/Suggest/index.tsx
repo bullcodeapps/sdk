@@ -4,7 +4,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { useField } from '@unform/core';
 import { useDebouncedState } from '../../../../core/hooks';
-import i18n from '../../../../../languages';
 
 import { FormFieldType } from '../../../components/Form';
 
