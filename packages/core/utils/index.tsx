@@ -14,10 +14,10 @@ export const getNextAvailableDay = (weekDay: WeekDays) => {
   return now;
 };
 
-export function currencyFormat(value: number, style = 'currency') {
+export function currencyFormat(value: number, style = 'currency', language: string = 'pt-BR') {
   // In the future, the currency attribute that follows the ISO-4217 standard
   // will be replaced by the user's choice
-  return value?.toLocaleString(i18n.language, {
+  return value?.toLocaleString(language, {
     currency: 'BRL',
     minimumFractionDigits: 2,
     style,

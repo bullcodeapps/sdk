@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 import { Container, Title, Description, ActionButtons, CancelButton, ConfirmButton } from './styles';
-import { useTranslation } from 'react-i18next';
 import { GestureResponderEvent } from 'react-native';
 import { useModal } from '../Modal';
 import { DefaultContainer } from '../../global-styles';
@@ -27,7 +26,6 @@ const ConfirmModal = ({
   onCancel,
   onConfirm,
 }: ConfirmModalProps) => {
-  const { t } = useTranslation();
   const modal = useModal();
 
   // States
@@ -37,7 +35,7 @@ const ConfirmModal = ({
     if (title === undefined) {
       setTitle('Você confirma?');
     }
-  }, [t, title]);
+  }, [title]);
 
   const handleOnCancel = (event: GestureResponderEvent) => {
     modal.hide();

@@ -4,9 +4,6 @@ import * as Yup from 'yup';
 
 import { Container, Form as StyledForm } from './styles';
 import { useCombinedRefs } from '../../../core/hooks';
-import { useDispatch } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { ToastActionsCreators } from '../Toast';
 import { Keyboard } from 'react-native';
 
 interface Props {
@@ -22,9 +19,6 @@ export type FormType = FormProps & FormHandles;
 export type FormFieldType<T> = T & { validate: (val: any) => void };
 
 function Form({ onSubmit, onSubmitError, schema, data, onProgressChange, ...other }: Props & FormProps, outerRef: any) {
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
-
   const formRef = useRef<FormType>(null);
   const combinedRef = useCombinedRefs<FormType>(outerRef, formRef);
 

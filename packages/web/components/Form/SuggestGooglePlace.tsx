@@ -10,7 +10,6 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import { TextFieldProps } from '@material-ui/core/TextField';
 import throttle from 'lodash/throttle';
 import parse from 'autosuggest-highlight/parse';
-import { useTranslation } from 'react-i18next';
 import { FormControl } from './styles';
 import { useDebouncedState } from '../../../core/hooks';
 
@@ -53,7 +52,6 @@ export default function SuggestGooglePlace({
   const [searchTerm, setSearchTerm] = useState<string>();
 
   const debouncedSearchTerm = useDebouncedState(searchTerm, 500);
-  const { t } = useTranslation();
 
   const inputRef = useRef<any>(null);
 

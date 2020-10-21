@@ -47,6 +47,7 @@ export type DateTimePickerProps = {
   minDate?: Date;
   minuteInterval?: 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30;
   onChange?: (value: Date) => void;
+  language?: string;
   inputProps?: InputProps & Props;
   icon?: any;
 };
@@ -64,6 +65,7 @@ const DateTimePicker = ({
   maxDate,
   minDate,
   onChange,
+  language = 'pt-BR',
   icon: Icon,
   ...rest
 }: DateTimePickerProps) => {
@@ -323,7 +325,7 @@ const DateTimePicker = ({
         <ModalViewBottom>
           <RNDateTimePicker
             {...rest}
-            locale={i18n.language}
+            locale={language}
             value={date}
             maximumDate={maxDate}
             minimumDate={minDate}

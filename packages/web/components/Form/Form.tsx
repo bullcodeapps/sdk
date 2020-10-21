@@ -5,7 +5,6 @@ import { SubmitHandler, FormProps } from '@unform/core';
 import { CircularProgress } from '@material-ui/core';
 import * as Yup from 'yup';
 
-import { useTranslation } from 'react-i18next';
 import { Container, Form as StyledForm, LoadingOverlay } from './styles';
 import { useCombinedRefs } from '../../../core/hooks';
 
@@ -27,7 +26,6 @@ function Form({
   data,
   ...other
 }: Props & FormProps, outerRef: any) {
-  const { t } = useTranslation();
   const formRef = useRef<any>(null);
   const combinedRef: any = useCombinedRefs(outerRef, formRef);
 
