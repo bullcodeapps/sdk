@@ -68,5 +68,6 @@
     "styled-components": "^5.0.1",
     "typesafe-actions": "^5.1.0",
     "yup": "^0.28.3"
-  }
+  },
+  "gitHead": "c31363229d5e2c17bb585c78514fe1413985ce8d"
 }
