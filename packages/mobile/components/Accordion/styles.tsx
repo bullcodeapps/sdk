@@ -5,7 +5,7 @@ import { Animated } from 'react-native';
 
 export const Container = styled.TouchableOpacity`
   border-bottom-width: 1px;
-  border-bottom-color: '#bbc8cf';
+  border-bottom-color: #bbc8cf;
 `;
 
 export const AccordionHeader = styled.View`
