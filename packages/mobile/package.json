@@ -1,6 +1,6 @@
 {
   "name": "@bullcode/mobile",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "An SDK made to facilitate and organize the development of applications made by Bullcode, which makes available the most common types of components, hooks and utilities.",
   "main": "index.ts",
   "scripts": {
@@ -42,6 +42,7 @@
     "date-fns": "^2.12.0",
     "libphonenumber-js": "^1.7.51",
     "lodash": "^4.17.15",
+    "react": "16.12.0",
     "react-native": "0.62.2",
     "react-native-androw": "0.0.34",
     "react-native-autocomplete-input": "^4.2.0",
@@ -63,8 +64,7 @@
     "seamless-immutable": "^7.1.4",
     "styled-components": "^5.0.1",
     "typesafe-actions": "^5.1.0",
-    "yup": "^0.28.3",
-    "react": "16.12.0"
+    "yup": "^0.28.3"
   },
   "gitHead": "c31363229d5e2c17bb585c78514fe1413985ce8d"
 }
