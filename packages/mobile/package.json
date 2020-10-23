@@ -26,7 +26,7 @@
     "babel-plugin-root-import": "^6.5.0",
     "metro-react-native-babel-preset": "^0.58.0"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@brazilian-utils/brazilian-utils": "^1.0.0-rc.7",
     "@gabrielfcs/rn-tourguide": "^2.6.6",
     "@ptomasroos/react-native-multi-slider": "^2.2.2",
@@ -42,7 +42,6 @@
     "date-fns": "^2.12.0",
     "libphonenumber-js": "^1.7.51",
     "lodash": "^4.17.15",
-    "react": "16.12.0",
     "react-native": "0.62.2",
     "react-native-androw": "0.0.34",
     "react-native-autocomplete-input": "^4.2.0",
@@ -64,7 +63,8 @@
     "seamless-immutable": "^7.1.4",
     "styled-components": "^5.0.1",
     "typesafe-actions": "^5.1.0",
-    "yup": "^0.28.3"
+    "yup": "^0.28.3",
+    "react": "16.12.0"
   },
   "gitHead": "c31363229d5e2c17bb585c78514fe1413985ce8d"
 }
