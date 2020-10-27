@@ -22,4 +22,5 @@ export {default as SearchInput} from './SearchInput';
 export {default as Section} from './Section';
 export {default as Swipeable} from './Swipeable';
 export {default as Touchable} from './Touchable';
+export {default as Text, setTextTypes} from './Text';
 export {Toast, ToastActions, ToastActionsCreators, toastReducer} from './Toast';
