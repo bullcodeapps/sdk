@@ -15,7 +15,7 @@ const Section = ({
 } & ViewProps) => {
   return (
     <Container {...rest}>
-      <SectionTitle style={titleStyle}>{title}</SectionTitle>
+      {typeof title === 'string' ? <SectionTitle style={titleStyle}>{title}</SectionTitle> : { title }}
       {children}
     </Container>
   );
