@@ -16,10 +16,15 @@ export type ButtonColorTypes = {
   borderRadius?: number,
 };
 
+export type ButtonActiveColorTypes = {
+  outline: ButtonStyles,
+  solid: ButtonStyles,
+};
+
 export type ButtonColor = {
   name: string;
   default: ButtonColorTypes;
-  active?: ButtonColorTypes;
+  active?: ButtonActiveColorTypes;
   disabled?: ButtonColorTypes;
 };
 

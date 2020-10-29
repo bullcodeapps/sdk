@@ -1,14 +1,23 @@
-import React, { memo, useContext, useMemo } from 'react';
+import React, { memo, useContext, useMemo, useState } from 'react';
 
-import { ButtonColors, Container, ButtonBox, ButtonText, ButtonStyles, ButtonTextStyles, DefaultButtonColors } from './styles';
+import {
+  ButtonColors,
+  Container,
+  ButtonBox,
+  ButtonText,
+  ButtonStyles,
+  ButtonTextStyles,
+  DefaultButtonColors,
+} from './styles';
 import {
   GestureResponderEvent,
   ActivityIndicator,
   ViewStyle,
   ViewProps,
-  TouchableOpacity,
+  TouchableHighlight,
   View,
 } from 'react-native';
+import { LightenDarkenColor } from '@bullcode/core/utils';
 
 export type ButtonContextType = { colors: ButtonColors };
 
@@ -17,7 +26,7 @@ export const ButtonContext = React.createContext<ButtonContextType>({ colors: nu
 export const setButtonColors = (colors: ButtonColors) => {
   const ctx = useContext<ButtonContextType>(ButtonContext);
   ctx.colors = colors;
-}
+};
 
 export type ButtonProps = {
   ref?: React.Ref<View>;
@@ -30,7 +39,6 @@ export type ButtonProps = {
   activityIndicatorColor?: string;
   color?: string;
   containerStyle?: ViewStyle;
-  activeOpacity?: number;
   onPress: (event: GestureResponderEvent) => void;
 } & ViewProps;
 
@@ -45,7 +53,6 @@ const Component: ButtonComponent = ({
   loading,
   loadingSize,
   children,
-  activeOpacity,
   containerStyle,
   onPress,
   onLayout,
@@ -53,34 +60,65 @@ const Component: ButtonComponent = ({
 }: ButtonProps) => {
   const ctx = useContext<ButtonContextType>(ButtonContext);
 
+  const [showingUnderlay, setShowingUnderlay] = useState<boolean>(false);
+
+  const buttonUnderlayColor: string = useMemo((): string => {
+    const colors = ctx?.colors || DefaultButtonColors;
+    const foundColor = colors.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.log(
+        `The color "${color}" has no colors defined for the active state, check if the color of the button is the desired one or if this color has actually been declared previously`,
+      );
+      return null;
+    }
+    if (disabled) {
+      return !outline && foundColor?.disabled?.solid?.backgroundColor
+        ? LightenDarkenColor(foundColor.disabled.solid.backgroundColor, 1.1)
+        : 'transparent';
+    }
+    return (
+      (outline ? foundColor?.active?.outline?.backgroundColor : foundColor?.active?.solid?.backgroundColor) ||
+      'transparent'
+    );
+  }, [color, ctx?.colors, disabled, outline]);
+
   const buttonColorStyles: Partial<ButtonStyles> = useMemo(() => {
     const colors = ctx?.colors || DefaultButtonColors;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
-      console.log(`The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`)
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
       return {};
     }
+
+    const { color: textColor, ...buttonStyles } = foundColor.default[outline ? 'outline' : 'solid'];
+    const borderRadius = foundColor?.default?.borderRadius;
+    if (showingUnderlay) {
+      return { ...buttonStyles, backgroundColor: buttonUnderlayColor || buttonStyles?.backgroundColor, borderRadius };
+    }
+
     if (disabled) {
       const { color: textColor, ...buttonStyles } = foundColor.disabled[outline ? 'outline' : 'solid'];
       const borderRadius = foundColor?.disabled?.borderRadius;
       if (borderRadius) {
-        return {...buttonStyles, borderRadius}; 
+        return { ...buttonStyles, borderRadius };
       }
       return buttonStyles;
     }
-    const { color: textColor, ...buttonStyles } = foundColor.default[outline ? 'outline' : 'solid'];
-    const borderRadius = foundColor?.default?.borderRadius;
     if (borderRadius) {
-      return {...buttonStyles, borderRadius}; 
+      return { ...buttonStyles, borderRadius };
     }
     return buttonStyles;
-  }, [color, disabled, outline]);
+  }, [buttonUnderlayColor, color, ctx?.colors, disabled, outline, showingUnderlay]);
 
   const buttonTextColorStyles: Partial<ButtonTextStyles> = useMemo(() => {
     const colors = ctx?.colors || DefaultButtonColors;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
-      console.log(`The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`)
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
       return {};
     }
     if (disabled) {
@@ -89,13 +127,16 @@ const Component: ButtonComponent = ({
     }
     const { color: textColor } = foundColor.default[outline ? 'outline' : 'solid'];
     return { color: textColor };
-  }, [color, disabled, outline]);
+  }, [color, ctx?.colors, disabled, outline]);
 
   return (
     <Container ref={outerRef} style={containerStyle} onLayout={onLayout}>
-      <TouchableOpacity
-        onPress={(e) => !loading && !disabled && onPress && onPress(e)}
-        activeOpacity={activeOpacity || 0.8}>
+      <TouchableHighlight
+        underlayColor={'transparent'}
+        activeOpacity={1}
+        onShowUnderlay={() => setShowingUnderlay(true)}
+        onHideUnderlay={() => setShowingUnderlay(false)}
+        onPress={(e) => !loading && !disabled && onPress && onPress(e)}>
         <ButtonBox style={[buttonColorStyles, rest?.style]} {...rest}>
           {loading ? (
             <ActivityIndicator
@@ -103,14 +144,12 @@ const Component: ButtonComponent = ({
               color={activityIndicatorColor ? activityIndicatorColor : buttonTextColorStyles.color}
             />
           ) : typeof children === 'string' ? (
-            <ButtonText style={[buttonTextColorStyles]}>
-              {children}
-            </ButtonText>
+            <ButtonText style={[buttonTextColorStyles]}>{children}</ButtonText>
           ) : (
             children
           )}
         </ButtonBox>
-      </TouchableOpacity>
+      </TouchableHighlight>
     </Container>
   );
 };
