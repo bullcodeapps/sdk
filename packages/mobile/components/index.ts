@@ -12,7 +12,7 @@ export {default as Select} from './Form/Select';
 export {default as SliderInput} from './Form/SliderInput';
 export {default as Suggest} from './Form/Suggest';
 export {default as SuggestGooglePlaces} from './Form/SuggestGooglePlaces';
-export {default as Switch} from './Form/Switch';
+export {default as Switch, setSwitchColors} from './Form/Switch';
 export {default as Form} from './Form';
 export {default as FullScreenLoading} from './FullScreenLoading';
 export {default as Image} from './Image';
