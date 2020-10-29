@@ -1,6 +1,6 @@
 import React, { memo, useContext, useMemo } from 'react';
 
-import { ButtonColors, Container, ButtonBox, ButtonText, ButtonSyles, ButtonTextSyles, DefaultButtonColors } from './styles';
+import { ButtonColors, Container, ButtonBox, ButtonText, ButtonStyles, ButtonTextStyles, DefaultButtonColors } from './styles';
 import {
   GestureResponderEvent,
   ActivityIndicator,
@@ -53,7 +53,7 @@ const Component: ButtonComponent = ({
 }: ButtonProps) => {
   const ctx = useContext<ButtonContextType>(ButtonContext);
 
-  const buttonColorStyles: Partial<ButtonSyles> = useMemo(() => {
+  const buttonColorStyles: Partial<ButtonStyles> = useMemo(() => {
     const colors = ctx?.colors || DefaultButtonColors;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
@@ -76,7 +76,7 @@ const Component: ButtonComponent = ({
     return buttonStyles;
   }, [color, disabled, outline]);
 
-  const buttonTextColorStyles: Partial<ButtonTextSyles> = useMemo(() => {
+  const buttonTextColorStyles: Partial<ButtonTextStyles> = useMemo(() => {
     const colors = ctx?.colors || DefaultButtonColors;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
