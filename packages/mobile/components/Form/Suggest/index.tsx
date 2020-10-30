@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, TextInput, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { TextInput, ActivityIndicator, TextInputKeyPressEventData, NativeSyntheticEvent } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import { useField } from '@unform/core';
@@ -7,14 +7,17 @@ import { useDebouncedState } from '../../../../core/hooks';
 
 import { FormFieldType } from '../../../components/Form';
 
-import { Autocomplete, Button, Text, InputContainer, Input } from './styles';
+import { Autocomplete, Row, Text, Input } from './styles';
+import { InputContextType, InputContext } from '@bullcode/mobile/components/Form/Input';
+import { DefaultColors, InputStyle } from '@bullcode/mobile/components/Form/Input/styles';
 
 type Props = {
   name: string;
+  color?: string;
   data: Array<Object>;
-  onChange: (text?: string) => void;
+  onChange?: (text?: string) => void;
   onFocus?: (text?: string) => void;
-  loading: boolean;
+  loading?: boolean;
   listItemKey: string;
   onSelectItem?: (item: Object) => void;
   placeholder?: string;
@@ -22,12 +25,15 @@ type Props = {
   textInputHeight?: number;
   cleanOnPress?: boolean;
   validate?: boolean;
+  validity?: boolean;
+  useValidityMark?: boolean;
   inputIcon?: any;
   inputBorderRadius?: number;
 };
 
 const Suggest: React.FC<Props> = ({
   name,
+  color,
   data,
   onChange,
   onFocus,
@@ -39,20 +45,25 @@ const Suggest: React.FC<Props> = ({
   textInputHeight = 55,
   cleanOnPress = false,
   validate = true,
+  validity: propValidity,
+  useValidityMark,
   inputIcon,
   inputBorderRadius = 25,
   ...rest
 }) => {
-  const [selectedItem, setSelectedItem] = useState({});
-  const [showBottomBorders, setShowBottomBorders] = useState(true);
+  const ctx = useContext<InputContextType>(InputContext);
+
+  // Refs
+  const inputRef = useRef<FormFieldType<TextInput>>(null);
+
+  // States
+  const [selectedItem, setSelectedItem] = useState<object>();
   const [hideResults, setHideResults] = useState(false);
   const [term, setTerm] = useState('');
   const debouncedTerm = useDebouncedState(term);
   const [isFocused, setIsFocused] = useState(false);
-  const [selection, setSelection] = useState<any>();
 
-  const inputRef = useRef<FormFieldType<TextInput>>(null);
-
+  // Form
   const { fieldName, registerField, error } = useField(name);
 
   useEffect(() => {
@@ -85,39 +96,19 @@ const Suggest: React.FC<Props> = ({
 
   useEffect(() => {
     if (data !== undefined) {
-      setShowBottomBorders(data?.length === 0);
-      setHideResults(data?.length <= 0);
-    } else {
-      setShowBottomBorders(true);
+      setHideResults(!data?.length || !!selectedItem || !term?.length);
     }
-  }, [data]);
+  }, [data, selectedItem, term?.length]);
 
-  useEffect(() => {
-    if (Platform.OS === 'ios') {
-      return;
-    }
-    const length =
-      selectedItem && !isNaN(Object.keys(selectedItem)?.length) ? Object.keys(selectedItem)?.length : 0;
-    setSelection(isFocused ? { start: length, end: length } : { start: 0, end: 0 });
-    const timeout = setTimeout(() => setSelection(null), 0);
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [isFocused]); // eslint-disable-line
-
-  const onChangeText = (text: string) => {
+  const onChangeText = useCallback((text: string) => {
     setTerm(text);
-    setHideResults(false);
-    if (selectedItem && Object.keys(selectedItem)?.length > 0) {
-      setSelectedItem(undefined);
-    }
-  };
+    setHideResults(!text?.length);
+  }, []);
 
   const onPress = (item) => {
     if (!cleanOnPress) {
       setSelectedItem(item);
     }
-    setShowBottomBorders(true);
     setHideResults(true);
     onSelectItem && onSelectItem(item);
     setTerm('');
@@ -132,28 +123,63 @@ const Suggest: React.FC<Props> = ({
 
   const handleInputBlur = useCallback(() => setIsFocused(false), []);
 
-  const getColorByValidity = useCallback((validity?: boolean) => {
-    if (validity) {
-      return '#3a9def';
-    }
-    return '#ffc962';
-  }, []);
+  const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
-  const formattedColor = useMemo(() => {
-    if (isFocused) {
-      return '#3a9def';
+  const selectedColor: InputStyle = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
     }
+    return foundColor;
+  }, [color, ctx?.colors]);
 
+  const getColorTypeByValidity = useCallback(
+    (validity?: boolean) => {
+      if (validity) {
+        return selectedColor?.valid || selectedColor?.default;
+      }
+      return selectedColor?.invalid || selectedColor?.default;
+    },
+    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
+  );
+
+  const currentValidationStyles = useMemo(() => {
+    if (usingValidity) {
+      return getColorTypeByValidity(propValidity);
+    }
     if (selectedItem && Object.keys(selectedItem)?.length > 0) {
-      return getColorByValidity(!error);
+      return getColorTypeByValidity(!error);
     }
 
     if (!!error && !!selectedItem) {
-      return '#ffc962';
+      return selectedColor?.invalid || selectedColor?.default;
     }
 
-    return '#bbc8cf';
-  }, [error, getColorByValidity, isFocused, selectedItem]);
+    return selectedColor?.default;
+  }, [
+    usingValidity,
+    selectedItem,
+    error,
+    selectedColor.default,
+    selectedColor.invalid,
+    getColorTypeByValidity,
+    propValidity,
+  ]);
+
+  const handleInpuOnKeyPress = useCallback(
+    (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      if (!!selectedItem && event?.nativeEvent?.key === 'Backspace') {
+        setSelectedItem(undefined);
+      }
+    },
+    [selectedItem],
+  );
 
   const renderInput = useCallback(
     (props) => {
@@ -166,23 +192,36 @@ const Suggest: React.FC<Props> = ({
       delete props.value;
 
       return (
-        <InputContainer flexRow={!!inputIcon || loading}>
-          <Input
-            ref={props.ref}
-            selection={selection}
-            placeholder={placeholder}
-            placeholderTextColor="#b3c1c8"
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            value={value}
-            autoCorrect={false}
-            {...props}
-          />
-          {loading ? <ActivityIndicator /> : inputIcon}
-        </InputContainer>
+        <Input
+          ref={props.ref}
+          name={`inner-text-input-${fieldName}`}
+          color={color}
+          useValidityMark={!inputIcon && useValidityMark}
+          selectTextOnFocus
+          placeholder={placeholder}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          iconComponent={loading ? <ActivityIndicator /> : inputIcon}
+          autoCorrect={false}
+          {...props}
+          onKeyPress={(e) => {
+            handleInpuOnKeyPress(e);
+            props?.onKeyPress && props.onKeyPress(e);
+          }}
+          validity={!!selectedItem && !!value?.length ? !error : 'keepDefault'}
+          value={value}
+          style={
+            hideResults
+              ? {}
+              : {
+                  borderBottomLeftRadius: 0,
+                  borderBottomRightRadius: 0,
+                }
+          }
+        />
       );
     },
-    [cleanOnPress, handleInputBlur, handleInputFocus, inputIcon, loading, placeholder, selection, term],
+    [cleanOnPress, color, error, fieldName, handleInpuOnKeyPress, handleInputBlur, handleInputFocus, hideResults, inputIcon, loading, placeholder, selectedItem, term, useValidityMark],
   );
 
   return (
@@ -190,23 +229,44 @@ const Suggest: React.FC<Props> = ({
       ref={inputRef as any}
       data={data}
       renderItem={({ item }) => (
-        <Button onPress={() => onPress(item)}>
+        <Row onPress={() => onPress(item)}>
           {ListItemTextComponent ? <ListItemTextComponent item={item} /> : <Text>{item[listItemKey]}</Text>}
-        </Button>
+        </Row>
       )}
+      onChangeText={onChangeText}
       keyExtractor={(item, index) => index.toString()}
       hideResults={hideResults}
-      showBottomBorders={showBottomBorders}
-      textInputHeight={textInputHeight}
       renderTextInput={renderInput}
-      borderColor={formattedColor}
-      borderRadius={inputBorderRadius}
-      value={selectedItem && selectedItem[listItemKey]}
-      onChangeText={onChangeText}
-      listContainerStyle={data?.length > 0 && { height: data?.length * 28 }}
+      value={!!selectedItem && selectedItem[listItemKey]}
+      containerStyle={{
+        flexGrow: 1,
+        flexBasis: 'auto',
+        marginTop: 10,
+      }}
+      inputContainerStyle={{
+        flexGrow: 1,
+        flexShrink: 0,
+        flexBasis: 'auto',
+        borderWidth: 0,
+      }}
       flatListProps={{
         renderScrollComponent: (scrollProps) => <ScrollView {...scrollProps} />,
         showsVerticalScrollIndicator: false,
+        contentContainerStyle: {
+          flexGrow: 1,
+          flexShrink: 0,
+          flexBasis: 'auto',
+        },
+        style: {
+          position: 'relative',
+          borderBottomLeftRadius: inputBorderRadius || currentValidationStyles?.borderRadius,
+          borderBottomRightRadius: inputBorderRadius || currentValidationStyles?.borderRadius,
+          paddingTop: 8,
+          paddingBottom: 8,
+          borderWidth: 1,
+          maxHeight: 200,
+          borderColor: currentValidationStyles?.borderColor,
+        },
       }}
       {...rest}
     />

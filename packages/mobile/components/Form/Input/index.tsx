@@ -67,10 +67,9 @@ export interface InputProps<T = any>
   label?: string;
   containerProps?: ViewProps;
   useValidityMark?: boolean;
-  validity?: boolean;
+  validity?: boolean | 'keepDefault';
   onChangeValidity?: (isValid: boolean) => void;
   onMarkPress?: (event: GestureResponderEvent) => void;
-  onChangeText?: (text: string) => void;
   color?: string;
 }
 
@@ -89,6 +88,7 @@ const Component: InputComponent = ({
   onChangeValidity,
   onMarkPress,
   onChangeText,
+  style,
   ...rest
 }) => {
   const ctx = useContext<InputContextType>(InputContext);
@@ -103,13 +103,15 @@ const Component: InputComponent = ({
   const inputRef = useRef<InputFieldType>(null);
   const combinedRef = useCombinedRefs<InputFieldType>(outerRef, inputRef);
 
+  const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
+
   const handleOnChangeText = useCallback(
     (text: string) => {
       setValue(text || '');
+      !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(text || '');
       onChangeText && onChangeText(text || '');
-      combinedRef?.current?.validate && combinedRef.current.validate(text || '');
     },
-    [combinedRef, onChangeText],
+    [combinedRef, onChangeText, usingValidity],
   );
 
   useEffect(() => {
@@ -131,8 +133,6 @@ const Component: InputComponent = ({
       },
     });
   }, [combinedRef, fieldName, handleOnChangeText, registerField, value]);
-
-  const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
   const selectedColor: InputStyle = useMemo(() => {
     const colors = ctx?.colors || DefaultColors;
@@ -158,6 +158,9 @@ const Component: InputComponent = ({
 
   const currentValidationStyles = useMemo(() => {
     if (usingValidity) {
+      if (propValidity === 'keepDefault') {
+        return selectedColor?.default;
+      }
       return getColorTypeByValidity(propValidity);
     }
     if (value?.length > 0) {
@@ -236,32 +239,41 @@ const Component: InputComponent = ({
       <InputField
         ref={combinedRef}
         selection={selection}
-        onChangeText={handleOnChangeText}
         value={value}
         textAlignVertical={rest.multiline ? 'top' : 'center'}
         selectionColor={currentValidationStyles?.selectionColor}
         placeholderTextColor={currentValidationStyles?.placeholder}
-        style={{
-          borderColor: currentValidationStyles?.borderColor,
-          color: currentValidationStyles?.color,
-          borderRadius: selectedColor?.default?.borderRadius,
-          paddingRight: iconComponent ? 45 : 0,
-        }}
         {...rest}
+        style={[
+          {
+            borderColor: currentValidationStyles?.borderColor,
+            color: currentValidationStyles?.color,
+            borderRadius: selectedColor?.default?.borderRadius,
+            paddingRight: iconComponent ? 45 : 0,
+          },
+          style,
+        ]}
+        onChangeText={handleOnChangeText}
         onFocus={handleInputFocus}
         onBlur={handleInputBlur}
       />
       <IconContainer
         isMultiline={rest.multiline}
-        usingValidityMark={iconComponent && useValidityMark && value?.length > 0}>
-        {!iconComponent && useValidityMark && !!value?.length && (
-          <ValidityMarkComponent
-            isValid={!error}
-            colorName={selectedColor.name}
-            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
-            onPress={(e) => !!onMarkPress && onMarkPress(e)}
-          />
-        )}
+        usingValidityMark={
+          iconComponent &&
+          useValidityMark &&
+          (usingValidity ? propValidity !== 'keepDefault' && propValidity : value?.length > 0)
+        }>
+        {!iconComponent &&
+          useValidityMark &&
+          (usingValidity ? propValidity !== 'keepDefault' && propValidity : value?.length > 0) && (
+            <ValidityMarkComponent
+              isValid={!error}
+              colorName={selectedColor.name}
+              {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
+              onPress={(e) => !!onMarkPress && onMarkPress(e)}
+            />
+          )}
         {iconComponent}
       </IconContainer>
       {rest?.multiline && (
