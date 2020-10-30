@@ -96,9 +96,9 @@ const Suggest: React.FC<Props> = ({
 
   useEffect(() => {
     if (data !== undefined) {
-      setHideResults(!data?.length || !!selectedItem || !term?.length);
+      setHideResults(!data?.length || !isFocused || !!selectedItem || !term?.length);
     }
-  }, [data, selectedItem, term?.length]);
+  }, [data, isFocused, selectedItem, term?.length]);
 
   const onChangeText = useCallback((text: string) => {
     setTerm(text);
@@ -221,7 +221,22 @@ const Suggest: React.FC<Props> = ({
         />
       );
     },
-    [cleanOnPress, color, error, fieldName, handleInpuOnKeyPress, handleInputBlur, handleInputFocus, hideResults, inputIcon, loading, placeholder, selectedItem, term, useValidityMark],
+    [
+      cleanOnPress,
+      color,
+      error,
+      fieldName,
+      handleInpuOnKeyPress,
+      handleInputBlur,
+      handleInputFocus,
+      hideResults,
+      inputIcon,
+      loading,
+      placeholder,
+      selectedItem,
+      term,
+      useValidityMark,
+    ],
   );
 
   return (
