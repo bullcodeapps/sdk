@@ -1,11 +1,29 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext, useMemo, useCallback } from 'react';
 
-import { Container, CustomSlider, PointLabelBox, PointLabel, TouchablePointArea, PointCircle } from './styles';
+import {
+  Container,
+  CustomSlider,
+  PointLabelBox,
+  PointLabel,
+  TouchablePointArea,
+  PointCircle,
+  RangeInputStyles,
+  DefaultColors,
+} from './styles';
 import { ViewStyle } from 'react-native';
 import { useField } from '@unform/core';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { useDebouncedState } from '../../../../core/hooks';
 import { FormFieldType } from '..';
+
+export type RangeInputContextType = { colors: RangeInputStyles };
+
+export const RangeInputContext = React.createContext<RangeInputContextType>({ colors: null });
+
+export const setRangeInputColors = (colors: RangeInputStyles) => {
+  const ctx = useContext<RangeInputContextType>(RangeInputContext);
+  ctx.colors = colors;
+};
 
 export type RangeInputResponse = {
   min: number;
@@ -14,27 +32,37 @@ export type RangeInputResponse = {
 
 export type RangeInputProps = {
   name?: string;
+  color?: string;
+  labelPosition?: 'top' | 'bottom';
   style?: ViewStyle;
   initialPoint: number;
   endPoint: number;
   minValue: number;
   maxValue: number;
-  onValuesChange?: (values: RangeInputResponse) => void;
   optionsArray?: number[];
+  labelFormatter?: (value: number) => void;
+  onValuesChange?: (values: RangeInputResponse) => void;
 };
 
 type FieldType = FormFieldType<MultiSlider>;
 
-const RangeInput = ({
+type RangeInputComponent = React.FC<RangeInputProps>;
+
+const RangeInput: RangeInputComponent = ({
   name,
+  color,
+  labelPosition,
   style,
   initialPoint,
   endPoint,
   minValue,
   maxValue,
   optionsArray,
+  labelFormatter,
   onValuesChange,
-}: RangeInputProps) => {
+}) => {
+  const ctx = useContext<RangeInputContextType>(RangeInputContext);
+
   // States
   const [values, setValues] = useState<RangeInputResponse>({ min: initialPoint, max: endPoint });
   const { fieldName, registerField } = useField(name);
@@ -86,32 +114,69 @@ const RangeInput = ({
     sliderRef?.current?.validate && sliderRef.current.validate(debouncedValues);
   }, [debouncedValues]);
 
-  const CustomMarker = () => (
-    <TouchablePointArea activeOpacity={0.8}>
-      <PointCircle />
-    </TouchablePointArea>
+  const selectedColor = useMemo(() => {
+    const colors = ctx?.colors;
+    if (!color && !!colors?.length) {
+      const foundColor = colors?.find((_color) => _color.name === 'default');
+      if (foundColor) {
+        return foundColor;
+      }
+      return DefaultColors[0];
+    }
+    const foundColor = colors?.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
+    }
+    return foundColor;
+  }, [color, ctx?.colors]);
+
+  const CustomMarker = useCallback(
+    () => (
+      <TouchablePointArea activeOpacity={0.8}>
+        <PointCircle style={selectedColor?.markerStyle} />
+      </TouchablePointArea>
+    ),
+    [selectedColor?.markerStyle],
+  );
+
+  const CustomLabel = useCallback(
+    ({ oneMarkerValue, oneMarkerLeftPosition, twoMarkerValue, twoMarkerLeftPosition }) => {
+      const firstLabel = labelFormatter ? labelFormatter(oneMarkerValue) : oneMarkerValue;
+      const secondLabel = labelFormatter ? labelFormatter(twoMarkerValue) : twoMarkerValue;
+      return (
+        <>
+
+          <PointLabelBox
+            style={{ left: oneMarkerLeftPosition, ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }) }}>
+            <PointLabel>{firstLabel}</PointLabel>
+          </PointLabelBox>
+          <PointLabelBox
+            style={{ left: twoMarkerLeftPosition, ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }) }}>
+            <PointLabel>{secondLabel}</PointLabel>
+          </PointLabelBox>
+        </>
+      );
+    },
+    [labelFormatter, labelPosition],
   );
 
   return (
     <Container style={style}>
       <CustomSlider
         ref={sliderRef}
-        customLabel={({ oneMarkerValue, oneMarkerLeftPosition, twoMarkerValue, twoMarkerLeftPosition }) => (
-          <>
-            <PointLabelBox style={{ left: oneMarkerLeftPosition }}>
-              <PointLabel>{oneMarkerValue}</PointLabel>
-            </PointLabelBox>
-            <PointLabelBox style={{ left: twoMarkerLeftPosition }}>
-              <PointLabel>{twoMarkerValue}</PointLabel>
-            </PointLabelBox>
-          </>
-        )}
+        customLabel={CustomLabel}
+        containerStyle={labelPosition === 'bottom' ? { paddingBottom: 15 } : { paddingTop: 15 }}
         onValuesChange={handleValuesChange}
         customMarker={CustomMarker}
         values={[values?.min, values?.max]}
         min={minValue}
         max={maxValue}
         optionsArray={optionsArray}
+        trackStyle={selectedColor?.trackStyle}
+        selectedStyle={selectedColor?.selectedStyle}
       />
     </Container>
   );
