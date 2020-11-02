@@ -10,7 +10,7 @@ import {
   RangeInputStyles,
   DefaultColors,
 } from './styles';
-import { ViewStyle } from 'react-native';
+import { ViewStyle, LayoutChangeEvent } from 'react-native';
 import { useField } from '@unform/core';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { useDebouncedState } from '../../../../core/hooks';
@@ -66,6 +66,7 @@ const RangeInput: RangeInputComponent = ({
   // States
   const [values, setValues] = useState<RangeInputResponse>({ min: initialPoint, max: endPoint });
   const { fieldName, registerField } = useField(name);
+  const [sliderWidth, setSliderWidth] = useState<number>();
 
   // Debounce
   const debouncedValues = useDebouncedState(values);
@@ -148,7 +149,6 @@ const RangeInput: RangeInputComponent = ({
       const secondLabel = labelFormatter ? labelFormatter(twoMarkerValue) : twoMarkerValue;
       return (
         <>
-
           <PointLabelBox
             style={{ left: oneMarkerLeftPosition, ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }) }}>
             <PointLabel>{firstLabel}</PointLabel>
@@ -163,10 +163,15 @@ const RangeInput: RangeInputComponent = ({
     [labelFormatter, labelPosition],
   );
 
+  const handleOnLayoutContainer = (event: LayoutChangeEvent) => {
+    setSliderWidth(event?.nativeEvent?.layout?.width);
+  };
+
   return (
-    <Container style={style}>
+    <Container style={style} onLayout={handleOnLayoutContainer}>
       <CustomSlider
         ref={sliderRef}
+        sliderLength={sliderWidth}
         customLabel={CustomLabel}
         containerStyle={labelPosition === 'bottom' ? { paddingBottom: 15 } : { paddingTop: 15 }}
         onValuesChange={handleValuesChange}
