@@ -24,6 +24,56 @@ export function currencyFormat(value: number, style = 'currency', language: stri
   });
 }
 
+export type UnitSystemType = 'metric' | 'imperial';
+export enum UnitSystem {
+  METRIC = 'metric',
+  IMPERIAL = 'imperial',
+}
+
+export enum MetricUnitName {
+  MILIMITER = 'mm',
+  CENTIMETER = 'cm',
+  METER = 'm',
+  KILOMETER = 'km',
+  MEGAMETERS = 'Mm',
+}
+
+export enum ImperialUnitName {
+  INCH = 'in',
+  FOOT = 'ft',
+  YARD = 'yd',
+  MILE = 'mi',
+  NAUTICAL_MILE = 'nm',
+}
+
+export enum MetricUnitLevel {
+  MILIMITER,
+  CENTIMETER,
+  METER,
+  KILOMETER,
+  MEGAMETERS,
+}
+
+export enum ImperialUnitLevel {
+  INCH,
+  FOOT,
+  YARD,
+  MILE,
+  NAUTICAL_MILE,
+}
+
+export type UnitLevels = MetricUnitLevel | ImperialUnitLevel;
+
+export function distanceFormat(value: number, level: UnitLevels = MetricUnitLevel.CENTIMETER, unitSystem: UnitSystemType = 'metric' ) {
+  let unit;
+  if (unitSystem === UnitSystem?.METRIC) {
+    unit = Object.values(MetricUnitName)[level];
+  } else {
+    unit = Object.values(ImperialUnitName)[level];
+  }
+  return unit === UnitSystem?.METRIC ? `${value} ${unit}` : `${value} ${unit}`;
+}
+
 const patterns = [
   /(Z)$/, // Z
   /([+-])(\d{2})$/, // ±hh
