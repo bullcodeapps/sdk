@@ -1,12 +1,16 @@
 import styled from 'styled-components/native';
 import { Animated } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { windowWidth } from '../../../global-styles';
 
 export type RangeInputStyle = {
   name: string;
-  markerStyle: {
-    backgroundColor: string;
+  marker: {
+    defaultStyle: {
+      backgroundColor: string;
+    },
+    disabledStyle: {
+      backgroundColor: string;
+    },
   };
   trackStyle: {
     backgroundColor: string;
@@ -22,8 +26,13 @@ export type RangeInputStyles = Array<RangeInputStyle>;
 export const DefaultColors: RangeInputStyles = [
   {
     name: 'primary',
-    markerStyle: {
-      backgroundColor: '#3a9def',
+    marker: {
+      defaultStyle: {
+        backgroundColor: '#3a9def',
+      },
+      disabledStyle: {
+        backgroundColor: '#d2d2d2',
+      }
     },
     trackStyle: {
       backgroundColor: '#B2C1C8',
@@ -40,12 +49,7 @@ export const Container = styled.View`
   margin-top: 10px;
 `;
 
-export const CustomSlider = styled(MultiSlider).attrs({
-  enableLabel: true,
-  enabledOne: true,
-  enabledTwo: true,
-  sliderLength: windowWidth - 45 - 40,
-})`
+export const CustomSlider = styled(MultiSlider)`
   position: relative;
 `;
 

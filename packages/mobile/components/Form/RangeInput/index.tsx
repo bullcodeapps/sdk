@@ -12,7 +12,7 @@ import {
 } from './styles';
 import { ViewStyle, LayoutChangeEvent } from 'react-native';
 import { useField } from '@unform/core';
-import MultiSlider from '@ptomasroos/react-native-multi-slider';
+import MultiSlider, { MarkerProps } from '@ptomasroos/react-native-multi-slider';
 import { useDebouncedState } from '../../../../core/hooks';
 import { FormFieldType } from '..';
 
@@ -35,10 +35,13 @@ export type RangeInputProps = {
   color?: string;
   labelPosition?: 'top' | 'bottom';
   style?: ViewStyle;
-  initialPoint: number;
-  endPoint: number;
+  initialPoint?: number;
+  endPoint?: number;
   minValue: number;
   maxValue: number;
+  enabledOne?: boolean;
+  enabledTwo?: boolean;
+  enableLabel?: boolean;
   optionsArray?: number[];
   labelFormatter?: (value: number) => void;
   onValuesChange?: (values: RangeInputResponse) => void;
@@ -57,6 +60,9 @@ const RangeInput: RangeInputComponent = ({
   endPoint,
   minValue,
   maxValue,
+  enabledOne = true,
+  enabledTwo = false,
+  enableLabel = true,
   optionsArray,
   labelFormatter,
   onValuesChange,
@@ -135,12 +141,14 @@ const RangeInput: RangeInputComponent = ({
   }, [color, ctx?.colors]);
 
   const CustomMarker = useCallback(
-    () => (
+    ({ enabled }: MarkerProps) => (
       <TouchablePointArea activeOpacity={0.8}>
-        <PointCircle style={selectedColor?.markerStyle} />
+        <PointCircle
+          style={enabled ? selectedColor?.marker?.defaultStyle : selectedColor?.marker?.disabledStyle}
+        />
       </TouchablePointArea>
     ),
-    [selectedColor?.markerStyle],
+    [selectedColor?.marker?.defaultStyle, selectedColor?.marker?.disabledStyle],
   );
 
   const CustomLabel = useCallback(
@@ -149,23 +157,44 @@ const RangeInput: RangeInputComponent = ({
       const secondLabel = labelFormatter ? labelFormatter(twoMarkerValue) : twoMarkerValue;
       return (
         <>
-          <PointLabelBox
-            style={{ left: oneMarkerLeftPosition, ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }) }}>
-            <PointLabel>{firstLabel}</PointLabel>
-          </PointLabelBox>
-          <PointLabelBox
-            style={{ left: twoMarkerLeftPosition, ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }) }}>
-            <PointLabel>{secondLabel}</PointLabel>
-          </PointLabelBox>
+          {(enabledOne || initialPoint) && (
+            <PointLabelBox
+              style={{
+                left: oneMarkerLeftPosition,
+                ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }),
+              }}>
+              <PointLabel>{firstLabel}</PointLabel>
+            </PointLabelBox>
+          )}
+          {(enabledTwo || endPoint) && (
+            <PointLabelBox
+              style={{
+                left: twoMarkerLeftPosition,
+                ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }),
+              }}>
+              <PointLabel>{secondLabel}</PointLabel>
+            </PointLabelBox>
+          )}
         </>
       );
     },
-    [labelFormatter, labelPosition],
+    [enabledOne, enabledTwo, endPoint, initialPoint, labelFormatter, labelPosition],
   );
 
   const handleOnLayoutContainer = (event: LayoutChangeEvent) => {
     setSliderWidth(event?.nativeEvent?.layout?.width);
   };
+
+  const rangeValues = useMemo(() => {
+    let arrayOfValues = [];
+    if (!isNaN(values?.min)) {
+      arrayOfValues?.push(values?.min);
+    }
+    if (!isNaN(values?.max)) {
+      arrayOfValues?.push(values?.max);
+    }
+    return arrayOfValues;
+  }, [values.max, values.min]);
 
   return (
     <Container style={style} onLayout={handleOnLayoutContainer}>
@@ -176,12 +205,15 @@ const RangeInput: RangeInputComponent = ({
         containerStyle={labelPosition === 'bottom' ? { paddingBottom: 15 } : { paddingTop: 15 }}
         onValuesChange={handleValuesChange}
         customMarker={CustomMarker}
-        values={[values?.min, values?.max]}
+        values={rangeValues}
         min={minValue}
         max={maxValue}
         optionsArray={optionsArray}
         trackStyle={selectedColor?.trackStyle}
         selectedStyle={selectedColor?.selectedStyle}
+        enabledOne={enabledOne}
+        enabledTwo={enabledTwo}
+        enableLabel={enableLabel}
       />
     </Container>
   );

@@ -9,7 +9,6 @@ export {default as PhoneInput} from './Form/PhoneInput';
 export {default as RangeInput, setRangeInputColors} from './Form/RangeInput';
 export {default as RatingStars} from './Form/RatingStars';
 export {default as Select} from './Form/Select';
-export {default as SliderInput} from './Form/SliderInput';
 export {default as Suggest} from './Form/Suggest';
 export {default as SuggestGooglePlaces} from './Form/SuggestGooglePlaces';
 export {default as Switch, setSwitchColors} from './Form/Switch';
