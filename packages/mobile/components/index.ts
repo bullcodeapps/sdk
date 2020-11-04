@@ -22,4 +22,5 @@ export {default as Section} from './Section';
 export {default as Swipeable} from './Swipeable';
 export {default as Touchable} from './Touchable';
 export {default as Text, setTextTypes} from './Text';
+export {default as ListPageIndicator} from './ListPageIndicator';
 export {Toast, ToastActions, ToastActionsCreators, toastReducer} from './Toast';
