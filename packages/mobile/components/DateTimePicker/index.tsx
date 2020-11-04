@@ -331,7 +331,8 @@ const DateTimePicker = ({
             minimumDate={minDate}
             mode={mode as 'date' | 'time' | 'datetime' | 'countdown'}
             onChange={selectDate}
-            {...(isIOS14 ? { display: 'spinner' } : { textColor: 'black' })} // on ios 14+ causes crash
+            display="spinner"
+            textColor="black"
           />
         </ModalViewBottom>
       </Modal>
