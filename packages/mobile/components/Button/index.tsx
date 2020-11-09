@@ -137,7 +137,7 @@ const Component: ButtonComponent = ({
         onShowUnderlay={() => setShowingUnderlay(true)}
         onHideUnderlay={() => setShowingUnderlay(false)}
         onPress={(e) => !loading && !disabled && onPress && onPress(e)}>
-        <ButtonBox style={[buttonColorStyles, rest?.style]} {...rest}>
+        <ButtonBox {...rest} style={[buttonColorStyles, rest?.style]}>
           {loading ? (
             <ActivityIndicator
               size={loadingSize || 'small'}
