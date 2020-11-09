@@ -23,4 +23,6 @@ export {default as Swipeable} from './Swipeable';
 export {default as Touchable} from './Touchable';
 export {default as Text, setTextTypes} from './Text';
 export {default as ListPageIndicator} from './ListPageIndicator';
+export {useModal, ModalProvider} from './Modal';
+export {default as ModalContainer} from './Modal/ModalContainer';
 export {Toast, ToastActions, ToastActionsCreators, toastReducer} from './Toast';
