@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import styled from 'styled-components/native';
 import BaseAutocomplete from 'react-native-autocomplete-input';
 import { TouchableOpacity, BaseButtonProperties } from 'react-native-gesture-handler';
-import { Input as DefaultInput } from '@bullcode/mobile/components';
+import DefaultInput from '@bullcode/mobile/components/Form/Input';
 
 export const Autocomplete = styled(BaseAutocomplete)``;
 
