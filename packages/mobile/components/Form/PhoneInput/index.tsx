@@ -280,8 +280,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
         padding: 0,
         paddingLeft: 20,
         paddingRight: 25 + 5, // IconContainer size + left space
-        borderTopLeftRadius: 50,
-        borderBottomLeftRadius: 50,
         fontSize: 16,
         fontWeight: 'bold',
         color: currentValidationStyles?.select?.color,
