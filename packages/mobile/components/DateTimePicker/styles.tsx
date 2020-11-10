@@ -1,6 +1,6 @@
 import styled from 'styled-components/native';
-import ClockSvg from '../../../core/assets/icons/clock.svg';
-import CalendarSvg from '../../../core/assets/icons/simple-calendar.svg';
+import ClockSvg from '@bullcode/core/assets/icons/clock.svg';
+import CalendarSvg from '@bullcode/core/assets/icons/simple-calendar.svg';
 import DefaultInput, { InputComponent } from '../../components/Form/Input';
 import { FormFieldType } from '../../components/Form';
 import { Animated, TextInput } from 'react-native';
@@ -74,16 +74,12 @@ export const ModalViewBottom = styled.View`
   background-color: #d0d4da;
 `;
 
-export const ClockIcon = styled(ClockSvg)<{ defaultColor: 'primary' | 'secondary' }>`
+export const ClockIcon = styled(ClockSvg)`
   width: 20px;
   height: 20px;
-  ${(props) =>
-    props?.defaultColor === 'primary' ? `color: #bbc8cf;` : `color: #ffffff`}
 `;
 
-export const CalendarIcon = styled(CalendarSvg)<{ defaultColor: 'primary' | 'secondary' }>`
+export const CalendarIcon = styled(CalendarSvg)`
   width: 20px;
   height: 20px;
-  ${(props) =>
-    props?.defaultColor === 'primary' ? `color: #bbc8cf;` : `color: #ffffff`}
 `;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } from 'react';
 
 import {
   FieldType,
@@ -13,7 +13,7 @@ import {
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
-import { InputProps } from '../Form/Input';
+import { InputProps, InputContextType, InputContext } from '../Form/Input';
 import {
   format,
   isAfter,
@@ -25,18 +25,13 @@ import {
   isValid as isValidDate,
 } from 'date-fns';
 import { useField } from '@unform/core';
-
-const isIOS14 = Platform.OS === 'ios' && +Platform.Version >= 14;
-
-interface Props {
-  style?: any;
-  containerStyle?: ViewStyle;
-}
+import { InputStyle, DefaultColors } from '@bullcode/mobile/components/Form/Input/styles';
+import { SvgProps } from 'react-native-svg';
 
 export type DateTimePickerProps = {
   name?: string;
   mode?: 'date' | 'time';
-  color?: 'primary' | 'secondary';
+  color?: string;
   placeholder?: string;
   displayFormat?: string;
   value?: Date;
@@ -48,14 +43,14 @@ export type DateTimePickerProps = {
   minuteInterval?: 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30;
   onChange?: (value: Date) => void;
   language?: string;
-  inputProps?: InputProps & Props;
+  inputProps?: InputProps;
   icon?: any;
 };
 
 const DateTimePicker = ({
   name,
   mode = 'date',
-  color = 'primary',
+  color,
   placeholder = 'date',
   value,
   doneText = 'Done',
@@ -69,6 +64,8 @@ const DateTimePicker = ({
   icon: Icon,
   ...rest
 }: DateTimePickerProps) => {
+  const ctx = useContext<InputContextType>(InputContext);
+
   const animationType = 'slide';
 
   // States
@@ -79,7 +76,7 @@ const DateTimePicker = ({
   // Refs
   const inputRef = useRef<FieldType>(null);
 
-  const isValid = useMemo(() => !error, [error]);
+  const usingValidity = useMemo(() => ![undefined, null].includes(inputProps?.validity), [inputProps?.validity]);
 
   const onChangeValue = useCallback(
     ({ currentDate, validate = true }: { currentDate: any; validate?: boolean }) => {
@@ -263,24 +260,53 @@ const DateTimePicker = ({
     togglePicker();
   }, [date, onChangeValue, togglePicker]);
 
-  const formattedColor = useMemo(() => {
-    if (date) {
-      if (isValid) {
-        return color === 'primary' ? '#3a9def' : '#00f2d5';
-      }
-      return '#ffc962';
+  const selectedColor: InputStyle = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
     }
-    return color === 'primary' ? '#bbc8cf' : '#ffffff';
-  }, [color, date, isValid]);
+    return foundColor;
+  }, [color, ctx?.colors]);
 
-  const defaultIcon = useMemo(
-    () =>
-      mode === 'time' ? (
-        <ClockIcon defaultColor={color} color={formattedColor} />
-      ) : (
-        <CalendarIcon defaultColor={color} color={formattedColor} />
-      ),
-    [color, formattedColor, mode],
+  const getColorTypeByValidity = useCallback(
+    (validity?: boolean) => {
+      if (validity) {
+        return selectedColor?.valid || selectedColor?.default;
+      }
+      return selectedColor?.invalid || selectedColor?.default;
+    },
+    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
+  );
+
+  const currentValidationStyles = useMemo(() => {
+    if (usingValidity) {
+      if (inputProps?.validity === 'keepDefault') {
+        return selectedColor?.default;
+      }
+      return getColorTypeByValidity(inputProps?.validity);
+    }
+    if (date) {
+      return selectedColor?.valid || selectedColor?.default;
+    }
+
+    return selectedColor?.default;
+  }, [
+    error,
+    getColorTypeByValidity,
+    inputProps?.validity,
+    selectedColor?.default,
+    selectedColor?.invalid,
+    usingValidity,
+    date,
+  ]);
+
+  const DefaultIcon = useCallback(
+    (props: SvgProps) => (mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />),
+    [mode],
   );
 
   return (
@@ -291,10 +317,15 @@ const DateTimePicker = ({
             ref={inputRef}
             name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
             editable={false}
-            validity={date && isValid}
+            validity={date && !error}
             placeholder={placeholder}
             value={date && getDateFormatted(date)}
-            iconComponent={Icon ? <Icon defaultColor={color} color={formattedColor} /> : defaultIcon}
+            iconComponent={() => {
+              if (Icon) {
+                return <Icon color={currentValidationStyles?.borderColor} />;
+              }
+              return <DefaultIcon color={currentValidationStyles?.borderColor} />;
+            }}
             color={color}
             {...inputProps}
           />
