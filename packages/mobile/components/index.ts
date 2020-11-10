@@ -5,7 +5,7 @@ export {default as DateTimePicker} from './DateTimePicker';
 export {default as ChipButton} from './Form/ChipButton';
 export {default as ChipsList} from './Form/ChipsList';
 export {default as Input, setInputColors } from './Form/Input';
-export {default as PhoneInput} from './Form/PhoneInput';
+export {default as PhoneInput, setPhoneInputColors} from './Form/PhoneInput';
 export {default as RangeInput, setRangeInputColors} from './Form/RangeInput';
 export {default as RatingStars} from './Form/RatingStars';
 export {default as Select} from './Form/Select';

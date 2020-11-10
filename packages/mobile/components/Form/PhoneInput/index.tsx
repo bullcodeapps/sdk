@@ -1,8 +1,8 @@
-import React, { Dispatch, SetStateAction, useCallback, useEffect, useState, useMemo, ComponentType } from 'react';
-import { Animated, StyleSheet, TextInput, GestureResponderEvent } from 'react-native';
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useState, useMemo, useContext } from 'react';
+import { TextInput, GestureResponderEvent, ViewStyle } from 'react-native';
 
 import Select, { SelectItem, SelectStyle } from '../../../components/Form/Select';
-import { PhoneInputContainer, PhoneInput as Input } from './styles';
+import { PhoneInputContainer, Input, PhoneInputStyles, PhoneInputStyle, DefaultColors } from './styles';
 
 import getUnicodeFlagIcon from 'country-flag-icons/unicode';
 import {
@@ -15,47 +15,60 @@ import {
 } from 'libphonenumber-js';
 import { useField } from '@unform/core';
 import { useCombinedRefs } from '../../../../core/hooks';
-import ValidityMark from '../../../components/Form/Input/ValidityMark';
-import { IconContainer } from '../../../components/Form/Input/styles';
-import { InputComponent, InputRef, InputFieldType } from '../Input';
+import { InputRef, InputFieldType, InputProps } from '../Input';
+import ValidityMark from '@bullcode/mobile/components/Form/Input/ValidityMark';
+import { PickerStyle } from 'react-native-picker-select';
+
+export type PhoneInputContextType = { colors: PhoneInputStyles };
+
+export const PhoneInputContext = React.createContext<PhoneInputContextType>({ colors: null });
+
+export const setPhoneInputColors = (colors: PhoneInputStyles) => {
+  const ctx = useContext<PhoneInputContextType>(PhoneInputContext);
+  ctx.colors = colors;
+};
 
 export type CountryCode = PNCountryCode;
 
 export type CustomProps = {
-  color?: 'primary' | 'secondary';
   name?: string;
   inputRef?: React.MutableRefObject<InputRef>;
   nextInputRef?: React.MutableRefObject<InputRef>;
   placeholder?: string;
   useValidityMark?: boolean;
   defaultCountry?: CountryCode;
+  containerStyle?: ViewStyle;
+  selectStyle?: SelectStyle & PickerStyle;
   onChange?: Dispatch<SetStateAction<string>>;
   onChangeCountry?: Dispatch<SetStateAction<CountryCode>>;
   onMarkPress?: (event?: GestureResponderEvent) => void;
 };
 
-export type PhoneInputProps = CustomProps & InputComponent;
+export type PhoneInputProps = CustomProps & Omit<InputProps, 'name'>;
 
 const PhoneInput: React.FC<PhoneInputProps> = ({
-  color = 'primary',
   name,
   inputRef,
   nextInputRef,
   placeholder,
   useValidityMark,
   defaultCountry,
+  containerStyle,
+  selectStyle = {},
   onChange,
   onChangeCountry,
   onMarkPress,
   ...rest
 }) => {
+  const ctx = useContext<PhoneInputContextType>(PhoneInputContext);
+
   // States
   const [countries, setCountries] = useState<SelectItem[]>([]);
   const [localSelectedCountry, setLocalSelectedCountry] = useState<CountryCode>(defaultCountry);
   const [selectIsValid, setSelectIsValid] = useState<boolean>();
   const [inputIsValid, setInputIsValid] = useState<boolean>();
   const [phone, setPhone] = useState<string>();
-  const { fieldName, registerField } = useField(name);
+  const { fieldName, registerField, error } = useField(name);
 
   // Refs
   const combinedRef = useCombinedRefs<InputFieldType>(inputRef);
@@ -175,31 +188,145 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     });
   }, [clear, combinedRef, defaultCountry, fieldName, getValue, registerField, setValue]);
 
-  const formattedColor = useMemo(() => {
-    if (phone && phone.length > 0) {
-      if (isValid) {
-        return color === 'primary' ? '#3a9def' : '#00f2d5';
-      }
-      return '#ffc962';
+  const usingValidity = useMemo(() => ![undefined, null].includes(rest?.validity), [rest?.validity]);
+
+  const selectedColor: PhoneInputStyle = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === rest?.color);
+    if (!foundColor) {
+      console.log(
+        `The "${rest?.color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
     }
-    return color === 'primary' ? '#bbc8cf' : '#ffffff';
-  }, [color, isValid, phone]);
+    return foundColor;
+  }, [rest?.color, ctx?.colors]);
+
+  const getColorTypeByValidity = useCallback(
+    (validity?: boolean) => {
+      if (validity) {
+        return selectedColor?.valid || selectedColor?.default;
+      }
+      return selectedColor?.invalid || selectedColor?.default;
+    },
+    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
+  );
+
+  const currentValidationStyles = useMemo(() => {
+    if (usingValidity) {
+      if (rest?.validity === 'keepDefault') {
+        return selectedColor?.default;
+      }
+      return getColorTypeByValidity(rest?.validity);
+    }
+    if (phone?.length > 0) {
+      return getColorTypeByValidity(isValid);
+    }
+
+    if (isValid && !!phone) {
+      return selectedColor?.invalid || selectedColor?.default;
+    }
+
+    return selectedColor?.default;
+  }, [
+    usingValidity,
+    phone,
+    isValid,
+    selectedColor?.default,
+    selectedColor?.invalid,
+    rest?.validity,
+    getColorTypeByValidity,
+  ]);
+
+  const defaultSelectStyle: SelectStyle = useMemo(
+    () => ({
+      selectContainer: {
+        flexGrow: 1,
+        marginTop: 0,
+        alignSelf: 'stretch',
+        maxWidth: 125,
+      },
+      viewContainer: {
+        flexGrow: 1,
+      },
+      placeholder: {
+        color: currentValidationStyles?.select?.placeholder,
+      },
+      inputIOSContainer: {
+        flexGrow: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        height: '100%',
+      },
+      inputIOS: {
+        flexGrow: 1,
+        height: '100%',
+        paddingLeft: 20,
+        paddingRight: 25 + 5, // IconContainer size + left space
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: currentValidationStyles?.select?.color,
+        backgroundColor: currentValidationStyles?.select?.backgroundColor,
+      },
+      inputAndroidContainer: {
+        flexGrow: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        height: '100%',
+      },
+      inputAndroid: {
+        flexGrow: 1,
+        height: '100%',
+        padding: 0,
+        paddingLeft: 20,
+        paddingRight: 25 + 5, // IconContainer size + left space
+        borderTopLeftRadius: 50,
+        borderBottomLeftRadius: 50,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: currentValidationStyles?.select?.color,
+        backgroundColor: currentValidationStyles?.select?.backgroundColor,
+      },
+      iconContainer: {
+        paddingTop: 3,
+        paddingRight: 5,
+      },
+    }),
+    [
+      currentValidationStyles?.select?.backgroundColor,
+      currentValidationStyles?.select?.color,
+      currentValidationStyles?.select?.placeholder,
+    ],
+  );
 
   return (
-    <PhoneInputContainer color={color} style={{ borderColor: formattedColor }}>
+    <PhoneInputContainer
+      color={rest?.color}
+      style={[
+        {
+          borderRadius: selectedColor?.default?.borderRadius,
+          borderColor: currentValidationStyles?.input?.borderColor,
+        },
+        containerStyle,
+      ]}>
       <Select
         items={countries}
-        name="country"
+        name={`country-select-${name}`}
         defaultValue={defaultCountry}
         value={localSelectedCountry}
         onValueChange={(value: string | number | Object) => handleChangeCountry(value as CountryCode)}
         onChangeValidity={setSelectIsValid}
-        style={pickerStyle({ color })}
-        iconStyle={iconStyles.iconStyle}
+        style={{ ...defaultSelectStyle, ...selectStyle }}
+        iconStyle={{
+          iconStyle: {
+            color: currentValidationStyles?.select?.color,
+          },
+        }}
       />
       <Input
         ref={combinedRef}
-        name="formatted"
+        name={`formatted-number-input-${name}`}
+        validity={!phone?.length ? 'keepDefault' : isValid}
         value={phone}
         placeholder={placeholder}
         maxLength={35}
@@ -209,84 +336,37 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           nextInputRef && nextInputRef.current?.focus();
         }}
         onChangeValidity={setInputIsValid}
-        color={color}
         keyboardType={'phone-pad'}
         {...rest}
+        selectionColor={currentValidationStyles?.input?.selectionColor}
+        style={[
+          {
+            backgroundColor: currentValidationStyles?.input?.backgroundColor || 'transparent',
+            borderColor: currentValidationStyles?.input?.borderColor,
+            color: currentValidationStyles?.input?.color,
+            borderRadius: selectedColor?.default?.borderRadius,
+            paddingRight: usingValidity && useValidityMark ? 45 : 0,
+          },
+          rest?.style,
+        ]}
+        iconComponent={(props) => {
+          if (selectedColor?.validityMarkComponent) {
+            const CustomValidityMark = selectedColor?.validityMarkComponent;
+            return <CustomValidityMark {...props} />;
+          }
+          return phone?.length > 0 ? (
+            <ValidityMark
+              isValid={isValid}
+              colors={selectedColor?.validityMark}
+              onPress={(e) => {
+                !!onMarkPress && onMarkPress(e);
+              }}
+            />
+          ) : null;
+        }}
       />
-      {useValidityMark && phone?.length > 0 && (
-        <IconContainer>
-          <ValidityMark
-            isValid={isValid}
-            color={formattedColor}
-            onPress={(e) => !!onMarkPress && onMarkPress(e)}
-          />
-        </IconContainer>
-      )}
     </PhoneInputContainer>
   );
 };
-
-const pickerStyle = ({ color }) =>
-  StyleSheet.create({
-    selectContainer: {
-      flexGrow: 1,
-      marginTop: 0,
-      alignSelf: 'stretch',
-      maxWidth: 125,
-    },
-    viewContainer: {
-      flexGrow: 1,
-    },
-    placeholder: {
-      color: color === 'primary' ? '#2d2d30' : '#fff',
-    },
-    inputIOSContainer: {
-      flexGrow: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      height: '100%',
-    },
-    inputIOS: {
-      flexGrow: 1,
-      height: '100%',
-      paddingLeft: 20,
-      paddingRight: 25 + 5, // IconContainer size + left space
-      borderTopLeftRadius: 50,
-      borderBottomLeftRadius: 50,
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: color === 'primary' ? '#2d2d30' : '#fff',
-      backgroundColor: color === 'primary' ? '#bbc8cf' : '#085d96',
-    },
-    inputAndroidContainer: {
-      flexGrow: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      height: '100%',
-    },
-    inputAndroid: {
-      flexGrow: 1,
-      height: '100%',
-      padding: 0,
-      paddingLeft: 20,
-      paddingRight: 25 + 5, // IconContainer size + left space
-      borderTopLeftRadius: 50,
-      borderBottomLeftRadius: 50,
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: color === 'primary' ? '#2d2d30' : '#fff',
-      backgroundColor: color === 'primary' ? '#bbc8cf' : '#085d96',
-    },
-    iconContainer: {
-      paddingTop: 3,
-      paddingRight: 5,
-    },
-  } as SelectStyle);
-
-const iconStyles = StyleSheet.create({
-  iconStyle: {
-    color: '#2d2d30',
-  },
-});
 
 export default PhoneInput;

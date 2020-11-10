@@ -36,6 +36,7 @@ import {
   DefaultColors,
   InputStyles,
   InputStyle,
+  ValidityMarkComponentType,
 } from './styles';
 import { useField } from '@unform/core';
 import { useCombinedRefs } from '../../../../core/hooks';
@@ -62,7 +63,7 @@ export interface InputProps<T = any>
   ref?: Ref<InputRef<T>>;
   outerRef?: Ref<InputRef<T>>;
   name?: any;
-  iconComponent?: any;
+  iconComponent?: ValidityMarkComponentType;
   containerStyle?: any;
   label?: string;
   containerProps?: ViewProps;
@@ -218,16 +219,14 @@ const Component: InputComponent = ({
     };
   }, [isFocused]); // eslint-disable-line
 
-  const ValidityMarkComponent: React.FC<{
-    isValid?: boolean;
-    colorName?: string;
-    onPress: (data: any) => void;
-  }> = useMemo(() => {
+  const ValidityMarkComponent: ValidityMarkComponentType = useMemo(() => {
     if (!selectedColor?.validityMarkComponent) {
       return ValidityMark;
     }
     return selectedColor?.validityMarkComponent;
   }, [selectedColor.validityMarkComponent]);
+
+  const IconComponent = iconComponent;
 
   return (
     <Container style={containerStyle} {...containerProps}>
@@ -246,6 +245,7 @@ const Component: InputComponent = ({
         {...rest}
         style={[
           {
+            backgroundColor: currentValidationStyles?.backgroundColor || 'transparent',
             borderColor: currentValidationStyles?.borderColor,
             color: currentValidationStyles?.color,
             borderRadius: selectedColor?.default?.borderRadius,
@@ -274,7 +274,14 @@ const Component: InputComponent = ({
               onPress={(e) => !!onMarkPress && onMarkPress(e)}
             />
           )}
-        {iconComponent}
+        {!!iconComponent && (
+          <IconComponent
+            isValid={!error}
+            colorName={selectedColor.name}
+            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
+            onPress={(e) => !!onMarkPress && onMarkPress(e)}
+          />
+        )}
       </IconContainer>
       {rest?.multiline && (
         <CounterBox>

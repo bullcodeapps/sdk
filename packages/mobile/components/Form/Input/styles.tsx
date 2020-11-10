@@ -1,11 +1,20 @@
 import styled from 'styled-components/native';
 import { Animated, Platform, TextInput } from 'react-native';
 
+export type ValidityMarkComponentProps = {
+  isValid?: boolean;
+  colorName?: string;
+  onPress?: (data: any) => void;
+};
+
+export type ValidityMarkComponentType = React.FC<ValidityMarkComponentProps>;
+
 export type InputStateStyles = {
   selectionColor: string,
   placeholder: string,
   color: string,
-  borderColor: string,
+  borderColor?: string,
+  backgroundColor?: string;
   borderRadius?: number,
 };
 
@@ -25,7 +34,7 @@ export type InputStyle = {
   default: InputStateStyles;
   valid?: Partial<InputStateStyles>;
   invalid?: Partial<InputStateStyles>;
-  validityMarkComponent: React.FC<{ isValid?: boolean, colorName?: string, onPress: (data: any) => void }>;
+  validityMarkComponent: ValidityMarkComponentType;
   validityMark: ValidityMarkTypes;
 };
 
