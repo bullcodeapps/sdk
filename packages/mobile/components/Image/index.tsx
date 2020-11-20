@@ -47,6 +47,7 @@ const Component: ImageComponent = ({
         }}
         onLoad={(e) => {
           setLoading(false);
+          setHasError(false);
           onLoad && onLoad(e);
         }}
       />
