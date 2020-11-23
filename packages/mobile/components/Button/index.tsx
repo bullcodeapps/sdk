@@ -38,7 +38,7 @@ export type ButtonProps = {
   children?: any;
   activityIndicatorColor?: string;
   color?: string;
-  containerStyle?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
   onPress: (event: GestureResponderEvent) => void;
 } & ViewProps;
 
@@ -53,7 +53,7 @@ const Component: ButtonComponent = ({
   loading,
   loadingSize,
   children,
-  containerStyle,
+  contentContainerStyle,
   onPress,
   onLayout,
   ...rest
@@ -130,14 +130,15 @@ const Component: ButtonComponent = ({
   }, [color, ctx?.colors, disabled, outline]);
 
   return (
-    <Container ref={outerRef} style={containerStyle} onLayout={onLayout}>
+    <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonColorStyles, rest?.style]}>
       <TouchableHighlight
+        style={{flexGrow: 1}}
         underlayColor={'transparent'}
         activeOpacity={1}
         onShowUnderlay={() => setShowingUnderlay(true)}
         onHideUnderlay={() => setShowingUnderlay(false)}
         onPress={(e) => !loading && !disabled && onPress && onPress(e)}>
-        <ButtonBox {...rest} style={[buttonColorStyles, rest?.style]}>
+        <ButtonBox style={contentContainerStyle}>
           {loading ? (
             <ActivityIndicator
               size={loadingSize || 'small'}

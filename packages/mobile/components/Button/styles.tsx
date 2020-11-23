@@ -147,15 +147,15 @@ export const DefaultButtonColors: ButtonColors = [
 export const Container = styled(Animated.View)`
   flex-grow: 1;
   margin-top: 10px;
+  height: 60px;
+  border-width: 1px;
+  border-radius: 30px;
 `;
 
 export const ButtonBox = styled(Animated.View)`
   flex-grow: 1;
   align-items: center;
   justify-content: center;
-  border-width: 1px;
-  height: 60px;
-  border-radius: 30px;
 `;
 
 export const ButtonText = styled(Animated.Text)`
