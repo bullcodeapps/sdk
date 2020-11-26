@@ -57,7 +57,7 @@ const Component: ImageComponent = ({
 
   return (
     <Animated.View style={[styles.container, contentContainerStyle]}>
-      {CachedImageMemoized}
+      {!hasError && CachedImageMemoized}
       {isLoading && renderPlaceholder && renderPlaceholder()}
       {hasError && renderErrorImage && renderErrorImage()}
     </Animated.View>
