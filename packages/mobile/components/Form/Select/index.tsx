@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, FunctionComponent, Ref, useMemo } f
 
 import { Container, IconContainer, ChevronDownIcon, ChevronUpIcon, Loading } from './styles';
 import RNPickerSelect, { PickerSelectProps, PickerStyle } from 'react-native-picker-select';
-import { StyleSheet, TextInput, ViewStyle, Platform } from 'react-native';
+import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps, TextInputComponent } from 'react-native';
 import { useCombinedRefs } from '../../../../core/hooks';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
@@ -16,11 +16,10 @@ export interface SelectStyle extends PickerStyle {
   selectContainer: ViewStyle;
 }
 
-type FieldType = FormFieldType<RNPickerSelect>;
+type FieldType = FormFieldType<TextInput>;
 
 export type SelectProps = {
   outerRef?: Ref<FieldType>;
-  ref?: Ref<FieldType>;
   name?: string;
   color?: 'primary' | 'secondary';
   placeholder?: string;
@@ -62,6 +61,9 @@ const Component: SelectComponent = ({
   // Refs
   const pickerRef = useRef<FieldType>(null);
   const combinedRef = useCombinedRefs<FieldType>(outerRef, pickerRef);
+  const textInputProps = useRef<TextInputProps & { ref: Ref<FieldType> }>({
+    ref: combinedRef,
+  }).current;
 
   useEffect(() => {
     if (unformDefaultValue) {
@@ -187,8 +189,9 @@ const Component: SelectComponent = ({
       inputIOS: { ...defaultPickerSelectStyles?.inputIOS, borderColor: validityColor },
       inputAndroid: { ...defaultPickerSelectStyles?.inputAndroid, borderColor: validityColor },
       selectContainer: { ...rest?.style?.selectContainer },
+      ...rest?.style,
     }),
-    [defaultPickerSelectStyles, rest?.style?.selectContainer, validityColor],
+    [defaultPickerSelectStyles, rest.style, validityColor],
   );
 
   useEffect(() => {
@@ -203,7 +206,8 @@ const Component: SelectComponent = ({
   return (
     <Container style={styles?.selectContainer}>
       <RNPickerSelect
-        ref={combinedRef}
+        {...rest}
+        textInputProps={textInputProps}
         style={styles}
         disabled={loading || disabled}
         useNativeAndroidPickerStyle={false}
@@ -214,7 +218,6 @@ const Component: SelectComponent = ({
         items={items}
         onOpen={handleOpen}
         onClose={handleClose}
-        {...rest}
       />
       {loading && <Loading />}
     </Container>
@@ -222,7 +225,7 @@ const Component: SelectComponent = ({
 };
 
 const Select: SelectComponent = React.forwardRef((props: SelectProps, ref: Ref<FieldType>) => (
-  <Component outerRef={ref} {...props} />
+  <Component outerRef={ref} {...props } />
 ));
 
 export default Select;
