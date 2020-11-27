@@ -39,7 +39,7 @@ export type ButtonProps = {
   activityIndicatorColor?: string;
   color?: string;
   contentContainerStyle?: ViewStyle;
-  onPress: (event: GestureResponderEvent) => void;
+  onPress?: (event: GestureResponderEvent) => void;
 } & ViewProps;
 
 export type ButtonComponent = React.FC<ButtonProps>;
