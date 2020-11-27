@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useCallback, useEffect, useState, useMemo, useContext } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useState, useMemo, useContext, Ref } from 'react';
 import { TextInput, GestureResponderEvent, ViewStyle } from 'react-native';
 
 import Select, { SelectItem, SelectStyle } from '../../../components/Form/Select';
@@ -32,6 +32,7 @@ export type CountryCode = PNCountryCode;
 
 export type CustomProps = {
   name?: string;
+  outerRef?: InputRef;
   inputRef?: React.MutableRefObject<InputRef>;
   nextInputRef?: React.MutableRefObject<InputRef>;
   placeholder?: string;
@@ -46,8 +47,11 @@ export type CustomProps = {
 
 export type PhoneInputProps = CustomProps & Omit<InputProps, 'name'>;
 
-const PhoneInput: React.FC<PhoneInputProps> = ({
+export type PhoneInputComponent = React.FC<PhoneInputProps>;
+
+const Component: PhoneInputComponent = ({
   name,
+  outerRef,
   inputRef,
   nextInputRef,
   placeholder,
@@ -71,7 +75,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const { fieldName, registerField, error } = useField(name);
 
   // Refs
-  const combinedRef = useCombinedRefs<InputFieldType>(inputRef);
+  const combinedRef = useCombinedRefs<InputFieldType>(inputRef, outerRef);
 
   const isValid = useMemo(() => {
     const hasPhone = phone !== undefined && phone !== null;
@@ -366,5 +370,9 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     </PhoneInputContainer>
   );
 };
+
+const PhoneInput: PhoneInputComponent = React.forwardRef((props: PhoneInputProps, ref: InputRef) => (
+  <Component outerRef={ref} {...props } />
+));
 
 export default PhoneInput;
