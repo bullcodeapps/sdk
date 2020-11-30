@@ -123,15 +123,14 @@ const Component: SearchInputComponent = ({
 
   const handleOnEndEditing = (e: NativeSyntheticEvent<TextInputEndEditingEventData>) => {
     setSearchTerm(e.nativeEvent.text);
+    rest?.onEndEditing && rest?.onEndEditing(e);
   };
 
   const handleOnChangeText = useCallback(
     (term: string) => {
       setSearchTerm(term);
 
-      if (rest && rest.onChangeText) {
-        rest.onChangeText(term);
-      }
+      rest?.onChangeText && rest?.onChangeText(term);
     },
     [rest],
   );
@@ -151,13 +150,19 @@ const Component: SearchInputComponent = ({
         ref={combinedRef}
         {...rest}
         value={searchTerm}
-        autoCapitalize={rest && rest.autoCapitalize ? rest.autoCapitalize : 'none'}
-        autoCompleteType={rest && rest.autoCompleteType ? rest.autoCompleteType : 'off'}
-        autoCorrect={rest && rest.autoCorrect ? rest.autoCorrect : false}
+        autoCapitalize={rest?.autoCapitalize || 'none'}
+        autoCompleteType={rest?.autoCompleteType || 'off'}
+        autoCorrect={rest?.autoCorrect || false}
         onEndEditing={handleOnEndEditing}
         onChangeText={handleOnChangeText}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onFocus={(e) => {
+          setIsFocused(true);
+          rest?.onFocus && rest?.onFocus(e);
+        }}
+        onBlur={(e) => {
+          setIsFocused(false);
+          rest?.onBlur && rest?.onBlur(e);
+        }}
       />
       <SearchIconTouchable onPress={handleOnPressMagnifier}>
         <SearchIconsBox>{showsSearchIcon ? <SearchIcon /> : <CloseSearchIcon />}</SearchIconsBox>
