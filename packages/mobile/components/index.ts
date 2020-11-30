@@ -1,7 +1,8 @@
 export {default as Accordion} from './Accordion';
 export {default as ActivationCodeInput} from './ActivationCodeInput';
-export {default as Button, setButtonColors} from './Button';
-export { ButtonText } from './Button/styles';
+export {default as Button} from './Button';
+export { setButtonColors } from './Button/context';
+export {default as ButtonText } from './Button/ButtonText';
 export {default as DateTimePicker} from './DateTimePicker';
 export {default as ChipButton} from './Form/ChipButton';
 export {default as ChipsList} from './Form/ChipsList';

@@ -1,32 +1,17 @@
 import React, { memo, useContext, useMemo, useState } from 'react';
 
-import {
-  ButtonColors,
-  Container,
-  ButtonBox,
-  ButtonText,
-  ButtonStyles,
-  ButtonTextStyles,
-  DefaultButtonColors,
-} from './styles';
+import { Container, ButtonBox } from './styles';
 import {
   GestureResponderEvent,
-  ActivityIndicator,
   ViewStyle,
   ViewProps,
   TouchableHighlight,
   View,
 } from 'react-native';
 import { LightenDarkenColor } from '@bullcode/core/utils';
-
-export type ButtonContextType = { colors: ButtonColors };
-
-export const ButtonContext = React.createContext<ButtonContextType>({ colors: null });
-
-export const setButtonColors = (colors: ButtonColors) => {
-  const ctx = useContext<ButtonContextType>(ButtonContext);
-  ctx.colors = colors;
-};
+import { ButtonStyles } from '@bullcode/mobile/components/Button/types';
+import ButtonContext, { ButtonContextType, DEFAULT_BUTTON_COLORS } from '@bullcode/mobile/components/Button/context';
+import ButtonText from './ButtonText';
 
 export type ButtonProps = {
   ref?: React.Ref<View>;
@@ -63,7 +48,7 @@ const Component: ButtonComponent = ({
   const [showingUnderlay, setShowingUnderlay] = useState<boolean>(false);
 
   const buttonUnderlayColor: string = useMemo((): string => {
-    const colors = ctx?.colors || DefaultButtonColors;
+    const colors = ctx?.colors || DEFAULT_BUTTON_COLORS;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
       console.log(
@@ -83,7 +68,7 @@ const Component: ButtonComponent = ({
   }, [color, ctx?.colors, disabled, outline]);
 
   const buttonColorStyles: Partial<ButtonStyles> = useMemo(() => {
-    const colors = ctx?.colors || DefaultButtonColors;
+    const colors = ctx?.colors || DEFAULT_BUTTON_COLORS;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
       console.log(
@@ -95,7 +80,11 @@ const Component: ButtonComponent = ({
     const { color: textColor, ...buttonStyles } = foundColor.default[outline ? 'outline' : 'solid'];
     const borderRadius = foundColor?.default?.borderRadius;
     if (showingUnderlay) {
-      return { ...buttonStyles, backgroundColor: buttonUnderlayColor || buttonStyles?.backgroundColor, borderRadius };
+      return {
+        ...buttonStyles,
+        backgroundColor: buttonUnderlayColor || buttonStyles?.backgroundColor,
+        borderRadius,
+      };
     }
 
     if (disabled) {
@@ -112,40 +101,27 @@ const Component: ButtonComponent = ({
     return buttonStyles;
   }, [buttonUnderlayColor, color, ctx?.colors, disabled, outline, showingUnderlay]);
 
-  const buttonTextColorStyles: Partial<ButtonTextStyles> = useMemo(() => {
-    const colors = ctx?.colors || DefaultButtonColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
-      console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
-      );
-      return {};
-    }
-    if (disabled) {
-      const { color: textColor } = foundColor.disabled[outline ? 'outline' : 'solid'];
-      return { color: textColor };
-    }
-    const { color: textColor } = foundColor.default[outline ? 'outline' : 'solid'];
-    return { color: textColor };
-  }, [color, ctx?.colors, disabled, outline]);
-
   return (
     <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonColorStyles, rest?.style]}>
       <TouchableHighlight
-        style={{flexGrow: 1}}
+        style={{ flexGrow: 1 }}
         underlayColor={'transparent'}
         activeOpacity={1}
         onShowUnderlay={() => setShowingUnderlay(true)}
         onHideUnderlay={() => setShowingUnderlay(false)}
         onPress={(e) => !loading && !disabled && onPress && onPress(e)}>
         <ButtonBox style={contentContainerStyle}>
-          {loading ? (
-            <ActivityIndicator
-              size={loadingSize || 'small'}
-              color={activityIndicatorColor ? activityIndicatorColor : buttonTextColorStyles.color}
-            />
-          ) : typeof children === 'string' ? (
-            <ButtonText style={[buttonTextColorStyles]}>{children}</ButtonText>
+          {typeof children === 'string' ? (
+            <ButtonText
+              activityIndicatorColor={activityIndicatorColor}
+              color={color}
+              defaultButtonColors={DEFAULT_BUTTON_COLORS}
+              loading={loading}
+              loadingSize={loadingSize}
+              disabled={disabled}
+              outline={outline}>
+              {children}
+            </ButtonText>
           ) : (
             children
           )}
