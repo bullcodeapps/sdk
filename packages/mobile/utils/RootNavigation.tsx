@@ -11,6 +11,7 @@ export const navigationRef = React.createRef<NavigationContainerRef>();
 const getNavigation = (): NavigationContainerRef => navigationRef?.current;
 
 const RootNavigation = {
+  getCurrentOptions: () => navigationRef?.current?.getCurrentOptions(),
   dispatch: (action: NavigationAction | ((state: NavigationState) => NavigationAction)) =>
     getNavigation().dispatch(action),
   addListener: <EventName extends Extract<keyof NavigationContainerEventMap, string>>(
