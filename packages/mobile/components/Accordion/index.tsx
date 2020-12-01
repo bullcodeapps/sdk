@@ -59,8 +59,8 @@ const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange
   }, [expanded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Container activeOpacity={0.8} onPress={handleAccordionOnPress}>
-      <AccordionHeader>
+    <Container>
+      <AccordionHeader activeOpacity={0.8} onPress={handleAccordionOnPress}>
         <AccordionHeaderContent>{headerContent}</AccordionHeaderContent>
         <AccordionChevronCircle size={25} color="#D9DADB">
           <IconWrapper style={{ transform: [{ rotateZ: arrowAngle }] }}>

@@ -3,12 +3,12 @@ import { ContainerDefaults, Circle } from '../../global-styles';
 import ChevronDownSvg from '../../../core/assets/icons/chevron-down.svg';
 import { Animated } from 'react-native';
 
-export const Container = styled.TouchableOpacity`
+export const Container = styled.View`
   border-bottom-width: 1px;
   border-bottom-color: #bbc8cf;
 `;
 
-export const AccordionHeader = styled.View`
+export const AccordionHeader = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   padding-top: 15px;
