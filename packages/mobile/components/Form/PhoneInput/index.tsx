@@ -1,7 +1,16 @@
-import React, { Dispatch, SetStateAction, useCallback, useEffect, useState, useMemo, useContext, Ref } from 'react';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+  useMemo,
+  useContext,
+  Ref,
+} from 'react';
 import { TextInput, GestureResponderEvent, ViewStyle } from 'react-native';
 
-import Select, { SelectItem, SelectStyle } from '../../../components/Form/Select';
+import Select, { SelectItem, NativeSelectStyle } from '../../../components/Form/Select';
 import { PhoneInputContainer, Input, PhoneInputStyles, PhoneInputStyle, DefaultColors } from './styles';
 
 import getUnicodeFlagIcon from 'country-flag-icons/unicode';
@@ -39,7 +48,7 @@ export type CustomProps = {
   useValidityMark?: boolean;
   defaultCountry?: CountryCode;
   containerStyle?: ViewStyle;
-  selectStyle?: SelectStyle & PickerStyle;
+  selectStyle?: NativeSelectStyle & PickerStyle;
   onChange?: Dispatch<SetStateAction<string>>;
   onChangeCountry?: Dispatch<SetStateAction<CountryCode>>;
   onMarkPress?: (event?: GestureResponderEvent) => void;
@@ -49,7 +58,7 @@ export type PhoneInputProps = CustomProps & Omit<InputProps, 'name'>;
 
 export type PhoneInputComponent = React.FC<PhoneInputProps>;
 
-const Component: PhoneInputComponent = ({
+const PhoneInput: PhoneInputComponent = ({
   name,
   outerRef,
   inputRef,
@@ -242,7 +251,7 @@ const Component: PhoneInputComponent = ({
     getColorTypeByValidity,
   ]);
 
-  const defaultSelectStyle: SelectStyle = useMemo(
+  const defaultSelectStyle: NativeSelectStyle = useMemo(
     () => ({
       selectContainer: {
         flexGrow: 1,
@@ -301,6 +310,13 @@ const Component: PhoneInputComponent = ({
     ],
   );
 
+  const selectIconStyle = useMemo(
+    () => ({
+      color: currentValidationStyles?.select?.dropDownIcon || selectedColor?.default?.select?.dropDownIcon,
+    }),
+    [currentValidationStyles?.select?.dropDownIcon, selectedColor?.default?.select?.dropDownIcon],
+  );
+
   return (
     <PhoneInputContainer
       color={rest?.color}
@@ -319,11 +335,7 @@ const Component: PhoneInputComponent = ({
         onValueChange={(value: string | number | Object) => handleChangeCountry(value as CountryCode)}
         onChangeValidity={setSelectIsValid}
         style={{ ...defaultSelectStyle, ...selectStyle }}
-        iconStyle={{
-          iconStyle: {
-            color: currentValidationStyles?.select?.color,
-          },
-        }}
+        iconStyle={selectIconStyle}
       />
       <Input
         ref={combinedRef}
@@ -371,8 +383,5 @@ const Component: PhoneInputComponent = ({
   );
 };
 
-const PhoneInput: PhoneInputComponent = React.forwardRef((props: PhoneInputProps, ref: InputRef) => (
-  <Component outerRef={ref} {...props } />
-));
 
 export default PhoneInput;

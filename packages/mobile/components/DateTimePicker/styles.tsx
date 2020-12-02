@@ -1,8 +1,8 @@
 import styled from 'styled-components/native';
 import ClockSvg from '@bullcode/core/assets/icons/clock.svg';
 import CalendarSvg from '@bullcode/core/assets/icons/simple-calendar.svg';
-import DefaultInput, { InputComponent } from '../../components/Form/Input';
-import { FormFieldType } from '../../components/Form';
+import DefaultInput, { InputComponent } from '../Form/Input';
+import { FormFieldType } from '../Form';
 import { Animated, TextInput } from 'react-native';
 import { ComponentType } from 'react';
 

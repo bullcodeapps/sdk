@@ -5,7 +5,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useField } from '@unform/core';
 import { useDebouncedState } from '../../../../core/hooks';
 
-import { FormFieldType } from '../../../components/Form';
+import { FormFieldType } from '..';
 
 import { Autocomplete, Row, Text, Input } from './styles';
 import { InputContextType, InputContext } from '@bullcode/mobile/components/Form/Input';

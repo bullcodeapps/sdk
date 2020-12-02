@@ -1,18 +1,45 @@
-import React, { useState, useEffect, useRef, FunctionComponent, Ref, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  FunctionComponent,
+  Ref,
+  useMemo,
+  useContext,
+  useCallback,
+} from 'react';
 
-import { Container, IconContainer, ChevronDownIcon, ChevronUpIcon, Loading } from './styles';
+import {
+  Container,
+  IconContainer,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  Loading,
+  SelectStyles,
+  DefaultColors,
+  SelectStyle,
+} from './styles';
 import RNPickerSelect, { PickerSelectProps, PickerStyle } from 'react-native-picker-select';
-import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps, TextInputComponent } from 'react-native';
+import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps } from 'react-native';
 import { useCombinedRefs } from '../../../../core/hooks';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
+
+export type SelectContextType = { colors: SelectStyles };
+
+export const SelectContext = React.createContext<SelectContextType>({ colors: null });
+
+export const setSelectColors = (colors: SelectStyles) => {
+  const ctx = useContext<SelectContextType>(SelectContext);
+  ctx.colors = colors;
+};
 
 export interface SelectItem {
   label: string;
   value: string | number | Object;
 }
 
-export interface SelectStyle extends PickerStyle {
+export interface NativeSelectStyle extends PickerStyle {
   selectContainer: ViewStyle;
 }
 
@@ -21,18 +48,19 @@ type FieldType = FormFieldType<TextInput>;
 export type SelectProps = {
   outerRef?: Ref<FieldType>;
   name?: string;
-  color?: 'primary' | 'secondary';
+  color?: string;
   placeholder?: string;
   items: SelectItem[];
-  style?: SelectStyle;
+  style?: NativeSelectStyle;
   iconStyle?: any;
   hideIcon?: boolean;
-  defaultValue?: any;
-  value?: any;
+  defaultValue?: number | string | boolean | object;
+  value?: number | string | boolean | object;
   loading?: boolean;
+  validity?: boolean | 'keepDefault';
   onChangeValidity?: (isValid: boolean) => void;
   onValueChange?: (value: string | number | Object) => void;
-} & Omit<PickerSelectProps, 'onValueChange' | 'ref'>;
+} & Omit<PickerSelectProps, 'onValueChange' | 'ref' | 'items'>;
 
 export type SelectComponent = FunctionComponent<SelectProps>;
 
@@ -45,17 +73,19 @@ const Component: SelectComponent = ({
   hideIcon,
   iconStyle,
   defaultValue,
-  value: propValue,
   loading,
+  disabled,
+  value: propValue,
+  validity: propValidity,
   onChangeValidity,
   onValueChange,
-  disabled,
   ...rest
 }: SelectProps) => {
+  const ctx = useContext<SelectContextType>(SelectContext);
+
   // States
   const [value, setValue] = useState<any>(defaultValue);
   const [opened, setOpened] = useState<boolean>(false);
-  const [validityColor, setValidityColor] = useState<string>('#ffffff');
   const { fieldName, registerField, error, defaultValue: unformDefaultValue } = useField(name);
 
   // Refs
@@ -64,6 +94,8 @@ const Component: SelectComponent = ({
   const textInputProps = useRef<TextInputProps & { ref: Ref<FieldType> }>({
     ref: combinedRef,
   }).current;
+
+  const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
   useEffect(() => {
     if (unformDefaultValue) {
@@ -83,9 +115,57 @@ const Component: SelectComponent = ({
     }
   }, [propValue]);
 
+  const selectedColor: SelectStyle = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
+    }
+    return foundColor;
+  }, [color, ctx?.colors]);
+
+  const getColorTypeByValidity = useCallback(
+    (validity?: boolean) => {
+      if (validity) {
+        return selectedColor?.valid || selectedColor?.default;
+      }
+      return selectedColor?.invalid || selectedColor?.default;
+    },
+    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
+  );
+
+  const currentValidationStyles = useMemo(() => {
+    if (usingValidity) {
+      if (propValidity === 'keepDefault') {
+        return selectedColor?.default;
+      }
+      return getColorTypeByValidity(propValidity);
+    }
+    if (![null, undefined].includes(value)) {
+      if (error) {
+        return selectedColor?.invalid || selectedColor?.default;
+      } else {
+        return getColorTypeByValidity(!error);
+      }
+    }
+
+    return selectedColor?.default;
+  }, [
+    error,
+    getColorTypeByValidity,
+    propValidity,
+    selectedColor?.default,
+    selectedColor?.invalid,
+    usingValidity,
+    value,
+  ]);
+
   const defaultPickerSelectStyles = StyleSheet.create({
     placeholder: {
-      color: color === 'primary' ? '#bbc8cf' : '#fff',
+      color: currentValidationStyles?.placeholder,
     },
     inputIOS: {
       height: 55,
@@ -93,14 +173,13 @@ const Component: SelectComponent = ({
       paddingRight: 25 + 20, // IconContainer size + left space
       paddingTop: 10,
       paddingBottom: 10,
-      borderRadius: 50,
       borderWidth: 1,
       fontSize: 16,
       fontWeight: 'bold',
-      backgroundColor: disabled ? '#f3f3f3' : '#fff',
-      borderColor: color === 'primary' || disabled ? '#bbc8cf' : '#ffffff',
-      color: color === 'primary' ? '#2d2d30' : '#fff',
-      fontFamily: 'Gotham Rounded',
+      borderRadius: currentValidationStyles?.borderRadius,
+      backgroundColor: currentValidationStyles?.backgroundColor,
+      borderColor: currentValidationStyles?.borderColor,
+      color: currentValidationStyles?.color,
       opacity: loading ? 0.3 : 1,
     },
     inputAndroid: {
@@ -109,14 +188,13 @@ const Component: SelectComponent = ({
       paddingRight: 25 + 20, // IconContainer size + left space
       paddingTop: 10,
       paddingBottom: 10,
-      borderRadius: 50,
       borderWidth: 1,
       fontSize: 16,
       fontWeight: 'bold',
-      backgroundColor: disabled ? '#f3f3f3' : '#fff',
-      borderColor: color === 'primary' || disabled ? '#bbc8cf' : '#ffffff',
-      color: color === 'primary' ? '#2d2d30' : '#fff',
-      fontFamily: 'Gotham Rounded',
+      borderRadius: currentValidationStyles?.borderRadius,
+      backgroundColor: currentValidationStyles?.backgroundColor,
+      borderColor: currentValidationStyles?.borderColor,
+      color: currentValidationStyles?.color,
       opacity: loading ? 0.3 : 1,
     },
     iconContainer: {
@@ -145,31 +223,31 @@ const Component: SelectComponent = ({
     });
   }, [combinedRef, fieldName, registerField, value]);
 
-  useEffect(() => {
-    const hasValue = value !== undefined && value !== null;
-
-    if (disabled) {
-      setValidityColor('#bbc8cf');
-    } else if (color === 'primary') {
-      setValidityColor(hasValue ? '#3a9def' : '#bbc8cf');
-    } else {
-      setValidityColor(hasValue ? '#00f2d5' : '#ffffff');
+  const chevronIconsStyle = useMemo(() => {
+    if (iconStyle) {
+      return iconStyle;
     }
-  }, [color, disabled, value]);
+    return {
+      color: currentValidationStyles?.dropdownIconColor || selectedColor?.default?.dropdownIconColor,
+    };
+  }, [currentValidationStyles?.dropdownIconColor, iconStyle, selectedColor?.default?.dropdownIconColor]);
 
-  const Icon = () => (
-    <IconContainer>
-      {/* Unfortunately, we can't get the onClose event on Android devices, so we made it static */}
-      {Platform.OS === 'ios' ? (
-        opened ? (
-          <ChevronUpIcon defaultColor={color} style={iconStyle} />
+  const Icon = useCallback(
+    () => (
+      <IconContainer>
+        {/* Unfortunately, we can't get the onClose event on Android devices, so we made it static */}
+        {Platform.OS === 'ios' ? (
+          opened ? (
+            <ChevronUpIcon style={chevronIconsStyle} />
+          ) : (
+            <ChevronDownIcon style={chevronIconsStyle} />
+          )
         ) : (
-          <ChevronDownIcon defaultColor={color} style={iconStyle} />
-        )
-      ) : (
-        <ChevronDownIcon defaultColor={color} style={iconStyle} />
-      )}
-    </IconContainer>
+          <ChevronDownIcon style={chevronIconsStyle} />
+        )}
+      </IconContainer>
+    ),
+    [chevronIconsStyle, opened],
   );
 
   const handleOpen = () => {
@@ -183,16 +261,49 @@ const Component: SelectComponent = ({
     combinedRef?.current?.validate && combinedRef.current.validate(value);
   };
 
-  const styles: SelectStyle = useMemo(
+  const inputStyles = useMemo(
     () => ({
-      ...defaultPickerSelectStyles,
-      inputIOS: { ...defaultPickerSelectStyles?.inputIOS, borderColor: validityColor },
-      inputAndroid: { ...defaultPickerSelectStyles?.inputAndroid, borderColor: validityColor },
-      selectContainer: { ...rest?.style?.selectContainer },
-      ...rest?.style,
+      borderRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
+      backgroundColor: currentValidationStyles?.backgroundColor || selectedColor?.default?.backgroundColor,
+      borderColor: currentValidationStyles?.borderColor || selectedColor?.default?.borderColor,
+      color: currentValidationStyles?.color || selectedColor?.default?.color,
     }),
-    [defaultPickerSelectStyles, rest.style, validityColor],
+    [
+      currentValidationStyles?.backgroundColor,
+      currentValidationStyles?.borderColor,
+      currentValidationStyles?.borderRadius,
+      currentValidationStyles?.color,
+      selectedColor?.default?.backgroundColor,
+      selectedColor?.default?.borderColor,
+      selectedColor?.default?.borderRadius,
+      selectedColor?.default?.color,
+    ],
   );
+
+  const styles: NativeSelectStyle = useMemo(() => {
+    return {
+      ...defaultPickerSelectStyles,
+      inputIOS: {
+        ...defaultPickerSelectStyles?.inputIOS,
+        ...inputStyles,
+      },
+      inputAndroid: {
+        ...defaultPickerSelectStyles?.inputAndroid,
+        ...inputStyles,
+      },
+      selectContainer: {
+        color: currentValidationStyles?.selectionColor || selectedColor?.default?.selectionColor,
+        ...rest?.style?.selectContainer,
+      },
+      ...rest?.style,
+    };
+  }, [
+    currentValidationStyles?.selectionColor,
+    defaultPickerSelectStyles,
+    inputStyles,
+    rest?.style,
+    selectedColor?.default?.selectionColor,
+  ]);
 
   useEffect(() => {
     onChangeValidity && onChangeValidity(!error);
@@ -225,7 +336,7 @@ const Component: SelectComponent = ({
 };
 
 const Select: SelectComponent = React.forwardRef((props: SelectProps, ref: Ref<FieldType>) => (
-  <Component outerRef={ref} {...props } />
+  <Component outerRef={ref} {...props} />
 ));
 
 export default Select;

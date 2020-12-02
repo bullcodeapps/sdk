@@ -1,24 +1,37 @@
-import React, { useRef, useEffect, useCallback, forwardRef, useMemo } from 'react';
-import { SubmitHandler, FormProps, FormHandles } from '@unform/core';
+import React, { useRef, useEffect, useCallback, forwardRef, useMemo, Ref } from 'react';
+import { SubmitHandler, FormProps as DefaultFormProps, FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 
 import { Container, Form as StyledForm } from './styles';
 import { useCombinedRefs } from '../../../core/hooks';
 import { Keyboard } from 'react-native';
 
-interface Props {
-  onSubmit: (data: any) => void;
-  onSubmitError: (error?: any) => void;
-  schema: Yup.ObjectSchema<any>;
-  data?: any;
-  ref?: any;
-  onProgressChange?: (value: number) => void | React.Dispatch<React.SetStateAction<{}>>;
-}
-
-export type FormType = FormProps & FormHandles;
+export type FormType = DefaultFormProps & FormHandles;
 export type FormFieldType<T> = T & { validate: (val: any) => void };
 
-function Form({ onSubmit, onSubmitError, schema, data, onProgressChange, ...other }: Props & FormProps, outerRef: any) {
+export type FormProps = {
+  ref?: Ref<any>;
+  outerRef?: Ref<FormType>;
+  schema: Yup.ObjectSchema<any>;
+  data?: any;
+  onSubmit: (data: any) => void;
+  onSubmitError: (error?: any) => void;
+  onProgressChange?: (value: number) => void | React.Dispatch<React.SetStateAction<{}>>;
+};
+
+export type FormComponent = React.FC<FormProps>;
+
+const Component: FormComponent = ({
+  ref,
+  outerRef,
+  onSubmit,
+  onSubmitError,
+  schema,
+  data,
+  onProgressChange,
+  children,
+  ...other
+}) => {
   const formRef = useRef<FormType>(null);
   const combinedRef = useCombinedRefs<FormType>(outerRef, formRef);
 
@@ -162,9 +175,13 @@ function Form({ onSubmit, onSubmitError, schema, data, onProgressChange, ...othe
 
   return (
     <Container>
-      <StyledForm ref={combinedRef} onSubmit={handleSubmit} initialData={data} {...other} />
+      <StyledForm ref={combinedRef} onSubmit={handleSubmit} initialData={data} children={children} {...other} />
     </Container>
   );
-}
+};
 
-export default forwardRef(Form);
+const Form: FormComponent = forwardRef((props: FormProps, ref: Ref<FormType>) => (
+  <Component outerRef={ref} {...props} />
+));
+
+export default Form;

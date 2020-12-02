@@ -22,7 +22,7 @@ import {
 
 import { Animated, Easing } from 'react-native';
 import { useCombinedRefs } from '../../../core/hooks';
-import Touchable from '../../components/Touchable';
+import Touchable from '../Touchable';
 import { windowWidth } from '../../global-styles';
 
 type RowData = {
