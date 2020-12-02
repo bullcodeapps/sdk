@@ -35,19 +35,22 @@ export type DateTimePickerProps = {
   placeholder?: string;
   displayFormat?: string;
   value?: Date;
-  style?: any;
   doneText?: string;
   clearText?: string;
   maxDate?: Date;
   minDate?: Date;
   minuteInterval?: 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30;
-  onChange?: (value: Date) => void;
   language?: string;
   inputProps?: InputProps;
   icon?: any;
+  style?: ViewStyle,
+  pickerStyle?: any,
+  onChange?: (value: Date) => void;
 };
 
-const DateTimePicker = ({
+export type DateTimePickerComponent = React.FC<DateTimePickerProps>;
+
+const DateTimePicker: DateTimePickerComponent = ({
   name,
   mode = 'date',
   color,
@@ -59,11 +62,13 @@ const DateTimePicker = ({
   inputProps,
   maxDate,
   minDate,
-  onChange,
   language = 'pt-BR',
   icon: Icon,
+  style,
+  pickerStyle,
+  onChange,
   ...rest
-}: DateTimePickerProps) => {
+}) => {
   const ctx = useContext<InputContextType>(InputContext);
 
   const animationType = 'slide';
@@ -310,7 +315,7 @@ const DateTimePicker = ({
   );
 
   return (
-    <ViewContainer>
+    <ViewContainer style={style}>
       <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
         <View pointerEvents="none">
           <Input
@@ -336,7 +341,6 @@ const DateTimePicker = ({
         transparent
         animationType={animationType}
         supportedOrientations={['portrait', 'landscape']}
-        // onOrientationChange={this.onOrientationChange}
       >
         <ModalViewTop onPress={handleInputPress} />
         {Platform.OS === 'ios' && (
@@ -356,6 +360,7 @@ const DateTimePicker = ({
         <ModalViewBottom>
           <RNDateTimePicker
             {...rest}
+            style={pickerStyle}
             locale={language}
             value={date}
             maximumDate={maxDate}
