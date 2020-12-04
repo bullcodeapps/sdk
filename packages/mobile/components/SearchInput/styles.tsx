@@ -26,7 +26,6 @@ export const InputField = styled(AnimatedTextInput).attrs({
   border-radius: 20px;
   background-color: #f2f2f2;
   box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
-  font-family: 'Gotham Rounded';
 `;
 
 export const SearchIconTouchable = styled.TouchableOpacity.attrs({
