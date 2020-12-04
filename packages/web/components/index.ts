@@ -1,5 +1,5 @@
-export * from './Chat';
-export * from './DataTable';
+export { default as Chat } from './Chat';
+export { default as DataTable } from './DataTable';
 export * from './Form';
-export * from './MyCard';
-export * from './NotificationsButton';
+export { default as MyCard } from './MyCard';
+// export * from './NotificationsButton';

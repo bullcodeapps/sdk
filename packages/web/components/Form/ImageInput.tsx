@@ -21,7 +21,7 @@ export default function ImageInput({
   maxSizeMB = 2,
   maxWidthOrHeight = 1000,
   onUploadImage,
-  ...rest,
+  ...rest
 }: InputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
