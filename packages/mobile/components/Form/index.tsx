@@ -15,7 +15,7 @@ export type FormProps = {
   schema: Yup.ObjectSchema<any>;
   data?: any;
   onSubmit: (data: any) => void;
-  onSubmitError: (error?: any) => void;
+  onSubmitError: (error?: any, formData?: any) => void;
   onProgressChange?: (value: number) => void | React.Dispatch<React.SetStateAction<{}>>;
 };
 
@@ -169,7 +169,7 @@ const Component: FormComponent = ({
         combinedRef.current.setErrors(validationErrors);
       }
 
-      onSubmitError(validationErrors || err);
+      onSubmitError(Object.keys(validationErrors).length > 0 ? validationErrors : err, formData);
     }
   };
 
