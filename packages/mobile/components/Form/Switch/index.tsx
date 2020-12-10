@@ -67,9 +67,11 @@ const FormSwitch = ({
 
   const handleChange = useCallback(
     (res: boolean) => {
-      setValue(res);
-      onChange && onChange(res);
-      switchRef?.current?.validate && switchRef.current.validate(res);
+      if (![null, undefined].includes(res)) {
+        setValue(res);
+        onChange && onChange(res);
+        switchRef?.current?.validate && switchRef.current.validate(res);
+      }
     },
     [onChange],
   );
