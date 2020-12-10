@@ -1,14 +1,14 @@
 import React, { memo, useState, useMemo, Ref, useRef } from 'react';
-import { ViewStyle, StyleSheet, Animated } from 'react-native';
+import { StyleSheet, Animated, StyleProp, ImageStyle } from 'react-native';
 import FastImage, { FastImageProps } from 'react-native-fast-image';
-import { useCombinedRefs } from '../../../core/hooks';
+import { useCombinedRefs } from '@bullcode/core/hooks';
 
 const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
 
 export type ImageProps<T = any> = {
   ref?: Ref<T & Animated.AnimatedComponent<typeof FastImage>>;
   outerRef?: Ref<T & Animated.AnimatedComponent<typeof FastImage>>;
-  contentContainerStyle?: ViewStyle;
+  fastImageStyle?: StyleProp<ImageStyle>;
   renderPlaceholder?: () => {};
   renderErrorImage?: () => {};
   onError?: () => {};
@@ -19,7 +19,8 @@ export type ImageComponent = React.FC<ImageProps>;
 
 const Component: ImageComponent = ({
   outerRef,
-  contentContainerStyle,
+  fastImageStyle,
+  style,
   renderPlaceholder,
   renderErrorImage,
   onError,
@@ -38,7 +39,7 @@ const Component: ImageComponent = ({
     () => (
       <AnimatedFastImage
         ref={combinedRef}
-        style={[styles.fastImage, otherProps.style]}
+        style={[styles.fastImage, fastImageStyle]}
         {...otherProps}
         onError={() => {
           setLoading(false);
@@ -56,7 +57,7 @@ const Component: ImageComponent = ({
   );
 
   return (
-    <Animated.View style={[styles.container, contentContainerStyle]}>
+    <Animated.View style={[styles.container, style]}>
       {!hasError && CachedImageMemoized}
       {isLoading && renderPlaceholder && renderPlaceholder()}
       {hasError && renderErrorImage && renderErrorImage()}
