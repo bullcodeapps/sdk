@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { ButtonColors } from '@bullcode/mobile/components/Button/types';
+import { ButtonColors, ButtonColorTypes } from '@bullcode/mobile/components/Button/types';
 
 export type ButtonContextType = { colors: ButtonColors };
 
@@ -29,7 +29,7 @@ const BUTTON_COLOR_DANGER = '#ffffff';
 const DISABLED_BG = '#d2d2d6';
 const DISABLED_COLOR = '#fff';
 
-export const DEFAULT_DISABLED_COLORS = {
+export const DEFAULT_DISABLED_COLORS: ButtonColorTypes = {
   outline: {
     backgroundColor: 'transparent',
     borderColor: DISABLED_BG,

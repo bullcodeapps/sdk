@@ -1,16 +1,13 @@
 import React, { memo, useContext, useMemo, useState } from 'react';
 
 import { Container, ButtonBox } from './styles';
-import {
-  GestureResponderEvent,
-  ViewStyle,
-  ViewProps,
-  TouchableHighlight,
-  View,
-} from 'react-native';
+import { GestureResponderEvent, ViewStyle, ViewProps, TouchableHighlight, View } from 'react-native';
 import { LightenDarkenColor } from '@bullcode/core/utils';
 import { ButtonStyles } from '@bullcode/mobile/components/Button/types';
-import ButtonContext, { ButtonContextType, DEFAULT_BUTTON_COLORS } from '@bullcode/mobile/components/Button/context';
+import ButtonContext, {
+  ButtonContextType,
+  DEFAULT_BUTTON_COLORS,
+} from '@bullcode/mobile/components/Button/context';
 import ButtonText from './ButtonText';
 
 export type ButtonProps = {
@@ -47,24 +44,19 @@ const Component: ButtonComponent = ({
 
   const [showingUnderlay, setShowingUnderlay] = useState<boolean>(false);
 
-  const buttonUnderlayColor: string = useMemo((): string => {
+  const buttonUnderlayStyle: ViewStyle = useMemo(() => {
     const colors = ctx?.colors || DEFAULT_BUTTON_COLORS;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
       console.log(
         `The color "${color}" has no colors defined for the active state, check if the color of the button is the desired one or if this color has actually been declared previously`,
       );
-      return null;
+      return;
     }
     if (disabled) {
-      return !outline && foundColor?.disabled?.solid?.backgroundColor
-        ? LightenDarkenColor(foundColor.disabled.solid.backgroundColor, 1.1)
-        : 'transparent';
+      return foundColor?.disabled[outline ? 'outline' : 'solid'];
     }
-    return (
-      (outline ? foundColor?.active?.outline?.backgroundColor : foundColor?.active?.solid?.backgroundColor) ||
-      'transparent'
-    );
+    return foundColor?.active[outline ? 'outline' : 'solid'];
   }, [color, ctx?.colors, disabled, outline]);
 
   const buttonColorStyles: Partial<ButtonStyles> = useMemo(() => {
@@ -82,7 +74,7 @@ const Component: ButtonComponent = ({
     if (showingUnderlay) {
       return {
         ...buttonStyles,
-        backgroundColor: buttonUnderlayColor || buttonStyles?.backgroundColor,
+        ...buttonUnderlayStyle,
         borderRadius,
       };
     }
@@ -99,7 +91,7 @@ const Component: ButtonComponent = ({
       return { ...buttonStyles, borderRadius };
     }
     return buttonStyles;
-  }, [buttonUnderlayColor, color, ctx?.colors, disabled, outline, showingUnderlay]);
+  }, [buttonUnderlayStyle, color, ctx?.colors, disabled, outline, showingUnderlay]);
 
   return (
     <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonColorStyles, rest?.style]}>
