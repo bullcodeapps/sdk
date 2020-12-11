@@ -206,7 +206,7 @@ export const getDetailedDateString = (date: Date, weekDays: typeof WEEK_DAYS) =>
  *
  * @param enumerator
  */
-export const getEnumStringArray = (enumerator: Enumerator | Object) => {
+export const getEnumStringArray = (enumerator: Object) => {
   const enumSize = Object.keys(enumerator).length / 2;
   return Object.keys(enumerator).splice(enumSize, enumSize);
 };
