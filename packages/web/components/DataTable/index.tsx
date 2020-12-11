@@ -129,8 +129,8 @@ export default function DataTable({
   selectedRowsDeleteAriaText = 'Deletar linhas selecionadas',
 }: DataTableProps) {
   const confirm = useConfirm();
-  const [preparedOptions, setPreparedOptions] = useState();
-  const [preparedColumns, setPreparedColumns] = useState();
+  const [preparedOptions, setPreparedOptions] = useState({});
+  const [preparedColumns, setPreparedColumns] = useState([]);
   const [filterList, setFilterList] = useState<string[][]>();
   const [searchTerm, setSearchTerm] = useState<string>();
   const [anchorEl, setAnchorEl] = useState<Array<HTMLElement>>([]);
