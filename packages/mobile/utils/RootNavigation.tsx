@@ -5,6 +5,7 @@ import {
   EventListenerCallback,
   NavigationAction,
   NavigationState,
+  PartialState,
 } from '@react-navigation/native';
 
 export const navigationRef = React.createRef<NavigationContainerRef>();
@@ -25,9 +26,9 @@ const RootNavigation = {
   getCurrentRoute: () => getNavigation()?.getCurrentRoute(),
   navigate: (name: string, params?: object) => getNavigation()?.navigate(name, params),
   goBack: () => getNavigation()?.goBack(),
-  getState: () => getNavigation()?.getRootState(),
+  getRootState: () => getNavigation()?.getRootState(),
   canGoBack: () => getNavigation()?.canGoBack(),
-  resetRoot: () => getNavigation()?.resetRoot(),
+  resetRoot: (state?: PartialState<NavigationState> | NavigationState) => getNavigation()?.resetRoot(state),
 };
 
 export default RootNavigation;
