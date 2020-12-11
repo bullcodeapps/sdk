@@ -74,7 +74,7 @@ export default function Chat({
   editMessageTitle = 'Alterar mensagem',
 }: InputProps) {
   const formRef = useRef(null);
-  const [baseMessages, setBaseMessages] = useState();
+  const [baseMessages, setBaseMessages] = useState([]);
 
   const schema = Yup.object().shape({
     message: Yup.string().required()
