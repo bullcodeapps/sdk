@@ -19,9 +19,6 @@ import {
   GestureResponderEvent,
   Animated,
   TextInput,
-  NativeSyntheticEvent,
-  TextInputFocusEventData,
-  Platform,
   TimerMixin,
   NativeMethods,
 } from 'react-native';
@@ -97,8 +94,6 @@ const Component: InputComponent = ({
   // States
   const [value, setValue] = useState<string>('');
   const { fieldName, registerField, error } = useField(name);
-  const [isFocused, setIsFocused] = useState<boolean>();
-  const [selection, setSelection] = useState<any>();
 
   // Refs
   const inputRef = useRef<InputFieldType>(null);
@@ -187,38 +182,6 @@ const Component: InputComponent = ({
     onChangeValidity && onChangeValidity(!error);
   }, [error, onChangeValidity]);
 
-  const handleInputFocus = useCallback(
-    (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
-      rest?.onFocus && rest.onFocus(e);
-      setIsFocused(true);
-    },
-    [rest],
-  );
-
-  const handleInputBlur = useCallback(
-    (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
-      rest?.onBlur && rest.onBlur(e);
-      setIsFocused(false);
-    },
-    [rest],
-  );
-
-  /*
-   * ensures that fields, on Android, with many characters show the beginning of the content
-   * and not the end, expected behavior for UX already used on iOS!
-   */
-  useEffect(() => {
-    if (Platform.OS === 'ios') {
-      return;
-    }
-    const length = !isNaN(value?.length) ? value?.length : 0;
-    setSelection(isFocused ? { start: length, end: length } : { start: 0, end: 0 });
-    const timeout = setTimeout(() => setSelection(null), 0);
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [isFocused]); // eslint-disable-line
-
   const ValidityMarkComponent: ValidityMarkComponentType = useMemo(() => {
     if (!selectedColor?.validityMarkComponent) {
       return ValidityMark;
@@ -237,7 +200,6 @@ const Component: InputComponent = ({
       )}
       <InputField
         ref={combinedRef}
-        selection={selection}
         value={value}
         textAlignVertical={rest.multiline ? 'top' : 'center'}
         selectionColor={currentValidationStyles?.selectionColor}
@@ -254,8 +216,6 @@ const Component: InputComponent = ({
           style,
         ]}
         onChangeText={handleOnChangeText}
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
       />
       <IconContainer
         isMultiline={rest.multiline}
