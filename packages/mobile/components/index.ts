@@ -17,7 +17,7 @@ export { default as RangeInput, setRangeInputColors } from './Form/RangeInput';
 export { default as RatingStars } from './Form/RatingStars';
 export { default as Select, setSelectColors, SelectItem } from './Form/Select';
 export { default as Suggest } from './Form/Suggest';
-export { default as SuggestGooglePlaces } from './Form/SuggestGooglePlaces';
+export { default as SuggestGooglePlaces, setSuggestGooglePlacesColors } from './Form/SuggestGooglePlaces';
 export { default as Switch, setSwitchColors } from './Form/Switch';
 export { default as Form, FormFieldType, FormType } from './Form';
 export { default as FullScreenLoading } from './FullScreenLoading';

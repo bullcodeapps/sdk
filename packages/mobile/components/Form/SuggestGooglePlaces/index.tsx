@@ -1,13 +1,30 @@
-import React, { useState, useRef, useEffect, useCallback, FunctionComponent, Ref } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  FunctionComponent,
+  Ref,
+  useContext,
+  useMemo,
+} from 'react';
 
 import {
-  Container,
   MapLocationIcon,
   MapLocationColoredIcon,
   MapLocationFilterIconContainer,
   CloseSearchIcon,
+  SuggestGooglePlacesStyles,
+  SuggestGooglePlacesStyle,
+  DefaultColors,
+  ListEmptyContainer,
+  ListEmptyText,
 } from './styles';
-import { GooglePlacesAutocomplete, Language } from 'react-native-google-places-autocomplete';
+import {
+  GooglePlacesAutocomplete,
+  Language,
+  GooglePlacesAutocompleteRef,
+} from '@bullcode/react-native-google-places-autocomplete';
 import Geolocation from 'react-native-geolocation-service';
 import Input from '../Input';
 import { differenceInMinutes } from 'date-fns';
@@ -20,6 +37,8 @@ import {
   TextInputProps,
   Platform,
   ViewStyle,
+  ReturnKeyTypeOptions,
+  ActivityIndicator,
 } from 'react-native';
 import { useField } from '@unform/core';
 import { useCombinedRefs } from '../../../../core/hooks';
@@ -27,6 +46,15 @@ import { usePosition } from '../../../hooks';
 import Config from 'react-native-config';
 import { FormFieldType } from '..';
 import * as Yup from 'yup';
+
+export type SuggestGooglePlacesContextType = { colors: SuggestGooglePlacesStyles };
+
+export const SuggestGooglePlacesContext = React.createContext<SuggestGooglePlacesContextType>({ colors: null });
+
+export const setSuggestGooglePlacesColors = (colors: SuggestGooglePlacesStyles) => {
+  const ctx = useContext<SuggestGooglePlacesContextType>(SuggestGooglePlacesContext);
+  ctx.colors = colors;
+};
 
 export interface GooglePlace {
   placeId?: string;
@@ -38,46 +66,56 @@ export interface GooglePlace {
   secondaryText?: string;
 }
 
-
-interface SuggestGooglePlacesProps {
+interface CustomProps {
   outerRef?: Ref<TextInput>;
   name?: string;
-  color?: 'primary' | 'secondary';
+  color?: string;
   placeholder?: string;
   language?: string;
   value?: GooglePlace;
-  onChange?: (place: GooglePlace) => void;
   currentLocationLabel?: string;
   confirmCurrentLocationModalTitle?: string;
   confirmCurrentLocationModalText?: string;
   canUseCurrentLocation?: boolean;
   inputStyles?: ViewStyle;
+  validity?: boolean | 'keepDefault';
+  emptyListText?: string;
+  onChange?: (place: GooglePlace) => void;
 }
 
-type Props = SuggestGooglePlacesProps;
+type SuggestGooglePlacesProps = CustomProps;
 const API_KEY = Config.GOOGLE_MAPS_API_KEY;
 
-export type SuggestGooglePlacesComponent = FunctionComponent<Props>;
-type FieldType = FormFieldType<TextInput>;
+export type SuggestGooglePlacesComponent = FunctionComponent<SuggestGooglePlacesProps>;
+type FieldType = FormFieldType<GooglePlacesAutocompleteRef>;
 
 export const getSuggestGooglePlacesYupSchema = () => Yup.object<GooglePlace>();
 
 const SEARCH_MIN_LENGTH = 2;
 
+/*
+ * IMPORTANT: When this component is a child from a virtualized list,
+ * the virtualized list must have the prop: keyboardShouldPersistTaps="handled".
+ * this guarantees that item selection works!
+ */
 const Component: SuggestGooglePlacesComponent = ({
   outerRef,
   name,
-  color = 'primary',
+  color,
   language = 'en',
   placeholder = 'Enter location...',
-  onChange,
   currentLocationLabel = 'Current location',
   confirmCurrentLocationModalTitle = 'Are you sure?',
   confirmCurrentLocationModalText = 'Are you sure do you want to use your current location?',
   canUseCurrentLocation = false,
   inputStyles,
+  validity: propValidity,
+  emptyListText,
+  onChange,
   ...rest
-}: Props) => {
+}) => {
+  const ctx = useContext<SuggestGooglePlacesContextType>(SuggestGooglePlacesContext);
+
   // Functional Hooks
   const modal = useModal();
   const { latitude, longitude } = usePosition();
@@ -87,13 +125,15 @@ const Component: SuggestGooglePlacesComponent = ({
   const [text, setText] = useState<string>();
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [currentLocationChangeDate, setCurrentLocationChangeDate] = useState<Date>();
-  const [validityColor, setValidityColor] = useState<string>('#ffffff');
   const { fieldName, registerField } = useField(name);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Refs
-  const autocompleteRef = useRef<GooglePlacesAutocomplete>();
-  const inputRef = useRef<FieldType>();
-  const combinedRef = useCombinedRefs<FieldType>(outerRef, inputRef);
+  const autocompleteRef = useRef<FieldType>();
+  const combinedRef = useCombinedRefs<FieldType>(autocompleteRef, outerRef);
+
+  const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
   useEffect(() => {
     registerField<GooglePlace>({
@@ -101,12 +141,13 @@ const Component: SuggestGooglePlacesComponent = ({
       ref: combinedRef.current,
       clearValue: clear,
       setValue: (ref: TextInput, val: GooglePlace) => {
-        setText(val?.description || null);
+        if (val?.placeId && val?.placeId === selected?.placeId) {
+          return;
+        }
+        setText(val?.description);
         setSelected(val);
       },
-      getValue: () => {
-        return selected;
-      },
+      getValue: () => selected,
     });
   }, [combinedRef, fieldName, registerField, selected]);
 
@@ -120,17 +161,17 @@ const Component: SuggestGooglePlacesComponent = ({
       return;
     }
     clear();
-    inputRef?.current?.clear();
-    (autocompleteRef?.current as any)?.clearText();
+    combinedRef?.current && combinedRef?.current?.clear();
   };
 
-  const MapLocationFilterIcon = () => {
-    return (
+  const MapLocationFilterIcon = useCallback(
+    () => (
       <MapLocationFilterIconContainer onPress={handlePressIcon}>
         {selected ? <CloseSearchIcon /> : canUseCurrentLocation ? <MapLocationColoredIcon /> : <MapLocationIcon />}
       </MapLocationFilterIconContainer>
-    );
-  };
+    ),
+    [canUseCurrentLocation, handlePressIcon, selected],
+  );
 
   const promptCurrentLocation = () => {
     if (!canUseCurrentLocation) {
@@ -148,6 +189,26 @@ const Component: SuggestGooglePlacesComponent = ({
       },
     );
   };
+
+  const handleSelect = useCallback((rowData, details?) => {
+    console.log('handleSelect!');
+    if (rowData?.isPredefinedPlace) {
+      const description = rowData.description;
+      details = rowData.details;
+      rowData = rowData.data;
+      rowData.description = description;
+    }
+    const googlePlace: GooglePlace = {
+      placeId: rowData.place_id,
+      description: rowData.description,
+      mainText: rowData.structured_formatting?.main_text,
+      mainTextMatchedSubstrings: rowData.structured_formatting?.main_text_matched_substrings,
+      secondaryText: rowData.structured_formatting?.secondary_text,
+      latitude: details?.geometry?.location?.lat,
+      longitude: details?.geometry?.location?.lng,
+    };
+    setSelected(googlePlace);
+  }, []);
 
   const loadCurrentLocation = useCallback(
     async (select: boolean = false) => {
@@ -194,13 +255,50 @@ const Component: SuggestGooglePlacesComponent = ({
         // console.log(e);
       }
     },
-    [currentLocation, currentLocationChangeDate, currentLocationLabel],
+    [currentLocation, currentLocationChangeDate, currentLocationLabel, handleSelect],
   );
 
   const clear = () => {
     setText('');
     setSelected(null);
   };
+
+  const selectedColor: SuggestGooglePlacesStyle = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
+    }
+    return foundColor;
+  }, [color, ctx?.colors]);
+
+  const getColorTypeByValidity = useCallback(
+    (validity?: boolean) => {
+      if (validity) {
+        return selectedColor?.valid || selectedColor?.default;
+      }
+      return selectedColor?.invalid || selectedColor?.default;
+    },
+    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
+  );
+
+  const currentValidationStyles = useMemo(() => {
+    if (usingValidity) {
+      if (propValidity === 'keepDefault') {
+        return selectedColor?.default;
+      }
+      return getColorTypeByValidity(propValidity);
+    }
+
+    if (selected || (text && !isFocused)) {
+      return getColorTypeByValidity(!!selected && !!text);
+    }
+
+    return selectedColor?.default;
+  }, [getColorTypeByValidity, isFocused, propValidity, selected, selectedColor?.default, text, usingValidity]);
 
   useEffect(() => {
     if (!canUseCurrentLocation) {
@@ -214,152 +312,186 @@ const Component: SuggestGooglePlacesComponent = ({
     onChange && onChange(selected);
   }, [onChange, selected]);
 
-  const handleSelect = (rowData, details?) => {
-    if (rowData?.isPredefinedPlace) {
-      const description = rowData.description;
-      details = rowData.details;
-      rowData = rowData.data;
-      rowData.description = description;
-    }
-    const googlePlace: GooglePlace = {
-      placeId: rowData.place_id,
-      description: rowData.description,
-      mainText: rowData.structured_formatting?.main_text,
-      mainTextMatchedSubstrings: rowData.structured_formatting?.main_text_matched_substrings,
-      secondaryText: rowData.structured_formatting?.secondary_text,
-      latitude: details?.geometry?.location?.lat,
-      longitude: details?.geometry?.location?.lng,
-    };
-    setSelected(googlePlace);
-  };
-
   const handleAutocompleteOnKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-    if (e.nativeEvent.key === 'Backspace' && selected) {
+    if (e.nativeEvent.key === 'Backspace' && !!selected) {
       clear();
     }
   };
 
-  useEffect(() => {
-    if (color === 'primary') {
-      setValidityColor(selected?.placeId ? '#3a9def' : '#bbc8cf');
+  const handleOnChangeText = (_text: string) => {
+    if (_text === text) {
       return;
     }
-    setValidityColor(selected?.placeId ? '#00f2d5' : '#ffffff');
-  }, [color, selected?.placeId]);
+    setIsLoading(true);
+    setText(_text);
+  };
+
+  const handleOnLoad = () => {
+    console.log('handleOnLoad!');
+    setIsLoading(false);
+  };
+
+  const handleOnFail = () => {
+    setIsLoading(false);
+  };
+
+  const handleOnNotFound = () => {
+    setIsLoading(false);
+  };
+
+  const handleOnTimeout = () => {
+    setIsLoading(false);
+  };
+
+  const handleOnFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleOnBlur = () => {
+    setIsFocused(false);
+  };
+
+  const listViewDisplayed = useMemo(
+    () =>
+      (text?.length >= SEARCH_MIN_LENGTH && !selected && isFocused) ||
+      ![undefined, null].includes(currentLocation),
+    [currentLocation, isFocused, selected, text],
+  );
+
+  const ListEmptyComponent = useCallback(
+    () => (
+      <ListEmptyContainer>
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#9ca7ad" />
+        ) : (
+          <ListEmptyText>{emptyListText || 'Nenhum endereço foi encontrado!'}</ListEmptyText>
+        )}
+      </ListEmptyContainer>
+    ),
+    [emptyListText, isLoading],
+  );
 
   return (
-    <Container>
-      <GooglePlacesAutocomplete
-        ref={autocompleteRef}
-        {...rest}
-        placeholder={placeholder}
-        placeholderTextColor="#b3c1c8"
-        minLength={SEARCH_MIN_LENGTH}
-        autoFocus={false}
-        returnKeyType={Platform.OS === 'android' ? 'none' : 'search'}
-        fetchDetails
-        renderDescription={(row) => row.description}
-        listViewDisplayed={(text && text.length >= SEARCH_MIN_LENGTH && !selected) || currentLocation}
-        styles={{
-          textInputContainer: {
-            backgroundColor: 'transparent',
-            borderTopWidth: 0,
-            borderBottomWidth: 0,
-            alignItems: 'center',
-          },
-          predefinedPlacesDescription: {
-            color: '#3a9def',
-          },
-          listView: {
-            width: '99.50%',
-            alignSelf: 'center',
-            marginTop: 16,
+    <GooglePlacesAutocomplete
+      ref={combinedRef}
+      listEmptyComponent={ListEmptyComponent}
+      {...rest}
+      keyboardShouldPersistTaps="handled"
+      placeholder={placeholder}
+      minLength={SEARCH_MIN_LENGTH}
+      fetchDetails
+      renderDescription={(row) => row.description}
+      listViewDisplayed={listViewDisplayed}
+      styles={{
+        textInputContainer: {
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          borderBottomWidth: 0,
+          alignItems: 'center',
+          zIndex: 2,
+          elevation: 2,
+        },
+        predefinedPlacesDescription: {
+          color: currentValidationStyles?.color,
+        },
+        listView: {
+          width: '100%',
+          alignSelf: 'center',
+          borderWidth: 1,
+          borderColor: selectedColor?.default?.borderColor,
+          borderBottomLeftRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
+          borderBottomRightRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
+          borderTopWidth: 0,
+          paddingTop: 55 / 2,
+          borderTopColor: 'transparent',
+          top: -55 / 2,
+          backgroundColor: 'transparent',
+          overflow: 'hidden',
+          zIndex: 1,
+          elevation: 1,
+        },
+        separator: {
+          backgroundColor: selectedColor?.default?.borderColor,
+        },
+        row: {
+          height: 50,
+          alignItems: 'center',
+          backgroundColor: 'transparent',
+        },
+        description: {
+          flex: 1,
+          flexWrap: 'wrap',
+        },
+      }}
+      currentLocation={false}
+      currentLocationLabel={currentLocationLabel}
+      predefinedPlaces={currentLocation ? [currentLocation] : []}
+      predefinedPlacesAlwaysVisible
+      query={{
+        // available options: https://developers.google.com/places/web-service/autocomplete
+        key: API_KEY,
+        language: language as Language, // language of the results
+        radius: 20000,
+        location: `${latitude},${longitude}`,
+      }}
+      nearbyPlacesAPI="GooglePlacesSearch"
+      GooglePlacesSearchQuery={{
+        // available options for GooglePlacesSearch API : https://developers.google.com/places/web-service/search
+        rankby: 'distance',
+        location: `${latitude},${longitude}`,
+      }}
+      debounce={300}
+      textInputProps={
+        {
+          InputComp: Input,
+          name: `descriptionSuggestGooglePlaces${name ? `-${name}` : ''}`,
+          color,
+          clearButtonMode: 'never',
+          clearTextOnFocus: false,
+          autoCorrect: false,
+          autoFocus: false,
+          autoCapitalize: 'none',
+          style: {
+            height: 55,
+            paddingLeft: 20,
+            paddingBottom: 10,
+            borderRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
             borderWidth: 1,
-            borderColor: '#bbc8cf',
-            borderBottomLeftRadius: 25,
-            borderBottomRightRadius: 25,
-            borderTopWidth: 0,
-            paddingTop: 25,
-            borderTopColor: 'transparent',
-            top: -25,
+            fontSize: 16,
+            fontWeight: '500',
+            marginLeft: 0,
+            marginRight: 0,
+            backgroundColor: currentValidationStyles?.backgroundColor,
+            color: currentValidationStyles?.color,
+            borderColor: currentValidationStyles?.borderColor,
+            paddingRight: 50,
+            ...inputStyles,
           },
-          separator: {
-            backgroundColor: '#bbc8cf',
-          },
-          row: {
-            padding: 15,
-            height: 50,
-            flexDirection: 'column',
-            justifyContent: 'center',
-            zIndex: 1,
-            elevation: 1,
-          },
-          description: {
-            overflow: 'hidden',
-            flexWrap: 'wrap',
-            marginRight: 30,
-          },
-        }}
-        currentLocation={false}
-        currentLocationLabel={currentLocationLabel}
-        predefinedPlaces={currentLocation ? [currentLocation] : []}
-        predefinedPlacesAlwaysVisible
-        query={{
-          // available options: https://developers.google.com/places/web-service/autocomplete
-          key: API_KEY,
-          language: language as Language, // language of the results
-          radius: 20000,
-          location: `${latitude},${longitude}`,
-        }}
-        nearbyPlacesAPI="GooglePlacesSearch"
-        GooglePlacesSearchQuery={{
-          // available options for GooglePlacesSearch API : https://developers.google.com/places/web-service/search
-          rankby: 'distance',
-          location: `${latitude},${longitude}`,
-        }}
-        debounce={300}
-        textInputProps={
-          {
-            ref: combinedRef,
-            InputComp: Input,
-            returnKeyType: Platform.OS === 'android' ? 'none' : 'search',
-            name: `descriptionSuggestGooglePlaces${name ? `-${name}` : ''}`,
-            color,
-            clearButtonMode: 'never',
-            clearTextOnFocus: false,
-            autoCorrect: false,
-            style: {
-              height: 55,
-              paddingLeft: 20,
-              paddingBottom: 10,
-              borderRadius: 25,
-              borderWidth: 1,
-              fontSize: 16,
-              fontWeight: '500',
-              marginLeft: 0,
-              marginRight: 0,
-              // zIndex: 1,
-              // elevation: 1,
-              backgroundColor: '#fff',
-              color: color === 'primary' ? '#2d2d30' : '#fff',
-              borderColor: validityColor,
-              paddingRight: 50,
-              ...inputStyles,
-            },
-            value: selected?.description,
-            onKeyPress: handleAutocompleteOnKeyPress,
-            onChangeText: setText,
-            onSubmitEditing: () => {},
-          } as TextInputProps
-        }
-        autoCorrect={false}
-        autoCapitalize="none"
-        onPress={handleSelect}
-        enablePoweredByContainer={false}
-        value={selected?.description}
-      />
-      <MapLocationFilterIcon />
-    </Container>
+          selectionColor: currentValidationStyles?.selectionColor,
+          value: selected?.description || text,
+          placeholderTextColor: currentValidationStyles?.placeholder,
+          returnKeyType: Platform?.select<ReturnKeyTypeOptions>({
+            ios: 'search',
+            android: 'none',
+          }),
+          onFocus: handleOnFocus,
+          onBlur: handleOnBlur,
+          onKeyPress: handleAutocompleteOnKeyPress,
+          onChangeText: handleOnChangeText,
+          onSubmitEditing: () => {},
+        } as TextInputProps
+      }
+      onLoad={handleOnLoad}
+      onFail={handleOnFail}
+      onNotFound={handleOnNotFound}
+      onTimeout={handleOnTimeout}
+      onPress={handleSelect}
+      listUnderlayColor="rgba(179, 193, 200, 0.2)"
+      timeout={10000}
+      renderRightButton={MapLocationFilterIcon}
+      isRowScrollable={false}
+      enablePoweredByContainer={false}
+    />
   );
 };
 
