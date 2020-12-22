@@ -1,6 +1,6 @@
-import React, {Ref,FunctionComponent, memo, useContext} from 'react';
+import React, {Ref,FunctionComponent, memo, useContext, useMemo} from 'react';
 
-import { Container, SectionTitle, Content, SectiontStyles } from './styles';
+import { Container, SectionTitle, Content, SectiontStyles, DefaultColors } from './styles';
 import { TextStyle, ViewProps, ViewStyle } from 'react-native';
 
 export type SectionContextType = { colors: SectiontStyles };
@@ -22,13 +22,17 @@ export interface SectionProps<T = any> {
   children: any;
   titleStyle?: TextStyle;
   containerProps?: ViewProps;
-  color?: string;
+  style?: string;
+  styleTitle?: string;
+  contentStyle?: string;
 }
 
 export type SectionComponent<T = any> = FunctionComponent<SectionProps<T>>;
 
 const Component: SectionComponent = ({
-  color = 'primary',
+  style,
+  styleTitle,
+  contentStyle,
   outerRef,
   containerStyle,
   contentContainerStyle,
@@ -38,10 +42,51 @@ const Component: SectionComponent = ({
   titleStyle,
   ...rest
 }) => {
+  const ctx = useContext<SectionContextType>(SectionContext);
+
+  const selectedContainerColor = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === style);
+    if (!foundColor) {
+      console.warn(
+        `The "${style}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
+    }
+    return foundColor;
+    
+  }, [style, ctx?.colors]);
+
+  const selectedContentColor = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === contentStyle);
+    if (!foundColor) {
+      console.warn(
+        `The "${contentStyle}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
+    }
+    return foundColor;
+    
+  }, [contentStyle, ctx?.colors]);
+
+  const selectedTitleColor = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === styleTitle);
+    if (!foundColor) {
+      console.warn(
+        `The "${styleTitle}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
+    }
+    return foundColor;
+    
+  }, [styleTitle, ctx?.colors]);
+
   return (
-    <Container style={containerStyle} {...containerProps}>
-      {typeof title === 'string' ? <SectionTitle style={titleStyle}>{title}</SectionTitle> : { title }}
-      <Content style={contentContainerStyle}>
+    <Container style={[selectedContainerColor, containerStyle]} {...containerProps}>
+      {typeof title === 'string' ? <SectionTitle style={[selectedTitleColor, titleStyle]}>{title}</SectionTitle> : { title }}
+      <Content style={[selectedContentColor, contentContainerStyle]}>
         {children}
       </Content>
     </Container>
