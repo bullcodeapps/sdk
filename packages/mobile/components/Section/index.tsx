@@ -7,8 +7,9 @@ export type SectionContextType = { colors: SectiontStyles };
 
 export const SectionContext = React.createContext<SectionContextType>({ colors: null });
 
-export const setSectionStyles = () => {
-  useContext<SectionContextType>(SectionContext);
+export const setSectionStyles = (colors: SectiontStyles) => {
+  const ctx = useContext<SectionContextType>(SectionContext);
+  ctx.colors = colors;
 };
 
 export type SectionRef = {};
@@ -22,7 +23,7 @@ export interface SectionProps<T = any> {
   children: any;
   titleStyle?: TextStyle;
   containerProps?: ViewProps;
-  style?: string;
+  globalStyleName?: string;
   styleTitle?: string;
   contentStyle?: string;
 }
@@ -30,7 +31,7 @@ export interface SectionProps<T = any> {
 export type SectionComponent<T = any> = FunctionComponent<SectionProps<T>>;
 
 const Component: SectionComponent = ({
-  style,
+  globalStyleName,
   styleTitle,
   contentStyle,
   outerRef,
@@ -46,16 +47,16 @@ const Component: SectionComponent = ({
 
   const selectedContainerColor = useMemo(() => {
     const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === style);
+    const foundColor = colors.find((_color) => _color.name === globalStyleName);
     if (!foundColor) {
       console.warn(
-        `The "${style}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${globalStyleName}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultColors[0];
     }
     return foundColor;
     
-  }, [style, ctx?.colors]);
+  }, [globalStyleName, ctx?.colors]);
 
   const selectedContentColor = useMemo(() => {
     const colors = ctx?.colors || DefaultColors;
