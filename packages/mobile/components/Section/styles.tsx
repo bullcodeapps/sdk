@@ -24,7 +24,7 @@ export type SectiontStyles = Array<SectiontStyle>;
 export const Container = styled.View`
   flex-grow: 1;
   margin-bottom: 10px;
-  marginTop: 20px;
+  margin-top: 20px;
 `;
 
 export const SectionTitle = styled.Text`
