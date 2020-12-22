@@ -14,14 +14,31 @@ export const getNextAvailableDay = (weekDay: WeekDays) => {
   return now;
 };
 
-export function currencyFormat(value: number, style = 'currency', language: string = 'pt-BR') {
-  // In the future, the currency attribute that follows the ISO-4217 standard
-  // will be replaced by the user's choice
-  return value?.toLocaleString(language, {
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    style,
-  });
+export function currencyFormat(amount: number, decimalCount = 2, decimal = ',', thousands = '.') {
+  try {
+    decimalCount = Math.abs(decimalCount);
+    decimalCount = isNaN(decimalCount) ? 2 : decimalCount;
+
+    const negativeSign = amount < 0 ? '-' : '';
+
+    let i = parseInt(Math.abs(Number(amount) || 0).toFixed(decimalCount)).toString();
+    let j = i.length > 3 ? i.length % 3 : 0;
+
+    return `R$ ${
+      negativeSign +
+      (j ? i.substr(0, j) + thousands : '') +
+      i.substr(j).replace(/(\d{3})(?=\d)/g, '$1' + thousands) +
+      (decimalCount
+        ? decimal +
+          Math.abs(amount - Number(i))
+            .toFixed(decimalCount)
+            .slice(2)
+        : '')
+    }`;
+  } catch (e) {
+    console.log(e);
+    return 'Valor inválido';
+  }
 }
 
 export type UnitSystemType = 'metric' | 'imperial';
