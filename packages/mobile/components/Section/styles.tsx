@@ -1,25 +1,37 @@
 import styled from 'styled-components/native';
-import { Animated } from 'react-native';
+import { Animated, ViewStyle, TextStyle } from 'react-native';
 
-export type SectionStateStyles = {
-  selectionColor: string,
-  placeholder: string,
-  color: string,
-  borderColor?: string,
-  backgroundColor?: string;
-  borderRadius?: number,
-  dropdownIconColor?: string;
+export type SectionContainersStyles = {
+  container?: ViewStyle;
+  titleStyle?: TextStyle;
+  contentContainerStyle?: ViewStyle;
 };
 
-export type SectiontStyle = {
+export type SectionStyle = {
   name: string;
-  default: SectionStateStyles;
-  valid?: Partial<SectionStateStyles>;
-  invalid?: Partial<SectionStateStyles>;
-  disabled?: Partial<SectionStateStyles>;
+  default: SectionContainersStyles;
+  sectionTitleComponent?: React.ReactNode;
 };
 
-export type SectiontStyles = Array<SectiontStyle>;
+export type SectionStyles = Array<SectionStyle>;
+
+export const DefaultStyles: SectionStyles = [{
+  name: 'default',
+  default: {
+    container: {
+      flexGrow: 1,
+      marginBottom: 10,
+      marginTop: 20,
+    },
+    titleStyle: {
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    contentContainerStyle: {
+      flexGrow: 1,
+    },
+  }
+}];
 
 export const Container = styled.View`
   flex-grow: 1;

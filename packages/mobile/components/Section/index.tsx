@@ -1,54 +1,68 @@
-import React, {Ref,FunctionComponent, memo, useContext} from 'react';
+import React, { Ref, FunctionComponent, memo, useContext, useEffect, useMemo } from 'react';
 
-import { Container, SectionTitle, Content, SectiontStyles } from './styles';
-import { TextStyle, ViewProps, ViewStyle } from 'react-native';
+import { Container, SectionTitle, Content, SectionStyles, SectionStyle, DefaultStyles } from './styles';
+import { TextStyle, ViewProps, ViewStyle, View } from 'react-native';
 
-export type SectionContextType = { colors: SectiontStyles };
+export type SectionContextType = { styles: SectionStyles };
 
-export const SectionContext = React.createContext<SectionContextType>({ colors: null });
+export const SectionContext = React.createContext<SectionContextType>({ styles: null });
 
-export const setSectionStyles = () => {
-  useContext<SectionContextType>(SectionContext);
+export const setSectionStyles = (styles: SectionStyles) => {
+  const ctx = useContext<SectionContextType>(SectionContext);
+  ctx.styles = styles;
 };
 
-export type SectionRef = {};
-
-export interface SectionProps<T = any> {
-  ref?: Ref<SectionRef>;
-  outerRef?: Ref<SectionRef>;
-  containerStyle?: any;
+type CustomProps = {
+  color?: string;
+  outerRef?: Ref<View>;
   contentContainerStyle?: ViewStyle;
   title: string;
   children: any;
   titleStyle?: TextStyle;
-  containerProps?: ViewProps;
-  color?: string;
-}
+};
+
+export type SectionProps<T = any> = CustomProps & ViewProps;
 
 export type SectionComponent<T = any> = FunctionComponent<SectionProps<T>>;
 
 const Component: SectionComponent = ({
-  color = 'primary',
+  color,
   outerRef,
-  containerStyle,
   contentContainerStyle,
-  containerProps,
   title,
   children,
   titleStyle,
   ...rest
 }) => {
+  const ctx = useContext<SectionContextType>(SectionContext);
+
+  const selectedStyle: SectionStyle = useMemo(() => {
+    const colors = ctx?.styles || DefaultStyles;
+    const foundColor = colors?.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.log(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultStyles[0];
+    }
+    return foundColor;
+  }, [color, ctx?.styles]);
+
   return (
-    <Container style={containerStyle} {...containerProps}>
-      {typeof title === 'string' ? <SectionTitle style={titleStyle}>{title}</SectionTitle> : { title }}
-      <Content style={contentContainerStyle}>
-        {children}
-      </Content>
+    <Container {...rest} style={[selectedStyle?.default?.container, rest?.style]}>
+      {selectedStyle?.sectionTitleComponent ? (
+        selectedStyle?.sectionTitleComponent
+      ) : typeof title === 'string' ? (
+        <SectionTitle style={[selectedStyle?.default?.titleStyle, titleStyle]}>{title}</SectionTitle>
+      ) : (
+        { title }
+      )}
+      <Content style={[selectedStyle?.default?.contentContainerStyle, contentContainerStyle]}>{children}</Content>
     </Container>
   );
 };
 
-const Section: SectionComponent = React.forwardRef((props: SectionProps, ref: Ref<SectionRef>) => (
+const Section: SectionComponent = React.forwardRef((props: SectionProps, ref: Ref<View>) => (
   <Component outerRef={ref} {...props} />
 ));
 
