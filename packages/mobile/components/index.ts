@@ -14,7 +14,7 @@ export { default as Input, setInputColors } from './Form/Input';
 export { default as ValidityMark } from './Form/Input/ValidityMark';
 export { default as PhoneInput, setPhoneInputColors } from './Form/PhoneInput';
 export { default as RangeInput, setRangeInputColors } from './Form/RangeInput';
-export { default as RatingStars } from './Form/RatingStars';
+export { default as RatingStars, setRatingStarsColors } from './Form/RatingStars';
 export { default as Select, setSelectColors, SelectItem } from './Form/Select';
 export { default as Suggest } from './Form/Suggest';
 export { default as SuggestGooglePlaces, setSuggestGooglePlacesColors } from './Form/SuggestGooglePlaces';
