@@ -233,11 +233,11 @@ const Component: SuggestGooglePlacesComponent = ({
 
         const response = await fetch(
           'https://maps.googleapis.com/maps/api/geocode/json?address=' +
-            coords.latitude +
-            ',' +
-            coords.longitude +
-            '&key=' +
-            API_KEY,
+          coords.latitude +
+          ',' +
+          coords.longitude +
+          '&key=' +
+          API_KEY,
         );
         const json = await response.json();
         setCurrentLocation({
@@ -364,8 +364,8 @@ const Component: SuggestGooglePlacesComponent = ({
         {isLoading ? (
           <ActivityIndicator size="small" color="#9ca7ad" />
         ) : (
-          <ListEmptyText>{emptyListText || 'Nenhum endereço foi encontrado!'}</ListEmptyText>
-        )}
+            <ListEmptyText>{emptyListText || 'Nenhum endereço foi encontrado!'}</ListEmptyText>
+          )}
       </ListEmptyContainer>
     ),
     [emptyListText, isLoading],
@@ -389,7 +389,6 @@ const Component: SuggestGooglePlacesComponent = ({
           borderBottomWidth: 0,
           alignItems: 'center',
           zIndex: 2,
-          elevation: 2,
         },
         predefinedPlacesDescription: {
           color: currentValidationStyles?.color,
@@ -408,7 +407,6 @@ const Component: SuggestGooglePlacesComponent = ({
           backgroundColor: 'transparent',
           overflow: 'hidden',
           zIndex: 1,
-          elevation: 1,
         },
         separator: {
           backgroundColor: selectedColor?.default?.borderColor,
@@ -478,7 +476,7 @@ const Component: SuggestGooglePlacesComponent = ({
           onBlur: handleOnBlur,
           onKeyPress: handleAutocompleteOnKeyPress,
           onChangeText: handleOnChangeText,
-          onSubmitEditing: () => {},
+          onSubmitEditing: () => { },
         } as TextInputProps
       }
       onLoad={handleOnLoad}
