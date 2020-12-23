@@ -48,7 +48,10 @@ export default function DateTimePicker({
       path: 'value',
       getValue: (ref: any) => (ref.value ? parse(ref.value, 'dd/MM/yyyy HH:mm', new Date()) : null),
       clearValue: () => setSelected(defaultValue || null),
-      setValue: (ref: any, val: Date | string) => (val ? setSelected(new Date(val)) : null),
+      setValue: (ref: any, val: Date | string) => {
+        const newDate = typeof val === 'string' ? new Date(val) : val;
+        setSelected(newDate);
+      }
     });
   }, [inputRef.current, fieldName, defaultValue]); // eslint-disable-line
 
