@@ -134,7 +134,7 @@ export default function Suggest({
         open={open}
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
-        getOptionSelected={(option: any, value) => option.id === value.id}
+        getOptionSelected={(option: any, value) => option?.id === value?.id}
         getOptionLabel={(option: any) => option[optionLabel]}
         onChange={handleAutocompleteChange}
         onInputChange={(event: any, value: string, reason: string) => {
