@@ -2,7 +2,6 @@ import React, { memo, useContext, useMemo, useState } from 'react';
 
 import { Container, ButtonBox } from './styles';
 import { GestureResponderEvent, ViewStyle, ViewProps, TouchableHighlight, View } from 'react-native';
-import { LightenDarkenColor } from '@bullcode/core/utils';
 import { ButtonStyles } from '@bullcode/mobile/components/Button/types';
 import ButtonContext, {
   ButtonContextType,
@@ -21,6 +20,8 @@ export type ButtonProps = {
   activityIndicatorColor?: string;
   color?: string;
   contentContainerStyle?: ViewStyle;
+  buttonTextStyle?: ViewStyle;
+  textStyle?: string;
   onPress?: (event: GestureResponderEvent) => void;
 } & ViewProps;
 
@@ -36,6 +37,8 @@ const Component: ButtonComponent = ({
   loadingSize,
   children,
   contentContainerStyle,
+  buttonTextStyle,
+  textStyle,
   onPress,
   onLayout,
   ...rest
@@ -93,6 +96,40 @@ const Component: ButtonComponent = ({
     return buttonStyles;
   }, [buttonUnderlayStyle, color, ctx?.colors, disabled, outline, showingUnderlay]);
 
+  const textColorStyles: Partial<ButtonStyles> = useMemo(() => {
+    const colors = ctx?.colors || DEFAULT_BUTTON_COLORS;
+    const foundColor = colors.find((_color) => _color.name === textStyle);
+    if (!foundColor) {
+      console.log(
+        `The "${textStyle}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return {};
+    }
+
+    const { color: textColor, ...buttonStyles } = foundColor.default[outline ? 'outline' : 'solid'];
+    const borderRadius = foundColor?.default?.borderRadius;
+    if (showingUnderlay) {
+      return {
+        ...buttonStyles,
+        ...buttonUnderlayStyle,
+        borderRadius,
+      };
+    }
+
+    if (disabled) {
+      const { color: textColor, ...buttonStyles } = foundColor.disabled[outline ? 'outline' : 'solid'];
+      const borderRadius = foundColor?.disabled?.borderRadius;
+      if (borderRadius) {
+        return { ...buttonStyles, borderRadius };
+      }
+      return buttonStyles;
+    }
+    if (borderRadius) {
+      return { ...buttonStyles, borderRadius };
+    }
+    return buttonStyles;
+  }, [buttonUnderlayStyle, textStyle, ctx?.colors, disabled, outline, showingUnderlay]);
+
   return (
     <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonColorStyles, rest?.style]}>
       <TouchableHighlight
@@ -111,7 +148,8 @@ const Component: ButtonComponent = ({
               loading={loading}
               loadingSize={loadingSize}
               disabled={disabled}
-              outline={outline}>
+              outline={outline}
+              style={[textColorStyles, buttonTextStyle]}>
               {children}
             </ButtonText>
           ) : (
