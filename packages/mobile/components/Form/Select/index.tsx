@@ -86,6 +86,7 @@ const Component: SelectComponent = ({
   // States
   const [value, setValue] = useState<any>(defaultValue);
   const [opened, setOpened] = useState<boolean>(false);
+  const [isDirty, setIsDirty] = useState(false);
   const { fieldName, registerField, error, defaultValue: unformDefaultValue } = useField(name);
 
   // Refs
@@ -138,21 +139,23 @@ const Component: SelectComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
+    if (!isDirty && !value) {
+      return selectedColor?.default;
+    }
+
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
         return selectedColor?.default;
       }
       return getColorTypeByValidity(propValidity);
     }
-    if (![null, undefined].includes(value)) {
-      if (error) {
-        return selectedColor?.invalid || selectedColor?.default;
-      } else {
-        return getColorTypeByValidity(!error);
-      }
+
+    if (error) {
+      return selectedColor?.invalid || selectedColor?.default;
+    } else {
+      return getColorTypeByValidity(!error);
     }
 
-    return selectedColor?.default;
   }, [
     error,
     getColorTypeByValidity,
@@ -161,6 +164,7 @@ const Component: SelectComponent = ({
     selectedColor?.invalid,
     usingValidity,
     value,
+    isDirty,
   ]);
 
   const defaultPickerSelectStyles = StyleSheet.create({
@@ -240,11 +244,11 @@ const Component: SelectComponent = ({
           opened ? (
             <ChevronUpIcon style={chevronIconsStyle} />
           ) : (
-            <ChevronDownIcon style={chevronIconsStyle} />
-          )
+              <ChevronDownIcon style={chevronIconsStyle} />
+            )
         ) : (
-          <ChevronDownIcon style={chevronIconsStyle} />
-        )}
+            <ChevronDownIcon style={chevronIconsStyle} />
+          )}
       </IconContainer>
     ),
     [chevronIconsStyle, opened],
@@ -253,6 +257,10 @@ const Component: SelectComponent = ({
   const handleOpen = () => {
     setOpened(true);
     rest?.onOpen && rest?.onOpen();
+
+    if (!isDirty) {
+      setIsDirty(true);
+    }
   };
 
   const handleClose = () => {

@@ -76,6 +76,7 @@ const DateTimePicker: DateTimePickerComponent = ({
   // States
   const [date, setDate] = useState<Date | null>(null);
   const [show, setShow] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const { fieldName, registerField, error } = useField(name);
 
   // Refs
@@ -263,6 +264,8 @@ const DateTimePicker: DateTimePickerComponent = ({
       onChangeValue({ currentDate: new Date() });
     }
     togglePicker();
+
+    setIsDirty(true);
   }, [date, onChangeValue, togglePicker]);
 
   const selectedColor: InputStyle = useMemo(() => {
@@ -313,6 +316,21 @@ const DateTimePicker: DateTimePickerComponent = ({
     (props: SvgProps) => (mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />),
     [mode],
   );
+  const isValid = useMemo(() => {
+    if (!isDirty) {
+      return 'keepDefault';
+    }
+
+    if (error) {
+      return false;
+    }
+
+    if (![null, undefined].includes(date) && [null, undefined].includes(error)) {
+      return true;
+    }
+
+    return 'keepDefault';
+  }, [date, error, isDirty]);
 
   return (
     <ViewContainer style={style}>
@@ -322,7 +340,7 @@ const DateTimePicker: DateTimePickerComponent = ({
             ref={inputRef}
             name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
             editable={false}
-            validity={date && !error}
+            validity={isValid}
             placeholder={placeholder}
             value={date && getDateFormatted(date)}
             iconComponent={() => {
@@ -332,6 +350,8 @@ const DateTimePicker: DateTimePickerComponent = ({
               return <DefaultIcon color={currentValidationStyles?.borderColor} />;
             }}
             color={color}
+            isDirty={isDirty}
+            onChangeDirty={(dirty) => setIsDirty(dirty)}
             {...inputProps}
           />
         </View>

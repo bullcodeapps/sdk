@@ -87,7 +87,7 @@ type SuggestGooglePlacesProps = CustomProps;
 const API_KEY = Config.GOOGLE_MAPS_API_KEY;
 
 export type SuggestGooglePlacesComponent = FunctionComponent<SuggestGooglePlacesProps>;
-type FieldType = FormFieldType<GooglePlacesAutocompleteRef>;
+type FieldType = FormFieldType<GooglePlacesAutocompleteRef> & { markAsDirty: () => void };
 
 export const getSuggestGooglePlacesYupSchema = () => Yup.object<GooglePlace>();
 
@@ -125,9 +125,10 @@ const Component: SuggestGooglePlacesComponent = ({
   const [text, setText] = useState<string>();
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [currentLocationChangeDate, setCurrentLocationChangeDate] = useState<Date>();
-  const { fieldName, registerField } = useField(name);
+  const { fieldName, registerField, error } = useField(name);
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   // Refs
   const autocompleteRef = useRef<FieldType>();
@@ -154,6 +155,16 @@ const Component: SuggestGooglePlacesComponent = ({
   useEffect(() => {
     combinedRef?.current?.validate && combinedRef.current.validate(selected);
   }, [combinedRef, selected]);
+
+  useEffect(() => {
+    combinedRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+    };
+  }, [isDirty]);
 
   const handlePressIcon = () => {
     if (!selected) {
@@ -191,7 +202,6 @@ const Component: SuggestGooglePlacesComponent = ({
   };
 
   const handleSelect = useCallback((rowData, details?) => {
-    console.log('handleSelect!');
     if (rowData?.isPredefinedPlace) {
       const description = rowData.description;
       details = rowData.details;
@@ -208,6 +218,8 @@ const Component: SuggestGooglePlacesComponent = ({
       longitude: details?.geometry?.location?.lng,
     };
     setSelected(googlePlace);
+
+    combinedRef?.current?.validate && combinedRef.current.validate(selected);
   }, []);
 
   const loadCurrentLocation = useCallback(
@@ -286,6 +298,10 @@ const Component: SuggestGooglePlacesComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
+    if (!isDirty && !selected) {
+      return selectedColor?.default;
+    }
+
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
         return selectedColor?.default;
@@ -297,8 +313,12 @@ const Component: SuggestGooglePlacesComponent = ({
       return getColorTypeByValidity(!!selected && !!text);
     }
 
+    if (error) {
+      return selectedColor?.invalid || selectedColor?.default;
+    }
+
     return selectedColor?.default;
-  }, [getColorTypeByValidity, isFocused, propValidity, selected, selectedColor?.default, text, usingValidity]);
+  }, [getColorTypeByValidity, isFocused, propValidity, selected, selectedColor?.default, text, usingValidity, isDirty, error, name]);
 
   useEffect(() => {
     if (!canUseCurrentLocation) {
@@ -343,9 +363,13 @@ const Component: SuggestGooglePlacesComponent = ({
     setIsLoading(false);
   };
 
-  const handleOnFocus = () => {
+  const handleOnFocus = useCallback(() => {
     setIsFocused(true);
-  };
+
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+  }, [isDirty]);
 
   const handleOnBlur = () => {
     setIsFocused(false);
@@ -476,7 +500,8 @@ const Component: SuggestGooglePlacesComponent = ({
           onBlur: handleOnBlur,
           onKeyPress: handleAutocompleteOnKeyPress,
           onChangeText: handleOnChangeText,
-          onSubmitEditing: () => { },
+          onSubmitEditing: () => {
+          },
         } as TextInputProps
       }
       onLoad={handleOnLoad}

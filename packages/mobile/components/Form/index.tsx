@@ -61,7 +61,7 @@ const Component: FormComponent = ({
             setDataToFields(d[key], newKey);
           }
         });
-      } catch (e) {}
+      } catch (e) { }
     },
     [combinedRef],
   );
@@ -154,9 +154,25 @@ const Component: FormComponent = ({
     addAutoValidationToFields(schema);
   }, [addAutoValidationToFields, schema]);
 
+  const setChildrenAsDirty = () => {
+    if (!schema?.fields) {
+      return;
+    }
+    Object.keys(combinedRef?.current?.getData())?.forEach((fieldName) => {
+      const field = combinedRef?.current?.getFieldRef(fieldName);
+
+      if (!field) {
+        return;
+      }
+
+      field?.markAsDirty && field.markAsDirty();
+    });
+  };
+
   const handleSubmit: SubmitHandler<any> = async (formData: any) => {
     try {
       Keyboard.dismiss();
+      setChildrenAsDirty();
       const res = validate(formData);
       onSubmit(res);
     } catch (err) {

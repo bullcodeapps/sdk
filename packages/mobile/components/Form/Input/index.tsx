@@ -54,9 +54,9 @@ export type InputFieldType<T = any> = FormFieldType<InputRef<T>>;
 
 export interface InputProps<T = any>
   extends Omit<TextInputProps, 'ref'>,
-    Readonly<{ children?: ReactNode }>,
-    Partial<NativeMethods>,
-    Partial<TimerMixin> {
+  Readonly<{ children?: ReactNode }>,
+  Partial<NativeMethods>,
+  Partial<TimerMixin> {
   ref?: Ref<InputRef<T>>;
   outerRef?: Ref<InputRef<T>>;
   name?: any;
@@ -69,6 +69,8 @@ export interface InputProps<T = any>
   onChangeValidity?: (isValid: boolean) => void;
   onMarkPress?: (event: GestureResponderEvent) => void;
   color?: string;
+  isDirty?: boolean;
+  onChangeDirty?: (isDirty: boolean) => void;
 }
 
 export type InputComponent<T = any> = FunctionComponent<InputProps<T>>;
@@ -87,12 +89,16 @@ const Component: InputComponent = ({
   onMarkPress,
   onChangeText,
   style,
+  onFocus: propOnFocus,
+  isDirty: propIsDirty = false,
+  onChangeDirty,
   ...rest
 }) => {
   const ctx = useContext<InputContextType>(InputContext);
 
   // States
   const [value, setValue] = useState<string>('');
+  const [isDirty, setIsDirty] = useState(propIsDirty);
   const { fieldName, registerField, error } = useField(name);
 
   // Refs
@@ -109,6 +115,17 @@ const Component: InputComponent = ({
     },
     [combinedRef, onChangeText, usingValidity],
   );
+
+  useEffect(() => {
+    inputRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+      onChangeDirty && onChangeDirty(true);
+    }
+  }, [isDirty]);
 
   useEffect(() => {
     handleOnChangeText(rest?.value);
@@ -153,6 +170,10 @@ const Component: InputComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
+    if (!isDirty && !value) {
+      return selectedColor?.default;
+    }
+
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
         return selectedColor?.default;
@@ -163,7 +184,7 @@ const Component: InputComponent = ({
       return getColorTypeByValidity(!error);
     }
 
-    if (!!error && !!value) {
+    if (!!error) {
       return selectedColor?.invalid || selectedColor?.default;
     }
 
@@ -176,6 +197,7 @@ const Component: InputComponent = ({
     selectedColor?.invalid,
     usingValidity,
     value,
+    isDirty,
   ]);
 
   useEffect(() => {
@@ -190,6 +212,14 @@ const Component: InputComponent = ({
   }, [selectedColor.validityMarkComponent]);
 
   const IconComponent = iconComponent;
+
+  const onFocus = useCallback((e) => {
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+
+    propOnFocus && propOnFocus(e);
+  }, [isDirty]);
 
   return (
     <Container style={containerStyle} {...containerProps}>
@@ -216,6 +246,7 @@ const Component: InputComponent = ({
           style,
         ]}
         onChangeText={handleOnChangeText}
+        onFocus={onFocus}
       />
       <IconContainer
         isMultiline={rest.multiline}
@@ -226,7 +257,7 @@ const Component: InputComponent = ({
         }>
         {!iconComponent &&
           useValidityMark &&
-          (usingValidity ? propValidity !== 'keepDefault' && propValidity : value?.length > 0) && (
+          (usingValidity ? propValidity !== 'keepDefault' && propValidity : isDirty && value?.length > 0) && (
             <ValidityMarkComponent
               isValid={!error}
               colorName={selectedColor.name}
@@ -234,6 +265,14 @@ const Component: InputComponent = ({
               onPress={(e) => !!onMarkPress && onMarkPress(e)}
             />
           )}
+        {!iconComponent && !!error && !value && isDirty && (
+          <ValidityMarkComponent
+            isValid={!error}
+            colorName={selectedColor.name}
+            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
+            onPress={(e) => !!onMarkPress && onMarkPress(e)}
+          />
+        )}
         {!!iconComponent && (
           <IconComponent
             isValid={!error}
