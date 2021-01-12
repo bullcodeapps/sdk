@@ -1,4 +1,13 @@
-import React, { useState, useCallback, useRef, useEffect, memo, PropsWithChildren } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useContext,
+  memo,
+  PropsWithChildren,
+  useMemo,
+} from 'react';
 
 import {
   Container,
@@ -9,19 +18,38 @@ import {
   ChevronDownIcon,
   AccordionContent,
   BodyContainer,
+  AccordionStyles,
+  DefaultColors,
 } from './styles';
 import { Animated, Easing } from 'react-native';
+
+export type AccordionContextType = { colors: AccordionStyles };
+export const AccordionContext = React.createContext<AccordionContextType>({ colors: null });
+
+export const setAccordionColors = (colors: AccordionStyles) => {
+  const ctx = useContext<AccordionContextType>(AccordionContext);
+  ctx.colors = colors;
+};
 
 type AccordionProps = PropsWithChildren<{
   headerContent?: React.ReactNode;
   onChange?: (state: boolean) => void;
   expanded?: boolean;
   autoExpand?: boolean;
+  color?: string;
 }>;
 
-const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange, expanded: propExpanded, autoExpand = false }) => {
+const Accordion: React.FC<AccordionProps> = ({
+  headerContent,
+  onChange,
+  expanded: propExpanded,
+  autoExpand = false,
+  color = 'primary',
+  children,
+}) => {
   // Refs
   const animatedController = useRef(new Animated.Value(0)).current;
+  const ctx = useContext<AccordionContextType>(AccordionContext);
 
   // States
   const [expanded, setExpanded] = useState<boolean>(false);
@@ -85,13 +113,25 @@ const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange
     toggleExpand(+expanded);
   }, [expanded]);
 
+  const selectedColor = useMemo(() => {
+    const colors = ctx?.colors || DefaultColors;
+    const foundColor = colors.find((_color) => _color.name === color);
+    if (!foundColor) {
+      console.warn(
+        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return DefaultColors[0];
+    }
+    return foundColor;
+  }, [color, ctx?.colors]);
+
   return (
-    <Container>
+    <Container borderWidth={selectedColor?.default?.borderWidth} borderColor={selectedColor?.default?.borderColor}>
       <AccordionHeader activeOpacity={0.8} onPress={handleAccordionOnPress}>
         <AccordionHeaderContent>{headerContent}</AccordionHeaderContent>
-        <AccordionChevronCircle size={25} color="#D9DADB">
+        <AccordionChevronCircle size={25} color={selectedColor?.default?.expandedIcon?.backgroundColor}>
           <IconWrapper style={{ transform: [{ rotateZ: arrowAngle }] }}>
-            <ChevronDownIcon />
+            <ChevronDownIcon color={selectedColor?.default?.expandedIcon?.iconColor} />
           </IconWrapper>
         </AccordionChevronCircle>
       </AccordionHeader>

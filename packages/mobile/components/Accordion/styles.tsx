@@ -3,9 +3,39 @@ import { ContainerDefaults, Circle } from '../../global-styles';
 import ChevronDownSvg from '../../../core/assets/icons/chevron-down.svg';
 import { Animated } from 'react-native';
 
-export const Container = styled.View`
-  border-bottom-width: 1px;
-  border-bottom-color: #bbc8cf;
+export type AccordionStateStyles = {
+  expandedIcon: {
+    backgroundColor: string,
+    iconColor: string,
+  },
+  borderColor?: string,
+  borderWidth?: number,
+};
+
+export type AccordionStyle = {
+  name: string;
+  default: AccordionStateStyles;
+};
+
+export type AccordionStyles = Array<AccordionStyle>;
+
+export const DefaultColors: AccordionStyles = [
+  {
+    name: 'primary',
+    default: {
+      expandedIcon: {
+        backgroundColor: '#d9dadb',
+        iconColor: '#7a7a7b'
+      },
+      borderColor: '#bbc8cf',
+      borderWidth: 1
+    },
+  },
+];
+
+export const Container = styled.View<{ borderWidth: number, borderColor: string }>`
+  border-bottom-width: ${props => props.borderWidth}px;
+  border-bottom-color: ${props => props.borderColor};
 `;
 
 export const AccordionHeader = styled.TouchableOpacity`
@@ -29,13 +59,13 @@ export const IconWrapper = styled(Animated.View)`
   flex-shrink: 1;
 `;
 
-export const ChevronDownIcon = styled(ChevronDownSvg)`
+export const ChevronDownIcon = styled(ChevronDownSvg) <{ color: string }>`
   width: 10px;
   height: 10px;
-  color: #7A7A7B;
+  color: ${props => props.color};
 `;
 
-export const AccordionContent = styled(Animated.View)` 
+export const AccordionContent = styled(Animated.View)`
   width: 100%;
   overflow: hidden;
 `;
