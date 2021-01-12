@@ -2,11 +2,12 @@ import React, { useMemo, useContext } from 'react';
 
 import { Text } from './styles';
 import ButtonContext, { ButtonContextType } from '@bullcode/mobile/components/Button/context';
-import { ButtonTextStyles, ButtonColors } from '@bullcode/mobile/components/Button/types';
+import { ButtonStyle } from '@bullcode/mobile/components/Button/types';
 import { ActivityIndicator, TextProps } from 'react-native';
+import { TextContext, TextContextType } from '@bullcode/mobile/components/Text';
 
 type CustomProps = {
-  defaultButtonColors?: ButtonColors;
+  defaultButtonColors;
   color?: string;
   disabled?: boolean;
   outline?: boolean;
@@ -27,10 +28,12 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   activityIndicatorColor,
   ...rest
 }) => {
+
+  const ctxText = useContext<TextContextType>(TextContext);
   const ctx = useContext<ButtonContextType>(ButtonContext);
 
-  const buttonTextColorStyles: Partial<ButtonTextStyles> = useMemo(() => {
-    const colors = ctx?.colors || defaultButtonColors;
+  const buttonTextColorStyles: Partial<ButtonStyle> = useMemo(() => {
+    const colors = ctxText?.types || ctx?.colors || defaultButtonColors;
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor ) {
       if (__DEV__) {
@@ -44,14 +47,14 @@ const ButtonText: React.FC<ButtonTextProps> = ({
       const { color: textColor } = foundColor?.disabled[outline ? 'outline' : 'solid'];
       return { color: textColor };
     }
-    const { color: textColor } = foundColor?.default[outline ? 'outline' : 'solid'];
-    return { color: textColor };
+    const { textStyle } = foundColor?.default[outline ? 'outline' : 'solid'];
+    return textStyle;
   }, [color, ctx?.colors, defaultButtonColors, disabled, outline]);
 
   return loading ? (
     <ActivityIndicator
       size={loadingSize || 'small'}
-      color={activityIndicatorColor || buttonTextColorStyles?.color}
+      color={activityIndicatorColor || buttonTextColorStyles?.name}
     />
   ) : (
     <Text {...rest} style={[buttonTextColorStyles, rest?.style]}/>
