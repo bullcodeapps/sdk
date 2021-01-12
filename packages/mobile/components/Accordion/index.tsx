@@ -15,9 +15,11 @@ import { Animated, Easing } from 'react-native';
 type AccordionProps = PropsWithChildren<{
   headerContent?: React.ReactNode;
   onChange?: (state: boolean) => void;
+  expanded?: boolean;
+  autoExpand?: boolean;
 }>;
 
-const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange }) => {
+const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange, expanded: propExpanded, autoExpand = false }) => {
   // Refs
   const animatedController = useRef(new Animated.Value(0)).current;
 
@@ -25,22 +27,48 @@ const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange
   const [expanded, setExpanded] = useState<boolean>(false);
   const [bodySectionHeight, setBodySectionHeight] = useState(0);
 
-  const toggleExpand = useCallback(() => {
-    const newExpandedValue = !expanded;
+  const [isFirstRender, setIsFirstRender] = useState(true);
+
+  const toggleExpand = useCallback((toValue: number) => {
     Animated.timing(animatedController, {
       duration: 150,
-      toValue: +newExpandedValue,
+      toValue,
       useNativeDriver: false,
     }).start();
+  }, [animatedController]);
+
+  useEffect(() => {
+    if (isFirstRender) {
+      setIsFirstRender(false);
+    }
+  }, [isFirstRender]);
+
+  useEffect(() => {
+    if (isFirstRender && propExpanded) {
+      return;
+    }
+
+    setExpanded(propExpanded);
+  }, [propExpanded, isFirstRender]);
+
+  useEffect(() => {
+    if (isFirstRender && autoExpand) {
+      setTimeout(() => {
+        toggleExpand(1);
+        setExpanded(true);
+      }, 150);
+    }
+  }, [autoExpand, isFirstRender]);
+
+  const handleAccordionOnPress = useCallback(() => {
+    const newExpandedValue = !expanded;
+
     // this change of state cannot remain within the callback of the animation (when animation ends),
     // as this ensures that, when you touch the Accordion several times,
     // this animation continues where it left off, even before the previous animation ended.
     setExpanded(newExpandedValue);
-  }, [animatedController, expanded]);
-
-  const handleAccordionOnPress = useCallback(() => {
-    toggleExpand();
-  }, [toggleExpand]);
+    onChange && onChange(newExpandedValue);
+  }, [toggleExpand, expanded]);
 
   const bodyHeight = animatedController.interpolate({
     inputRange: [0, 1],
@@ -53,10 +81,9 @@ const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange
     outputRange: ['0rad', `${Math.PI}rad`],
   });
 
-  // It should not be triggered when re-rendering the component, so we ignore onChange as a dependency!
   useEffect(() => {
-    onChange && onChange(expanded);
-  }, [expanded]); // eslint-disable-line react-hooks/exhaustive-deps
+    toggleExpand(+expanded);
+  }, [expanded]);
 
   return (
     <Container>
