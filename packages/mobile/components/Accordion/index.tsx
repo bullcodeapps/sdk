@@ -8,20 +8,20 @@ import React, {
   PropsWithChildren,
   useMemo,
 } from 'react';
+import { Animated, Easing, ViewStyle } from 'react-native';
 
 import {
   Container,
-  AccordionHeader,
+  Header,
   AccordionHeaderContent,
-  AccordionChevronCircle,
+  IndicatorIconContainer,
   IconWrapper,
   ChevronDownIcon,
-  AccordionContent,
+  Content,
   BodyContainer,
   AccordionStyles,
   DefaultColors,
 } from './styles';
-import { Animated, Easing } from 'react-native';
 
 export type AccordionContextType = { colors: AccordionStyles };
 export const AccordionContext = React.createContext<AccordionContextType>({ colors: null });
@@ -34,18 +34,33 @@ export const setAccordionColors = (colors: AccordionStyles) => {
 type AccordionProps = PropsWithChildren<{
   headerContent?: React.ReactNode;
   onChange?: (state: boolean) => void;
-  expanded?: boolean;
+  expanded?: boolean | null;
   autoExpand?: boolean;
   color?: string;
+  style?: ViewStyle;
+  headerStyle?: ViewStyle;
+  arrowContainerStyle?: ViewStyle;
+  arrowStyle?: ViewStyle;
+  // It was done in this way to prevent the definition of height, since we're defining the height at line 170;
+  contentContainerStyle?: Omit<ViewStyle, 'height'>;
+  customHeader?: React.ReactNode;
+  arrowDownIcon?: React.SVGProps<SVGSVGElement>;
 }>;
 
 const Accordion: React.FC<AccordionProps> = ({
   headerContent,
   onChange,
-  expanded: propExpanded,
+  expanded: propExpanded = null,
   autoExpand = false,
   color = 'primary',
   children,
+  style,
+  headerStyle,
+  arrowContainerStyle,
+  arrowStyle,
+  contentContainerStyle,
+  customHeader: CustomHeader = null,
+  arrowDownIcon: ArrowDownIcon = null
 }) => {
   // Refs
   const animatedController = useRef(new Animated.Value(0)).current;
@@ -72,6 +87,10 @@ const Accordion: React.FC<AccordionProps> = ({
   }, [isFirstRender]);
 
   useEffect(() => {
+    if ([null, undefined].includes(propExpanded)) {
+      return;
+    }
+
     if (isFirstRender && propExpanded) {
       return;
     }
@@ -126,20 +145,27 @@ const Accordion: React.FC<AccordionProps> = ({
   }, [color, ctx?.colors]);
 
   return (
-    <Container borderWidth={selectedColor?.default?.borderWidth} borderColor={selectedColor?.default?.borderColor}>
-      <AccordionHeader activeOpacity={0.8} onPress={handleAccordionOnPress}>
-        <AccordionHeaderContent>{headerContent}</AccordionHeaderContent>
-        <AccordionChevronCircle size={25} color={selectedColor?.default?.expandedIcon?.backgroundColor}>
-          <IconWrapper style={{ transform: [{ rotateZ: arrowAngle }] }}>
-            <ChevronDownIcon color={selectedColor?.default?.expandedIcon?.iconColor} />
-          </IconWrapper>
-        </AccordionChevronCircle>
-      </AccordionHeader>
-      <AccordionContent style={{ height: bodyHeight }}>
+    <Container
+      borderWidth={selectedColor?.default?.borderWidth}
+      borderColor={selectedColor?.default?.borderColor}
+      style={style}>
+      {![null, undefined].includes(CustomHeader) ? CustomHeader : (
+        <Header activeOpacity={0.8} onPress={handleAccordionOnPress} style={headerStyle}>
+          <AccordionHeaderContent>{headerContent}</AccordionHeaderContent>
+          <IndicatorIconContainer size={25} color={selectedColor?.default?.expandedIcon?.backgroundColor} style={arrowContainerStyle}>
+            <IconWrapper style={{ transform: [{ rotateZ: arrowAngle }] }}>
+              {![null, undefined].includes(ArrowDownIcon)
+                ? ArrowDownIcon
+                : <ChevronDownIcon color={selectedColor?.default?.expandedIcon?.iconColor} style={arrowStyle} />}
+            </IconWrapper>
+          </IndicatorIconContainer>
+        </Header>
+      )}
+      <Content style={[{ height: bodyHeight }, contentContainerStyle]}>
         <BodyContainer onLayout={(event) => setBodySectionHeight(event.nativeEvent.layout.height)}>
           {children}
         </BodyContainer>
-      </AccordionContent>
+      </Content>
     </Container>
   );
 };

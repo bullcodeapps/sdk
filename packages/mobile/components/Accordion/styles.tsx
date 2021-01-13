@@ -38,7 +38,7 @@ export const Container = styled.View<{ borderWidth: number, borderColor: string 
   border-bottom-color: ${props => props.borderColor};
 `;
 
-export const AccordionHeader = styled.TouchableOpacity`
+export const Header = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   padding-top: 15px;
@@ -50,7 +50,7 @@ export const AccordionHeaderContent = styled.View`
   flex: 1;
 `;
 
-export const AccordionChevronCircle = styled(Circle)`
+export const IndicatorIconContainer = styled(Circle)`
   align-items: center;
   justify-content: center;
 `;
@@ -65,7 +65,7 @@ export const ChevronDownIcon = styled(ChevronDownSvg) <{ color: string }>`
   color: ${props => props.color};
 `;
 
-export const AccordionContent = styled(Animated.View)`
+export const Content = styled(Animated.View)`
   width: 100%;
   overflow: hidden;
 `;
