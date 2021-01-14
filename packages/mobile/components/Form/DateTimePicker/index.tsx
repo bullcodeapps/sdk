@@ -13,7 +13,7 @@ import {
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
-import { InputProps, InputContextType, InputContext } from '../Form/Input';
+import { InputProps, InputContextType, InputContext } from '../Input';
 import {
   format,
   isAfter,
