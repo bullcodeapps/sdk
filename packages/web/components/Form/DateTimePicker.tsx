@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { DateTimePicker as MUIDateTimePicker } from '@material-ui/pickers';
 
 import { useField } from '@unform/core';
-import { parse } from 'date-fns';
+import { parse, isWithinInterval, isBefore, isAfter } from 'date-fns';
 import { FormControl } from './styles';
 
 interface Props {
@@ -15,6 +15,8 @@ interface Props {
   disableFuture?: boolean;
   disablePast?: boolean;
   value?: any;
+  maxDate?: Date;
+  minDate?: Date;
   onChange?: (date: Date) => void;
 }
 
@@ -28,6 +30,8 @@ export default function DateTimePicker({
   disableFuture = false,
   disablePast = false,
   value,
+  maxDate,
+  minDate,
   onChange,
   ...other
 }: Props) {
@@ -42,23 +46,31 @@ export default function DateTimePicker({
   }, [defaultValue, value]);
 
   useEffect(() => {
+    if (value) {
+      const newDate = typeof value === 'string' ? new Date(value) : value;
+      setSelected(newDate);
+    } else {
+      setSelected(defaultValue || value as Date);
+    }
+  }, [defaultValue, value]);
+
+  useEffect(() => {
     registerField({
       name: fieldName,
       ref: inputRef.current,
       path: 'value',
-      getValue: (ref: any) => (ref.value ? parse(ref.value, 'dd/MM/yyyy HH:mm', new Date()) : null),
       clearValue: () => setSelected(defaultValue || null),
-      setValue: (ref: any, val: Date | string) => {
-        const newDate = typeof val === 'string' ? new Date(val) : val;
-        setSelected(newDate);
-      }
+      getValue: (ref: any) => (ref.value ? parse(ref.value, 'dd/MM/yyyy', new Date()) : null),
+      setValue: (ref: any, val: Date | string) => (val ? setSelected(new Date(val)) : null),
     });
   }, [inputRef.current, fieldName, defaultValue]); // eslint-disable-line
 
-  const onChangeDateTime = (date: Date) => {
-    setSelected(date);
+  const onChangeDateTime = (date: any) => {
+    setSelected(date as Date);
 
-    onChange && onChange(date);
+    if (onChange) {
+      onChange(date as Date);
+    }
   };
 
   return (
@@ -77,6 +89,8 @@ export default function DateTimePicker({
         value={value || selected}
         inputRef={inputRef}
         onChange={onChangeDateTime}
+        minDate={minDate}
+        maxDate={maxDate}
         inputVariant="outlined"
         size="small"
         margin="dense"
