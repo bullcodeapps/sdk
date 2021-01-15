@@ -1,5 +1,6 @@
 import styled from 'styled-components/native';
-import { Animated, Platform, TextInput } from 'react-native';
+import { Animated, TextInput } from 'react-native';
+import Text from '../../Text';
 
 export type ValidityMarkComponentProps = {
   isValid?: boolean;
@@ -116,14 +117,12 @@ padding-top: 5px;
 padding-bottom: 5px;
 padding-right: 5px;
 background-color: #fff;
-box-shadow: 0px -3px 3px rgba(255, 255, 255, 0.2);
-border-radius: 20px;
+box-shadow: 0px 0px 5px rgba(255, 255, 255, 1);
+border-radius: 5px;
+z-index: 1;
 `;
 
-export const CounterText = styled.Text<{ maxLength: number; length: number }>`
-font-size: 14px;
-line-height: 14px;
-height: ${Platform.OS === 'ios' ? '14' : '18'}px;
+export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
 color: #bbc8cf;
 font-weight: 500;
 ${(props) => {
