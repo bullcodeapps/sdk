@@ -46,31 +46,40 @@ export default function DateTimePicker({
   }, [defaultValue, value]);
 
   useEffect(() => {
-    if (value) {
-      const newDate = typeof value === 'string' ? new Date(value) : value;
-      setSelected(newDate);
-    } else {
-      setSelected(defaultValue || value as Date);
-    }
-  }, [defaultValue, value]);
-
-  useEffect(() => {
     registerField({
       name: fieldName,
       ref: inputRef.current,
       path: 'value',
+      getValue: (ref: any) => (ref.value ? parse(ref.value, 'dd/MM/yyyy HH:mm', new Date()) : null),
       clearValue: () => setSelected(defaultValue || null),
-      getValue: (ref: any) => (ref.value ? parse(ref.value, 'dd/MM/yyyy', new Date()) : null),
       setValue: (ref: any, val: Date | string) => (val ? setSelected(new Date(val)) : null),
     });
   }, [inputRef.current, fieldName, defaultValue]); // eslint-disable-line
 
-  const onChangeDateTime = (date: any) => {
-    setSelected(date as Date);
+  const onChangeDateTime = (date: Date) => {
+    const newMinDate = typeof minDate === 'string' ? new Date(minDate) : minDate;
+    const newMaxDate = typeof maxDate === 'string' ? new Date(maxDate) : maxDate;
+    const newDate = date as Date;
 
-    if (onChange) {
-      onChange(date as Date);
+    if (minDate && maxDate && isWithinInterval(newDate, { start: newMinDate, end: newMaxDate })) {
+      setSelected(newDate);
+      onChange && onChange(newDate);
+      return newDate;
     }
+
+    if (minDate && isBefore(newDate, newMinDate)) {
+      setSelected(newMinDate);
+      onChange && onChange(newMinDate);
+      return newMinDate;
+    }
+
+    if (maxDate && isAfter(newDate, newMaxDate)) {
+      setSelected(newMaxDate);
+      onChange && onChange(newMaxDate);
+      return newMaxDate;
+    }
+    setSelected(newDate);
+    onChange && onChange(newDate);
   };
 
   return (
