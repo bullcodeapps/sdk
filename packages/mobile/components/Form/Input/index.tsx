@@ -211,7 +211,7 @@ const Component: InputComponent = ({
             borderColor: currentValidationStyles?.borderColor,
             color: currentValidationStyles?.color,
             borderRadius: selectedColor?.default?.borderRadius,
-            paddingRight: iconComponent ? 45 : 0,
+            paddingRight: iconComponent ? 45 : rest?.multiline ? 20 : 0,
           },
           style,
         ]}
