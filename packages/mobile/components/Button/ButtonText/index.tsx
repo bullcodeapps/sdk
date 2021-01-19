@@ -52,7 +52,7 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   return loading ? (
     <ActivityIndicator size={loadingSize || 'small'} color={activityIndicatorColor} />
   ) : (
-    <Text {...rest} type={buttonStyleType?.textType} style={[buttonStyleType?.textStyle, rest?.style]} />
+    <Text type={buttonStyleType?.textType} {...rest} style={[buttonStyleType?.textStyle, rest?.style]} />
   );
 };
 
