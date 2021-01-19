@@ -1,14 +1,16 @@
 import React, { useMemo, useContext } from 'react';
 
-import { Text } from './styles';
-import ButtonContext, { ButtonContextType } from '@bullcode/mobile/components/Button/context';
-import { ButtonStyle } from '@bullcode/mobile/components/Button/types';
-import { ActivityIndicator, TextProps } from 'react-native';
-import { TextContext, TextContextType } from '@bullcode/mobile/components/Text';
+import { Text } from '@bullcode/mobile/components/Button/ButtonText/styles';
+import ButtonContext, {
+  ButtonContextType,
+  DEFAULT_BUTTON_STYLES,
+} from '@bullcode/mobile/components/Button/context';
+import { ButtonStyleType } from '@bullcode/mobile/components/Button/types';
+import { ActivityIndicator } from 'react-native';
+import { TextProps } from '@bullcode/mobile/components/Text';
 
 type CustomProps = {
-  defaultButtonColors;
-  color?: string;
+  theme?: string;
   disabled?: boolean;
   outline?: boolean;
   loading?: boolean;
@@ -19,8 +21,7 @@ type CustomProps = {
 export type ButtonTextProps = CustomProps & TextProps;
 
 const ButtonText: React.FC<ButtonTextProps> = ({
-  defaultButtonColors,
-  color,
+  theme,
   disabled,
   outline,
   loading,
@@ -28,36 +29,30 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   activityIndicatorColor,
   ...rest
 }) => {
-
-  const ctxText = useContext<TextContextType>(TextContext);
   const ctx = useContext<ButtonContextType>(ButtonContext);
 
-  const buttonTextColorStyles: Partial<ButtonStyle> = useMemo(() => {
-    const colors = ctxText?.types || ctx?.colors || defaultButtonColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor ) {
-      if (__DEV__) {
-        console.log(
-          `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
-        );
-      }
+  const foundStyle = useMemo(() => {
+    const styles = ctx?.styles || DEFAULT_BUTTON_STYLES;
+    return styles.find((_style) => _style.name === theme);
+  }, [ctx?.styles, theme]);
+
+  const buttonStyleType: ButtonStyleType = useMemo(() => {
+    if (!foundStyle) {
+      console.log(
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
       return {};
     }
     if (disabled) {
-      const { color: textColor } = foundColor?.disabled[outline ? 'outline' : 'solid'];
-      return { color: textColor };
+      return foundStyle?.disabled[outline ? 'outline' : 'solid'];
     }
-    const { textStyle } = foundColor?.default[outline ? 'outline' : 'solid'];
-    return textStyle;
-  }, [color, ctx?.colors, defaultButtonColors, disabled, outline]);
+    return foundStyle?.default[outline ? 'outline' : 'solid'];
+  }, [disabled, foundStyle, outline, theme]);
 
   return loading ? (
-    <ActivityIndicator
-      size={loadingSize || 'small'}
-      color={activityIndicatorColor || buttonTextColorStyles?.name}
-    />
+    <ActivityIndicator size={loadingSize || 'small'} color={activityIndicatorColor} />
   ) : (
-    <Text {...rest} style={[buttonTextColorStyles, rest?.style]}/>
+    <Text {...rest} type={buttonStyleType?.textType} style={[buttonStyleType?.textStyle, rest?.style]} />
   );
 };
 

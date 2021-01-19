@@ -2,8 +2,8 @@ export { default as Accordion } from './Accordion';
 export { default as ActivationCodeInput } from './ActivationCodeInput';
 export { default as Button } from './Button';
 export {
-  setButtonColors,
-  DEFAULT_BUTTON_COLORS,
+  setButtonStyles,
+  DEFAULT_BUTTON_STYLES as DEFAULT_BUTTON_COLORS,
   DEFAULT_DISABLED_COLORS,
 } from './Button/context';
 export { default as ButtonText } from './Button/ButtonText';

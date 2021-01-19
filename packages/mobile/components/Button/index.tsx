@@ -5,7 +5,7 @@ import { GestureResponderEvent, ViewStyle, ViewProps, TouchableHighlight, View }
 import { ButtonStyle } from '@bullcode/mobile/components/Button/types';
 import ButtonContext, {
   ButtonContextType,
-  DEFAULT_BUTTON_COLORS,
+  DEFAULT_BUTTON_STYLES,
 } from '@bullcode/mobile/components/Button/context';
 import ButtonText from './ButtonText';
 
@@ -18,7 +18,7 @@ export type ButtonProps = {
   loadingSize?: number | 'small' | 'large';
   children?: any;
   activityIndicatorColor?: string;
-  color?: string;
+  theme?: string;
   contentContainerStyle?: ViewStyle;
   buttonTextStyle?: ViewStyle;
   textStyle?: string;
@@ -31,7 +31,7 @@ const Component: ButtonComponent = ({
   outerRef,
   disabled,
   outline,
-  color,
+  theme,
   activityIndicatorColor,
   loading,
   loadingSize,
@@ -46,36 +46,37 @@ const Component: ButtonComponent = ({
   const ctx = useContext<ButtonContextType>(ButtonContext);
 
   const [showingUnderlay, setShowingUnderlay] = useState<boolean>(false);
-  
-  const foundColor =  useMemo(
-    () => {const colors = ctx?.colors || DEFAULT_BUTTON_COLORS;
-      return colors.find((_color) => _color.name === color);},
-    [],
-  );
+
+  const foundStyle: ButtonStyle = useMemo(() => {
+    const styles = ctx?.styles || DEFAULT_BUTTON_STYLES;
+    return styles.find((_style) => _style.name === theme);
+  }, [ctx?.styles, theme]);
 
   const buttonActiveStyle: ViewStyle = useMemo(() => {
-    if (!foundColor) {
+    if (!foundStyle) {
       console.log(
-        `The color "${color}" has no colors defined for the active state, check if the color of the button is the desired one or if this color has actually been declared previously`,
+        `The theme "${theme}" has no styles defined for the active state, check if the theme of the button is the desired one or if this theme has actually been declared previously`,
       );
       return;
     }
     if (disabled) {
-      return foundColor?.disabled[outline ? 'outline' : 'solid'];
+      const { buttonStyle } = foundStyle?.disabled[outline ? 'outline' : 'solid'];
+      return buttonStyle;
     }
-    return foundColor?.active[outline ? 'outline' : 'solid'];
-  }, [color, ctx?.colors, disabled, outline]);
+    const { buttonStyle } = foundStyle?.active[outline ? 'outline' : 'solid'];
+    return buttonStyle;
+  }, [foundStyle, disabled, outline, theme]);
 
-  const buttonColorStyles: Partial<ButtonStyle> = useMemo(() => {
-    if (!foundColor) {
+  const buttonStyles: Partial<ButtonStyle> = useMemo(() => {
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return {};
     }
 
-    const { buttonStyle } = foundColor.default[outline ? 'outline' : 'solid'];
-    const borderRadius = foundColor?.default?.borderRadius;
+    const { buttonStyle } = foundStyle.default[outline ? 'outline' : 'solid'];
+    const borderRadius = foundStyle?.borderRadius;
     if (showingUnderlay) {
       return {
         ...buttonStyle,
@@ -85,21 +86,14 @@ const Component: ButtonComponent = ({
     }
 
     if (disabled) {
-      const { color: textColor, ...buttonStyles } = foundColor.disabled[outline ? 'outline' : 'solid'];
-      if (borderRadius) {
-        return { ...buttonStyles, borderRadius };
-      }
-      return buttonStyles;
+      const { buttonStyle: btnStyle } = foundStyle?.disabled[outline ? 'outline' : 'solid'];
+      return { ...btnStyle, borderRadius };
     }
-    if (borderRadius) {
-      return { ...buttonStyle, borderRadius };
-    }
-    return buttonStyle;
-  }, [buttonActiveStyle, color, ctx?.colors, disabled, outline, showingUnderlay]);
+    return { ...buttonStyle, borderRadius };
+  }, [foundStyle, outline, showingUnderlay, disabled, theme, buttonActiveStyle]);
 
-  
   return (
-    <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonColorStyles, rest?.style]}>
+    <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonStyles, rest?.style]}>
       <TouchableHighlight
         style={{ flexGrow: 1, width: '100%', height: '100%' }}
         underlayColor={'transparent'}
@@ -111,8 +105,7 @@ const Component: ButtonComponent = ({
           {typeof children === 'string' ? (
             <ButtonText
               activityIndicatorColor={activityIndicatorColor}
-              color={color}
-              defaultButtonColors={DEFAULT_BUTTON_COLORS}
+              theme={theme}
               loading={loading}
               loadingSize={loadingSize}
               disabled={disabled}

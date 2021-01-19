@@ -2,13 +2,13 @@ import { createContext, useContext } from 'react';
 
 import { ContextButtonStyles, ButtonStyleTypes } from '@bullcode/mobile/components/Button/types';
 
-export type ButtonContextType = { colors: ContextButtonStyles };
+export type ButtonContextType = { styles: ContextButtonStyles };
 
-export const ButtonContext = createContext<ButtonContextType>({ colors: null });
+export const ButtonContext = createContext<ButtonContextType>({ styles: null });
 
-export const setButtonColors = (colors: ContextButtonStyles) => {
+export const setButtonStyles = (styles: ContextButtonStyles) => {
   const ctx = useContext<ButtonContextType>(ButtonContext);
-  ctx.colors = colors;
+  ctx.styles = styles;
 };
 
 const BUTTON_BG_PRIMARY = '#3a9def';
@@ -55,7 +55,7 @@ export const DEFAULT_DISABLED_COLORS: ButtonStyleTypes = {
   },
 };
 
-export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
+export const DEFAULT_BUTTON_STYLES: ContextButtonStyles = [
   {
     name: 'primary',
     default: {
@@ -63,7 +63,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: 'transparent',
           borderColor: BUTTON_BG_PRIMARY,
-          color: BUTTON_BG_PRIMARY,
         },
         textStyle: {
           backgroundColor: 'transparent',
@@ -75,7 +74,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: BUTTON_BG_PRIMARY,
           borderColor: BUTTON_BG_PRIMARY,
-          color: BUTTON_COLOR_PRIMARY,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_PRIMARY,
@@ -93,7 +91,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: BUTTON_BG_PRIMARY,
           borderColor: BUTTON_BG_PRIMARY,
-          color: BUTTON_COLOR_PRIMARY,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_PRIMARY,
@@ -105,7 +102,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: BUTTON_BG_SECONDARY,
           borderColor: BUTTON_BG_SECONDARY,
-          color: BUTTON_COLOR_SECONDARY,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_SECONDARY,
@@ -123,7 +119,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: 'transparent',
           borderColor: BUTTON_BG_TERTIARY,
-          color: BUTTON_BG_TERTIARY,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_SECONDARY,
@@ -135,7 +130,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: 'transparent',
           borderColor: BUTTON_BG_TERTIARY,
-          color: BUTTON_BG_TERTIARY,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_TERTIARY,
@@ -153,7 +147,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: 'transparent',
           borderColor: BUTTON_BG_WARNING,
-          color: BUTTON_BG_WARNING,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_TERTIARY,
@@ -165,7 +158,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: BUTTON_BG_WARNING,
           borderColor: BUTTON_BG_WARNING,
-          color: BUTTON_COLOR_WARNING,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_WARNING,
@@ -183,7 +175,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: 'transparent',
           borderColor: BUTTON_BG_DANGER,
-          color: BUTTON_BG_DANGER,
         },
         textStyle: {
           backgroundColor: 'transparent',
@@ -195,7 +186,6 @@ export const DEFAULT_BUTTON_COLORS: ContextButtonStyles = [
         buttonStyle: {
           backgroundColor: BUTTON_BG_DANGER,
           borderColor: BUTTON_BG_DANGER,
-          color: BUTTON_COLOR_DANGER,
         },
         textStyle: {
           backgroundColor: BUTTON_BG_DANGER,
