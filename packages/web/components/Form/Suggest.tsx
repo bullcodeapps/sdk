@@ -17,19 +17,19 @@ interface Props {
   onChange?: (value?: any) => any;
 }
 
-type InputProps = TextFieldProps & Props;
+type InputProps = Omit<TextFieldProps, 'onChange'> & Props;
 
 export default function Suggest({
   name,
   label,
   optionLabel,
-  loadOptions,
   multiple = false,
   helperText,
   size = 'small',
   margin = 'dense',
   fullWidth = true,
   value: originalValue,
+  loadOptions,
   onChange,
   ...other
 }: InputProps) {

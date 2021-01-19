@@ -68,9 +68,13 @@ const Component: ImageComponent = ({
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    position: 'relative',
   },
   fastImage: {
     flexGrow: 1,
+    width: '100%',
+    height: '100%',
+    position: 'absolute'
   },
 });
 

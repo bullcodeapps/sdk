@@ -101,7 +101,7 @@ const Component: ButtonComponent = ({
   return (
     <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonColorStyles, rest?.style]}>
       <TouchableHighlight
-        style={{ flexGrow: 1 }}
+        style={{ flexGrow: 1, width: '100%', height: '100%' }}
         underlayColor={'transparent'}
         activeOpacity={1}
         onShowUnderlay={() => setShowingUnderlay(true)}
