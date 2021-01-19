@@ -56,10 +56,10 @@ const ConfirmModal = ({
         <Title>{title}</Title>
         {description && <Description>{description}</Description>}
         <ActionButtons>
-          <CancelButton outline color={cancelButtonColor || 'cancel'} onPress={handleOnCancel}>
+          <CancelButton outline theme={cancelButtonColor || 'cancel'} onPress={handleOnCancel}>
             {(cancelText || 'Cancelar').toLowerCase()}
           </CancelButton>
-          <ConfirmButton loading={loading} color={confirmButtonColor || 'danger'} onPress={handleOnConfirm}>
+          <ConfirmButton loading={loading} theme={confirmButtonColor || 'danger'} onPress={handleOnConfirm}>
             {(confirmText || 'Confirmar').toLowerCase()}
           </ConfirmButton>
         </ActionButtons>
