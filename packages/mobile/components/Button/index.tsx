@@ -105,6 +105,7 @@ const Component: ButtonComponent = ({
           {typeof children === 'string' ? (
             <ButtonText
               activityIndicatorColor={activityIndicatorColor}
+              showingUnderlay={showingUnderlay}
               theme={theme}
               loading={loading}
               loadingSize={loadingSize}

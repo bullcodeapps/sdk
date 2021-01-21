@@ -15,6 +15,7 @@ type CustomProps = {
   outline?: boolean;
   loading?: boolean;
   loadingSize?: number | 'small' | 'large';
+  showingUnderlay?: boolean;
   activityIndicatorColor?: string;
 };
 
@@ -26,7 +27,8 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   outline,
   loading,
   loadingSize,
-  activityIndicatorColor,
+  showingUnderlay,
+  activityIndicatorColor: propActivityIndicatorColor,
   ...rest
 }) => {
   const ctx = useContext<ButtonContextType>(ButtonContext);
@@ -49,8 +51,33 @@ const ButtonText: React.FC<ButtonTextProps> = ({
     return foundStyle?.default[outline ? 'outline' : 'solid'];
   }, [disabled, foundStyle, outline, theme]);
 
+  const activityIndicatorColor: string = useMemo(() => {
+    if (!foundStyle) {
+      console.log(
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
+      return;
+    }
+
+    if (showingUnderlay) {
+      const { activityIndicatorColor } = foundStyle.active[outline ? 'outline' : 'solid'];
+      return activityIndicatorColor;
+    }
+
+    if (disabled) {
+      const { activityIndicatorColor } = foundStyle?.disabled[outline ? 'outline' : 'solid'];
+      return activityIndicatorColor;
+    }
+
+    const { activityIndicatorColor } = foundStyle.default[outline ? 'outline' : 'solid'];
+    return activityIndicatorColor;
+  }, [disabled, foundStyle, outline, showingUnderlay, theme]);
+
   return loading ? (
-    <ActivityIndicator size={loadingSize || 'small'} color={activityIndicatorColor} />
+    <ActivityIndicator
+      size={loadingSize || 'small'}
+      color={propActivityIndicatorColor || activityIndicatorColor}
+    />
   ) : (
     <Text type={buttonStyleType?.textType} {...rest} style={[buttonStyleType?.textStyle, rest?.style]} />
   );

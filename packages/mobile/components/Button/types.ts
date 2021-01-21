@@ -4,6 +4,7 @@ export type ButtonStyleType = {
   buttonStyle?: ViewStyle,
   textStyle?: TextStyle,
   textType?: string
+  activityIndicatorColor?: string;
 };
 
 export type ButtonStyleTypes = {
