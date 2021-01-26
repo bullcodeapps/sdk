@@ -1,4 +1,4 @@
-import React, { memo, useState, useMemo, Ref, useRef } from 'react';
+import React, { memo, useState, Ref, useRef, useCallback } from 'react';
 import { StyleSheet, Animated, StyleProp, ImageStyle } from 'react-native';
 import FastImage, { FastImageProps } from 'react-native-fast-image';
 import { useCombinedRefs } from '@bullcode/core/hooks';
@@ -9,8 +9,8 @@ export type ImageProps<T = any> = {
   ref?: Ref<T & Animated.AnimatedComponent<typeof FastImage>>;
   outerRef?: Ref<T & Animated.AnimatedComponent<typeof FastImage>>;
   fastImageStyle?: StyleProp<ImageStyle>;
-  renderPlaceholder?: () => {};
-  renderErrorImage?: () => {};
+  renderPlaceholder?: React.FunctionComponent | React.NamedExoticComponent;
+  renderErrorImage?: React.FunctionComponent | React.NamedExoticComponent;
   onError?: () => {};
   onLoad?: () => {};
 } & FastImageProps;
@@ -21,10 +21,11 @@ const Component: ImageComponent = ({
   outerRef,
   fastImageStyle,
   style,
-  renderPlaceholder,
-  renderErrorImage,
+  renderPlaceholder: PlaceholderComponent,
+  renderErrorImage: ErrorImageComponent,
   onError,
   onLoad,
+  source,
   ...otherProps
 }: ImageProps) => {
   // Refs
@@ -35,12 +36,13 @@ const Component: ImageComponent = ({
   const [isLoading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const CachedImageMemoized = useMemo(
+  const CachedImageMemoized = useCallback(
     () => (
       <AnimatedFastImage
         ref={combinedRef}
         style={[styles.fastImage, fastImageStyle]}
         {...otherProps}
+        source={source}
         onError={() => {
           setLoading(false);
           setHasError(true);
@@ -53,14 +55,14 @@ const Component: ImageComponent = ({
         }}
       />
     ),
-    [combinedRef, onError, onLoad, otherProps],
+    [combinedRef, onError, onLoad, source, otherProps],
   );
 
   return (
     <Animated.View style={[styles.container, style]}>
-      {!hasError && CachedImageMemoized}
-      {isLoading && renderPlaceholder && renderPlaceholder()}
-      {hasError && renderErrorImage && renderErrorImage()}
+      {!hasError && <CachedImageMemoized />}
+      {isLoading && PlaceholderComponent && <PlaceholderComponent />}
+      {hasError && ErrorImageComponent && <ErrorImageComponent />}
     </Animated.View>
   );
 };
