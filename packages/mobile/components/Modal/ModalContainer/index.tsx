@@ -15,6 +15,10 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({ visible, config,
   const [windowBounceAnim] = useState(new Animated.Value(0));
 
   const handleAnimation = useCallback(() => {
+    if (config?.animation === ModalAnimationEnum.NONE) {
+      return;
+    }
+
     const speed = config?.animationSpeed || 0.5;
     if (config?.animation === ModalAnimationEnum.BOUNCE) {
       windowBounceAnim.setValue(0);
@@ -87,13 +91,17 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({ visible, config,
       />
       <Content>
         <AnimatedModalWindow
-          style={{
-            transform: [
-              {
-                scale: config?.animation === ModalAnimationEnum.NONE ? 1 : getAnimationInterpolation(),
-              },
-            ],
-          }}>
+          style={
+            config?.animation !== ModalAnimationEnum.NONE
+              ? {
+                  transform: [
+                    {
+                      scale: getAnimationInterpolation(),
+                    },
+                  ],
+                }
+              : null
+          }>
           <Backdrop
             color="transparent"
             onPress={() => {
