@@ -1,6 +1,6 @@
 {
   "name": "@bullcode/mobile",
-  "version": "0.1.31",
+  "version": "0.1.36",
   "description": "An SDK made to facilitate and organize the development of applications made by Bullcode, which makes available the most common types of components, hooks and utilities.",
   "main": "index.ts",
   "scripts": {

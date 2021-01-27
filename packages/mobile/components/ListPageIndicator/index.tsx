@@ -10,7 +10,7 @@ import {
   DEFAULT_INDICATOR_DOT_MARGIN_RIGHT,
 } from './styles';
 import { Animated, Easing, ViewStyle } from 'react-native';
-import { ListPropsType } from '@bullcode/mobile/components/List';
+import { ListPropsType } from '../List';
 
 export type ListPageIndicatorProps = {
   contentContainerStyle?: ViewStyle;
