@@ -2,8 +2,8 @@ export { default as Accordion } from './Accordion';
 export { default as ActivationCodeInput } from './ActivationCodeInput';
 export { default as Button } from './Button';
 export {
-  setButtonColors,
-  DEFAULT_BUTTON_COLORS,
+  setButtonStyles,
+  DEFAULT_BUTTON_STYLES as DEFAULT_BUTTON_COLORS,
   DEFAULT_DISABLED_COLORS,
 } from './Button/context';
 export { default as ButtonText } from './Button/ButtonText';
@@ -27,7 +27,8 @@ export { EmptyListContainer } from './List/styles';
 export { default as ConfirmModal } from './ConfirmModal';
 export { default as MonitorUserLocation } from './MonitorUserLocation';
 export { default as SearchInput } from './SearchInput';
-export { default as Section, setSectionStyles } from './Section';
+export { default as Section } from './Section';
+export { setSectionStyles } from './Section/context';
 export { default as Swipeable } from './Swipeable';
 export { default as Touchable } from './Touchable';
 export { default as Text, setTextTypes } from './Text';

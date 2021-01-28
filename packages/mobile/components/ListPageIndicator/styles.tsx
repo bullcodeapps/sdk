@@ -1,6 +1,6 @@
 import styled from 'styled-components/native';
 import { Animated } from 'react-native';
-import { List } from '@bullcode/mobile/components'
+import List from '../List';
 
 export const DEFAULT_INDICATOR_DOT_SIZE = 10;
 export const DEFAULT_INDICATOR_DOT_MARGIN_RIGHT = 5;

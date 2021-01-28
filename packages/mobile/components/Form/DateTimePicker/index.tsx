@@ -13,16 +13,14 @@ import {
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
-import { InputProps, InputContextType, InputContext } from '../Form/Input';
+import { InputProps, InputContextType, InputContext } from '../Input';
 import {
   format,
   isAfter,
   isBefore,
   isEqual,
+  isValid,
   isWithinInterval,
-  parseISO,
-  toDate,
-  isValid as isValidDate,
 } from 'date-fns';
 import { useField } from '@unform/core';
 import { InputStyle, DefaultColors } from '@bullcode/mobile/components/Form/Input/styles';
@@ -43,8 +41,8 @@ export type DateTimePickerProps = {
   language?: string;
   inputProps?: InputProps;
   icon?: any;
-  style?: ViewStyle,
-  pickerStyle?: any,
+  style?: ViewStyle;
+  pickerStyle?: any;
   onChange?: (value: Date) => void;
 };
 
@@ -76,116 +74,123 @@ const DateTimePicker: DateTimePickerComponent = ({
   // States
   const [date, setDate] = useState<Date | null>(null);
   const [show, setShow] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const { fieldName, registerField, error } = useField(name);
 
   // Refs
   const inputRef = useRef<FieldType>(null);
 
+  // Simple memo's
+  const modeFormat = useMemo(() => (mode === 'time' ? 'HH:mm' : 'dd/MM/yyyy'), [mode]);
+  const choosenFormat = useMemo(() => displayFormat || modeFormat, [displayFormat, modeFormat]);
   const usingValidity = useMemo(() => ![undefined, null].includes(inputProps?.validity), [inputProps?.validity]);
 
-  const onChangeValue = useCallback(
-    ({ currentDate, validate = true }: { currentDate: any; validate?: boolean }) => {
-      const newMinDate = typeof minDate === 'string' ? new Date(minDate) : minDate;
-      const newMaxDate = typeof maxDate === 'string' ? new Date(maxDate) : maxDate;
-      const newDate = typeof currentDate === 'string' ? new Date(currentDate) : currentDate;
-
-      if (minDate && maxDate && isWithinInterval(newDate, { start: newMinDate, end: newMaxDate })) {
-        setDate(newDate);
-        onChange && onChange(newDate);
-        if (validate) {
-          inputRef?.current?.validate && inputRef.current.validate(newMaxDate);
-        }
-        return newDate;
-      }
-
-      if (minDate && isBefore(newDate, newMinDate)) {
-        setDate(newMinDate);
-        onChange && onChange(newMinDate);
-        if (validate) {
-          inputRef?.current?.validate && inputRef.current.validate(newMinDate);
-        }
-        return newMinDate;
-      }
-
-      if (maxDate && isAfter(newDate, newMaxDate)) {
-        setDate(newMaxDate);
-        onChange && onChange(newMaxDate);
-        if (validate) {
-          inputRef?.current?.validate && inputRef.current.validate(newMaxDate);
-        }
-        return newMaxDate;
-      }
-
-      setDate(newDate);
-      onChange && onChange(newDate);
-      if (validate) {
-        inputRef?.current?.validate && inputRef.current.validate(newDate);
-      }
-      return newDate;
-    },
-    [minDate, maxDate, onChange],
+  const DefaultIcon = useCallback(
+    (props: SvgProps) => (mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />),
+    [mode],
   );
 
-  useEffect(() => {
-    if (!date || !value || !isValidDate(date) || !isValidDate(value)) {
-      return;
+  const parseStrToDate = useCallback((_date: string | Date): Date => {
+    if (typeof _date === 'string') {
+      return new Date(_date);
     }
-    if (mode === 'date') {
-      const parsedDate = toDate(parseISO(format(date, 'yyyy-MM-dd')));
-      const parsedValue = toDate(parseISO(format(value, 'yyyy-MM-dd')));
-
-      if (isEqual(parsedDate, parsedValue)) {
-        return;
-      } else {
-        const newDate = typeof value === 'string' ? new Date(value) : value;
-        setDate(newDate);
-      }
-    }
-
-    if (mode === 'time') {
-      const parsedDateHour = toDate(parseISO(format(date, 'HH:mm')));
-      const parsedValueHour = toDate(parseISO(format(value, 'HH:mm')));
-
-      if (isEqual(parsedDateHour, parsedValueHour)) {
-        return;
-      } else {
-        const newDate = typeof value === 'string' ? new Date(value) : value;
-        setDate(newDate);
-      }
-    }
-  }, [date, mode, value]);
-
-  const getDefaultModeFormat = useCallback((mode: string): string => {
-    switch (mode) {
-      case 'time':
-        return 'HH:mm';
-      case 'date':
-      default:
-        return 'dd/MM/yyyy';
-    }
+    return _date;
   }, []);
 
-  const [choosenFormat, setChoosenFormat] = useState<string>(displayFormat || getDefaultModeFormat(mode));
+  /*
+   * Will always bring the formatted date
+   */
+  const dateFormatted = useMemo(() => {
+    const newDate = parseStrToDate(date);
+    if (!newDate || !isValid(newDate) || !choosenFormat) {
+      return null;
+    }
+    return format(newDate, choosenFormat, {
+      locale: (window as any).__dateLocale__,
+    });
+  }, [choosenFormat, date, parseStrToDate]);
 
-  const getDateFormatted = useCallback(
-    (dateObject: Date) => {
-      if (!dateObject || !isValidDate(dateObject) || !choosenFormat?.toString()) {
-        return;
-      }
-      if (typeof dateObject === 'string') {
-        dateObject = new Date(dateObject);
-      }
-      return format(dateObject, choosenFormat.toString(), { locale: (window as any).__dateLocale__ });
+  const doValueChange = useCallback(
+    (_date: Date, _validate?: boolean) => {
+      let newDate = parseStrToDate(_date);
+
+      setDate((_oldDate) => {
+        if (_oldDate && newDate && isValid(_oldDate) && isValid(newDate)) {
+          // Keep the old values from the opposite mode
+          if (mode === 'time') {
+            newDate?.setFullYear(_oldDate?.getFullYear());
+            newDate?.setMonth(_oldDate?.getMonth());
+            newDate?.setDate(_oldDate?.getDate());
+          } else {
+            newDate?.setHours(_oldDate?.getHours());
+            newDate?.setMinutes(_oldDate?.getMinutes());
+            newDate?.setSeconds(_oldDate?.getSeconds());
+            newDate?.setMilliseconds(_oldDate?.getMilliseconds());
+          }
+        }
+        onChange && onChange(newDate);
+        if (_validate) {
+          inputRef?.current?.validate && inputRef.current.validate(newDate);
+        }
+        return newDate;
+      });
+      return newDate;
     },
-    [choosenFormat],
+    [mode, onChange, parseStrToDate],
   );
 
-  useEffect(() => {
-    if (!displayFormat) {
-      setChoosenFormat(getDefaultModeFormat(mode));
-    }
-  }, [displayFormat, getDefaultModeFormat, mode]);
+  /*
+   * Whenever there are changes in the value, a treatment of that value must be made
+   */
+  const onChangeValue = useCallback(
+    ({ currentDate, validate = true }: { currentDate: any; validate?: boolean }) => {
+      const parsedMinDate = parseStrToDate(minDate);
+      const parsedMaxDate = parseStrToDate(maxDate);
+      const parsedDate = parseStrToDate(currentDate);
 
+      let newDate: Date = parsedDate;
+
+      if (
+        parsedMinDate &&
+        parsedMaxDate &&
+        isWithinInterval(newDate, { start: parsedMinDate, end: parsedMaxDate })
+      ) {
+        return doValueChange(newDate);
+      }
+
+      if (parsedMinDate && isBefore(parsedDate, parsedMinDate)) {
+        return doValueChange(parsedMinDate);
+      }
+
+      if (parsedMaxDate && isAfter(parsedDate, parsedMaxDate)) {
+        return doValueChange(parsedMaxDate);
+      }
+
+      return doValueChange(parsedDate);
+    },
+    [doValueChange, maxDate, minDate, parseStrToDate],
+  );
+
+  /*
+   * When the values are changed via prop we must do some things
+   */
+  useEffect(() => {
+    let newDate = parseStrToDate(value);
+
+    // Ensures that when using two fields, one for date and one for time and changing the date,
+    // the time field is also validated correctly
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+
+    setDate(newDate);
+    inputRef?.current?.validate && inputRef.current.validate(newDate);
+    onChange && onChange(newDate);
+  }, [isDirty, onChange, parseStrToDate, value]);
+
+  /*
+   * Rounds time to the suggested interval
+   */
   const roundTime = (date: Date, minutesToRound: number) => {
     // Convert hours and minutes to minutes
     const time = date?.getHours() * 60 + date?.getMinutes();
@@ -201,6 +206,9 @@ const DateTimePicker: DateTimePickerComponent = ({
     return newDate;
   };
 
+  /*
+   * If using a minute interval then round the time to the suggested interval
+   */
   useEffect(() => {
     if (mode === 'time') {
       if (rest?.minuteInterval && typeof value === 'object') {
@@ -209,13 +217,11 @@ const DateTimePicker: DateTimePickerComponent = ({
       }
       setDate(value);
     }
-  }, [mode, rest.minuteInterval, value]);
+  }, [mode, rest?.minuteInterval, value]);
 
   const clear = useCallback(() => {
-    // setDate(null);
     setShow(false);
     onChangeValue({ currentDate: null, validate: false });
-    // onChange && onChange(null);
   }, [onChangeValue]);
 
   useEffect(() => {
@@ -225,10 +231,10 @@ const DateTimePicker: DateTimePickerComponent = ({
       clearValue: clear,
       setValue: (ref: any, val: Date) => {
         // Transforms dates from the form as a string to the data object automatically
-        const newDate = typeof val === 'string' ? new Date(val) : val;
+        const newDate = parseStrToDate(val);
         setDate(newDate);
-        onChange && onChange(newDate);
         inputRef?.current?.validate && inputRef.current.validate(newDate);
+        onChange && onChange(newDate);
       },
       getValue: () => date,
     });
@@ -236,11 +242,11 @@ const DateTimePicker: DateTimePickerComponent = ({
 
   const selectDate = useCallback(
     (event, newDate: Date) => {
-      if (!newDate || date === newDate) {
+      if (newDate === date || isEqual(date, newDate)) {
         return;
       }
       setShow(Platform.OS === 'ios');
-      onChangeValue({ currentDate: newDate });
+      onChangeValue({ currentDate: newDate, validate: true });
     },
     [date, onChangeValue],
   );
@@ -248,22 +254,25 @@ const DateTimePicker: DateTimePickerComponent = ({
   const togglePicker = useCallback(() => {
     setShow(!show);
     if (show) {
-      onChange && onChange(date || new Date());
-      inputRef?.current?.validate && inputRef.current.validate(date);
+      onChangeValue({ currentDate: date, validate: true });
     }
-  }, [date, onChange, show]);
+  }, [date, onChangeValue, show]);
 
   const done = useCallback(() => {
     setShow(false);
-    onChangeValue({ currentDate: date || new Date() });
+    onChangeValue({ currentDate: date, validate: true });
   }, [date, onChangeValue]);
 
   const handleInputPress = useCallback(() => {
     if (!date) {
-      onChangeValue({ currentDate: new Date() });
+      onChangeValue({ currentDate: new Date(), validate: true });
     }
     togglePicker();
-  }, [date, onChangeValue, togglePicker]);
+
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+  }, [date, isDirty, onChangeValue, togglePicker]);
 
   const selectedColor: InputStyle = useMemo(() => {
     const colors = ctx?.colors || DefaultColors;
@@ -300,18 +309,39 @@ const DateTimePicker: DateTimePickerComponent = ({
 
     return selectedColor?.default;
   }, [
-    error,
-    getColorTypeByValidity,
-    inputProps?.validity,
-    selectedColor?.default,
-    selectedColor?.invalid,
     usingValidity,
     date,
+    selectedColor?.default,
+    selectedColor?.valid,
+    inputProps?.validity,
+    getColorTypeByValidity,
   ]);
 
-  const DefaultIcon = useCallback(
-    (props: SvgProps) => (mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />),
-    [mode],
+  const isValidField = useMemo(() => {
+    if (!isDirty) {
+      return 'keepDefault';
+    }
+
+    if (error) {
+      return false;
+    }
+
+    if (![null, undefined].includes(date) && [null, undefined].includes(error)) {
+      return true;
+    }
+
+    return 'keepDefault';
+  }, [date, error, isDirty]);
+
+  const handleOnFocusInput = useCallback(() => {
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+  }, [isDirty]);
+
+  const pickerValue = useMemo(
+    () => ([undefined, null].includes(parseStrToDate(date)) ? new Date() : parseStrToDate(date)),
+    [date, parseStrToDate],
   );
 
   return (
@@ -322,9 +352,9 @@ const DateTimePicker: DateTimePickerComponent = ({
             ref={inputRef}
             name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
             editable={false}
-            validity={date && !error}
+            validity={isValidField}
             placeholder={placeholder}
-            value={date && getDateFormatted(date)}
+            value={dateFormatted}
             iconComponent={() => {
               if (Icon) {
                 return <Icon color={currentValidationStyles?.borderColor} />;
@@ -332,6 +362,8 @@ const DateTimePicker: DateTimePickerComponent = ({
               return <DefaultIcon color={currentValidationStyles?.borderColor} />;
             }}
             color={color}
+            isDirty={isDirty}
+            onFocus={handleOnFocusInput}
             {...inputProps}
           />
         </View>
@@ -340,8 +372,7 @@ const DateTimePicker: DateTimePickerComponent = ({
         visible={show}
         transparent
         animationType={animationType}
-        supportedOrientations={['portrait', 'landscape']}
-      >
+        supportedOrientations={['portrait', 'landscape']}>
         <ModalViewTop onPress={handleInputPress} />
         {Platform.OS === 'ios' && (
           <ModalViewMiddle>
@@ -362,7 +393,7 @@ const DateTimePicker: DateTimePickerComponent = ({
             {...rest}
             style={pickerStyle}
             locale={language}
-            value={date}
+            value={pickerValue}
             maximumDate={maxDate}
             minimumDate={minDate}
             mode={mode as 'date' | 'time' | 'datetime' | 'countdown'}

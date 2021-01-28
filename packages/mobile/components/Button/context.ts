@@ -1,14 +1,14 @@
 import { createContext, useContext } from 'react';
 
-import { ButtonColors, ButtonColorTypes } from '@bullcode/mobile/components/Button/types';
+import { ContextButtonStyles, ButtonStyleTypes } from '@bullcode/mobile/components/Button/types';
 
-export type ButtonContextType = { colors: ButtonColors };
+export type ButtonContextType = { styles: ContextButtonStyles };
 
-export const ButtonContext = createContext<ButtonContextType>({ colors: null });
+export const ButtonContext = createContext<ButtonContextType>({ styles: null });
 
-export const setButtonColors = (colors: ButtonColors) => {
+export const setButtonStyles = (styles: ContextButtonStyles) => {
   const ctx = useContext<ButtonContextType>(ButtonContext);
-  ctx.colors = colors;
+  ctx.styles = styles;
 };
 
 const BUTTON_BG_PRIMARY = '#3a9def';
@@ -29,32 +29,57 @@ const BUTTON_COLOR_DANGER = '#ffffff';
 const DISABLED_BG = '#d2d2d6';
 const DISABLED_COLOR = '#fff';
 
-export const DEFAULT_DISABLED_COLORS: ButtonColorTypes = {
+export const DEFAULT_DISABLED_COLORS: ButtonStyleTypes = {
   outline: {
-    backgroundColor: 'transparent',
-    borderColor: DISABLED_BG,
-    color: DISABLED_BG,
+    buttonStyle: {
+      backgroundColor: 'transparent',
+      borderColor: DISABLED_BG,
+    },
+    textStyle: {
+      backgroundColor: 'transparent',
+      borderColor: DISABLED_BG,
+      color: DISABLED_BG,
+    },
   },
   solid: {
-    backgroundColor: DISABLED_BG,
-    borderColor: DISABLED_BG,
-    color: DISABLED_COLOR,
+    buttonStyle: {
+      backgroundColor: DISABLED_BG,
+      borderColor: DISABLED_BG,
+    },
+    textStyle: {
+      backgroundColor: DISABLED_BG,
+      borderColor: DISABLED_BG,
+      color: DISABLED_COLOR,
+    },
+
   },
 };
 
-export const DEFAULT_BUTTON_COLORS: ButtonColors = [
+export const DEFAULT_BUTTON_STYLES: ContextButtonStyles = [
   {
     name: 'primary',
     default: {
       outline: {
-        backgroundColor: 'transparent',
-        borderColor: BUTTON_BG_PRIMARY,
-        color: BUTTON_BG_PRIMARY,
+        buttonStyle: {
+          backgroundColor: 'transparent',
+          borderColor: BUTTON_BG_PRIMARY,
+        },
+        textStyle: {
+          backgroundColor: 'transparent',
+          borderColor: BUTTON_BG_PRIMARY,
+          color: BUTTON_BG_PRIMARY,
+        },
       },
       solid: {
-        backgroundColor: BUTTON_BG_PRIMARY,
+        buttonStyle: {
+          backgroundColor: BUTTON_BG_PRIMARY,
+          borderColor: BUTTON_BG_PRIMARY,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_PRIMARY,
         borderColor: BUTTON_BG_PRIMARY,
         color: BUTTON_COLOR_PRIMARY,
+        },
       }
     },
     disabled: DEFAULT_DISABLED_COLORS,
@@ -63,14 +88,26 @@ export const DEFAULT_BUTTON_COLORS: ButtonColors = [
     name: 'secondary',
     default: {
       outline: {
-        backgroundColor: 'transparent',
-        borderColor: BUTTON_BG_SECONDARY,
-        color: BUTTON_BG_SECONDARY,
+        buttonStyle: {
+          backgroundColor: BUTTON_BG_PRIMARY,
+          borderColor: BUTTON_BG_PRIMARY,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_PRIMARY,
+          borderColor: BUTTON_BG_PRIMARY,
+          color: BUTTON_COLOR_PRIMARY,
+        },
       },
       solid: {
-        backgroundColor: BUTTON_BG_SECONDARY,
-        borderColor: BUTTON_BG_SECONDARY,
-        color: BUTTON_COLOR_SECONDARY,
+        buttonStyle: {
+          backgroundColor: BUTTON_BG_SECONDARY,
+          borderColor: BUTTON_BG_SECONDARY,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_SECONDARY,
+          borderColor: BUTTON_BG_SECONDARY,
+          color: BUTTON_COLOR_SECONDARY,
+        },
       }
     },
     disabled: DEFAULT_DISABLED_COLORS,
@@ -79,14 +116,26 @@ export const DEFAULT_BUTTON_COLORS: ButtonColors = [
     name: 'tertiary',
     default: {
       outline: {
-        backgroundColor: 'transparent',
-        borderColor: BUTTON_BG_TERTIARY,
-        color: BUTTON_BG_TERTIARY,
+        buttonStyle: {
+          backgroundColor: 'transparent',
+          borderColor: BUTTON_BG_TERTIARY,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_SECONDARY,
+          borderColor: BUTTON_BG_SECONDARY,
+          color: BUTTON_COLOR_SECONDARY,
+        },
       },
       solid: {
-        backgroundColor: BUTTON_BG_TERTIARY,
-        borderColor: BUTTON_BG_TERTIARY,
-        color: BUTTON_COLOR_TERTIARY,
+        buttonStyle: {
+          backgroundColor: 'transparent',
+          borderColor: BUTTON_BG_TERTIARY,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_TERTIARY,
+          borderColor: BUTTON_BG_TERTIARY,
+          color: BUTTON_COLOR_TERTIARY,
+        },
       }
     },
     disabled: DEFAULT_DISABLED_COLORS,
@@ -95,14 +144,26 @@ export const DEFAULT_BUTTON_COLORS: ButtonColors = [
     name: 'warning',
     default: {
       outline: {
-        backgroundColor: 'transparent',
-        borderColor: BUTTON_BG_WARNING,
-        color: BUTTON_BG_WARNING,
+        buttonStyle: {
+          backgroundColor: 'transparent',
+          borderColor: BUTTON_BG_WARNING,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_TERTIARY,
+          borderColor: BUTTON_BG_TERTIARY,
+          color: BUTTON_COLOR_TERTIARY,
+        },
       },
       solid: {
-        backgroundColor: BUTTON_BG_WARNING,
-        borderColor: BUTTON_BG_WARNING,
-        color: BUTTON_COLOR_WARNING,
+        buttonStyle: {
+          backgroundColor: BUTTON_BG_WARNING,
+          borderColor: BUTTON_BG_WARNING,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_WARNING,
+          borderColor: BUTTON_BG_WARNING,
+          color: BUTTON_COLOR_WARNING,
+        },
       }
     },
     disabled: DEFAULT_DISABLED_COLORS,
@@ -111,14 +172,26 @@ export const DEFAULT_BUTTON_COLORS: ButtonColors = [
     name: 'danger',
     default: {
       outline: {
-        backgroundColor: 'transparent',
-        borderColor: BUTTON_BG_DANGER,
-        color: BUTTON_BG_DANGER,
+        buttonStyle: {
+          backgroundColor: 'transparent',
+          borderColor: BUTTON_BG_DANGER,
+        },
+        textStyle: {
+          backgroundColor: 'transparent',
+          borderColor: BUTTON_BG_DANGER,
+          color: BUTTON_BG_DANGER,
+        },
       },
       solid: {
-        backgroundColor: BUTTON_BG_DANGER,
-        borderColor: BUTTON_BG_DANGER,
-        color: BUTTON_COLOR_DANGER,
+        buttonStyle: {
+          backgroundColor: BUTTON_BG_DANGER,
+          borderColor: BUTTON_BG_DANGER,
+        },
+        textStyle: {
+          backgroundColor: BUTTON_BG_DANGER,
+          borderColor: BUTTON_BG_DANGER,
+          color: BUTTON_COLOR_DANGER,
+        },
       }
     },
     disabled: DEFAULT_DISABLED_COLORS,

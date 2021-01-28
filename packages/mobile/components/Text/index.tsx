@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, Ref } from 'react';
 
 import { Text as RNText, TextStyle as RNTextStyle, TextProps as RNTextProps } from 'react-native';
 
@@ -9,7 +9,7 @@ export type TextType = {
 
 export type TextTypes = Array<TextType>;
 
-export type TextContextType = { 
+export type TextContextType = {
   types: TextTypes;
 };
 
@@ -18,17 +18,26 @@ export const TextContext = React.createContext<TextContextType>({ types: null })
 export const setTextTypes = (types: TextTypes) => {
   const ctx = useContext<TextContextType>(TextContext);
   ctx.types = types;
-}
+};
 
-type TextProps = {
+export interface TextProps extends RNTextProps {
   type?: string;
-} & RNTextProps;
+};
+
+interface InternalTextProps extends TextProps {
+  outerRef?: Ref<RNText>;
+  children?: React.ReactNode;
+};
+
+export type InternalTextComponent = React.FC<InternalTextProps>;
+
+export type TextComponent = React.FC<TextProps>;
 
 /*
- * This component was made with the intention of facilitating the use of normal text, 
+ * This component was made with the intention of facilitating the use of normal text,
  * but it does not replace the text styles used in the other components of the SDK
  */
-const Text: React.FC<TextProps> = ({ children, type, style, ...props }) => {
+const Component: InternalTextComponent = ({ children, type, style, outerRef, ...props }: InternalTextProps) => {
   const ctx = useContext<TextContextType>(TextContext);
 
   const textStyles: RNTextStyle = useMemo(() => {
@@ -39,17 +48,21 @@ const Text: React.FC<TextProps> = ({ children, type, style, ...props }) => {
     }
     const foundColor = types.find((_type) => _type.name === type);
     if (!foundColor) {
-      console.log(`The "${type}" type does not exist, check if you wrote it correctly or if it was declared previously`)
+      console.log(
+        `The "${type}" type does not exist, check if you wrote it correctly or if it was declared previously`,
+      );
       return {};
     }
     return foundColor?.textStyles;
   }, [type, ctx?.types]);
 
   return (
-    <RNText style={[textStyles, style]} {...props}>
+    <RNText ref={outerRef} style={[textStyles, style]} {...props}>
       {children}
     </RNText>
   );
-}
+};
 
-export default Text
+const Text: TextComponent = React.forwardRef<RNText, TextProps>((props, ref) => <Component outerRef={ref} {...props} />);
+
+export default Text;

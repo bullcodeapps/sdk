@@ -1,24 +1,17 @@
-import React, { Ref, FunctionComponent, memo, useContext, useEffect, useMemo } from 'react';
+import React, { Ref, FunctionComponent, memo, useContext, useMemo } from 'react';
 
-import { Container, SectionTitle, Content, SectionStyles, SectionStyle, DefaultStyles } from './styles';
+import { Container, SectionTitle, Content } from './styles';
 import { TextStyle, ViewProps, ViewStyle, View } from 'react-native';
-
-export type SectionContextType = { styles: SectionStyles };
-
-export const SectionContext = React.createContext<SectionContextType>({ styles: null });
-
-export const setSectionStyles = (styles: SectionStyles) => {
-  const ctx = useContext<SectionContextType>(SectionContext);
-  ctx.styles = styles;
-};
+import { DEFAULT_SECTION_STYLES, SectionContext, SectionContextType, SectionStyle } from './context';
 
 type CustomProps = {
-  color?: string;
+  theme?: string;
   outerRef?: Ref<View>;
   contentContainerStyle?: ViewStyle;
   title: string;
   children: any;
   titleStyle?: TextStyle;
+  titleType?: string;
 };
 
 export type SectionProps<T = any> = CustomProps & ViewProps;
@@ -26,34 +19,35 @@ export type SectionProps<T = any> = CustomProps & ViewProps;
 export type SectionComponent<T = any> = FunctionComponent<SectionProps<T>>;
 
 const Component: SectionComponent = ({
-  color,
+  theme = 'default',
   outerRef,
   contentContainerStyle,
   title,
   children,
   titleStyle,
+  titleType,
   ...rest
 }) => {
   const ctx = useContext<SectionContextType>(SectionContext);
 
   const selectedStyle: SectionStyle = useMemo(() => {
-    const colors = ctx?.styles || DefaultStyles;
-    const foundColor = colors?.find((_color) => _color.name === color);
+    const styles = ctx?.styles || DEFAULT_SECTION_STYLES;
+    const foundColor = styles?.find((_style) => _style.name === theme);
     if (!foundColor) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultStyles[0];
+      return DEFAULT_SECTION_STYLES[0];
     }
     return foundColor;
-  }, [color, ctx?.styles]);
+  }, [theme, ctx?.styles]);
 
   return (
     <Container {...rest} style={[selectedStyle?.default?.container, rest?.style]}>
       {selectedStyle?.sectionTitleComponent ? (
         selectedStyle?.sectionTitleComponent
       ) : typeof title === 'string' ? (
-        <SectionTitle style={[selectedStyle?.default?.titleStyle, titleStyle]}>{title}</SectionTitle>
+        <SectionTitle type={titleType || selectedStyle?.default?.titleType} style={[selectedStyle?.default?.titleStyle, titleStyle]}>{title}</SectionTitle>
       ) : (
         { title }
       )}

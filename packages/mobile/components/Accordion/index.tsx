@@ -41,7 +41,8 @@ type AccordionProps = PropsWithChildren<{
   headerStyle?: ViewStyle;
   arrowContainerStyle?: ViewStyle;
   arrowStyle?: ViewStyle;
-  // It was done in this way to prevent the definition of height, since we're defining the height at line 170;
+  // This was done in this way to avoid the definition of height,
+  // since the height is the Accordion that defines, because your body is of unlimited size
   contentContainerStyle?: Omit<ViewStyle, 'height'>;
   customHeader?: React.ReactNode;
   arrowDownIcon?: React.SVGProps<SVGSVGElement>;
@@ -117,16 +118,25 @@ const Accordion: React.FC<AccordionProps> = ({
     onChange && onChange(newExpandedValue);
   }, [toggleExpand, expanded]);
 
-  const bodyHeight = animatedController.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, bodySectionHeight],
-    easing: Easing.bezier(0.4, 0.0, 0.2, 1),
-  });
+  const bodyHeight = useMemo(
+    () =>
+      animatedController.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, Math.floor(bodySectionHeight)],
+        extrapolate: 'clamp',
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+      }),
+    [animatedController, bodySectionHeight],
+  );
 
-  const arrowAngle = animatedController.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0rad', `${Math.PI}rad`],
-  });
+  const arrowAngle = useMemo(
+    () =>
+      animatedController.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0rad', `${Math.PI}rad`],
+      }),
+    [animatedController],
+  );
 
   useEffect(() => {
     toggleExpand(+expanded);

@@ -34,8 +34,8 @@ export const DefaultColors: AccordionStyles = [
 ];
 
 export const Container = styled.View<{ borderWidth: number, borderColor: string }>`
-  border-bottom-width: ${props => props.borderWidth}px;
-  border-bottom-color: ${props => props.borderColor};
+  border-bottom-width: ${({ borderWidth }) => borderWidth}px;
+  border-bottom-color: ${({ borderColor }) => borderColor};
 `;
 
 export const Header = styled.TouchableOpacity`
@@ -70,7 +70,7 @@ export const Content = styled(Animated.View)`
   overflow: hidden;
 `;
 
-export const BodyContainer = styled.View`
+export const BodyContainer = styled(Animated.View)`
   position: absolute;
   /* top: 0; do not use this attribute here */
   right: 0;

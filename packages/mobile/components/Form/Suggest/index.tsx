@@ -62,6 +62,7 @@ const Suggest: React.FC<Props> = ({
   const [term, setTerm] = useState('');
   const debouncedTerm = useDebouncedState(term);
   const [isFocused, setIsFocused] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   // Form
   const { fieldName, registerField, error } = useField(name);
@@ -119,7 +120,21 @@ const Suggest: React.FC<Props> = ({
     if (term?.length === 0) {
       onFocus && onFocus(term);
     }
-  }, [onFocus, term]);
+
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+  }, [onFocus, term, isDirty]);
+
+  useEffect(() => {
+    inputRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+    };
+  }, [isDirty]);
 
   const handleInputBlur = useCallback(() => setIsFocused(false), []);
 
@@ -148,6 +163,10 @@ const Suggest: React.FC<Props> = ({
   );
 
   const currentValidationStyles = useMemo(() => {
+    if (!isDirty) {
+      return selectedColor?.default;
+    }
+
     if (usingValidity) {
       return getColorTypeByValidity(propValidity);
     }
@@ -155,7 +174,7 @@ const Suggest: React.FC<Props> = ({
       return getColorTypeByValidity(!error);
     }
 
-    if (!!error && !!selectedItem) {
+    if (!!error) {
       return selectedColor?.invalid || selectedColor?.default;
     }
 
@@ -168,6 +187,7 @@ const Suggest: React.FC<Props> = ({
     selectedColor.invalid,
     getColorTypeByValidity,
     propValidity,
+    isDirty,
   ]);
 
   const handleInpuOnKeyPress = useCallback(
@@ -180,6 +200,22 @@ const Suggest: React.FC<Props> = ({
     },
     [selectedItem],
   );
+
+  const validity = useMemo(() => {
+    if (!isDirty) {
+      return 'keepDefault';
+    }
+
+    if (error) {
+      return false;
+    }
+
+    if (![null, undefined].includes(selectedItem) && [null, undefined].includes(error)) {
+      return true;
+    }
+
+    return 'keepDefault';
+  }, [isDirty, error, selectedItem]);
 
   const renderInput = useCallback(
     (props) => {
@@ -208,16 +244,17 @@ const Suggest: React.FC<Props> = ({
             handleInpuOnKeyPress(e);
             props?.onKeyPress && props.onKeyPress(e);
           }}
-          validity={!!selectedItem && !!value?.length ? !error : 'keepDefault'}
+          validity={validity}
           value={value}
           style={
             hideResults
               ? {}
               : {
-                  borderBottomLeftRadius: 0,
-                  borderBottomRightRadius: 0,
-                }
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+              }
           }
+          isDirty={isDirty}
         />
       );
     },
@@ -236,6 +273,7 @@ const Suggest: React.FC<Props> = ({
       selectedItem,
       term,
       useValidityMark,
+      validity
     ],
   );
 
