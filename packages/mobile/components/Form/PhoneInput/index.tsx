@@ -325,6 +325,16 @@ const PhoneInput: PhoneInputComponent = ({
     [currentValidationStyles?.select?.dropDownIcon, selectedColor?.default?.select?.dropDownIcon],
   );
 
+  useEffect(() => {
+    combinedRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+    };
+  }, [isDirty]);
+
   const validity = useMemo(() => {
     if (!isDirty) {
       return 'keepDefault';
@@ -404,7 +414,6 @@ const PhoneInput: PhoneInputComponent = ({
         }}
         isDirty={isDirty}
         onFocus={onFocus}
-        onChangeDirty={(dirty) => setIsDirty(dirty)}
       />
     </PhoneInputContainer>
   );

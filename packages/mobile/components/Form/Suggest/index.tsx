@@ -126,6 +126,16 @@ const Suggest: React.FC<Props> = ({
     }
   }, [onFocus, term, isDirty]);
 
+  useEffect(() => {
+    inputRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+    };
+  }, [isDirty]);
+
   const handleInputBlur = useCallback(() => setIsFocused(false), []);
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
@@ -245,7 +255,6 @@ const Suggest: React.FC<Props> = ({
               }
           }
           isDirty={isDirty}
-          onChangeDirty={(dirty) => setIsDirty(dirty)}
         />
       );
     },

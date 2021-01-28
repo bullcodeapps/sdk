@@ -7,7 +7,7 @@ import { useCombinedRefs } from '../../../core/hooks';
 import { Keyboard } from 'react-native';
 
 export type FormType = DefaultFormProps & FormHandles;
-export type FormFieldType<T> = T & { validate: (val: any) => void };
+export type FormFieldType<T> = T & { validate: (val: any) => void; markAsDirty: () => void };
 
 export type FormProps = {
   ref?: Ref<any>;
@@ -61,7 +61,7 @@ const Component: FormComponent = ({
             setDataToFields(d[key], newKey);
           }
         });
-      } catch (e) { }
+      } catch (e) {}
     },
     [combinedRef],
   );
@@ -154,7 +154,7 @@ const Component: FormComponent = ({
     addAutoValidationToFields(schema);
   }, [addAutoValidationToFields, schema]);
 
-  const setChildrenAsDirty = () => {
+  const setChildrenAsDirty = useCallback(() => {
     if (!schema?.fields) {
       return;
     }
@@ -167,9 +167,9 @@ const Component: FormComponent = ({
 
       field?.markAsDirty && field.markAsDirty();
     });
-  };
+  }, [combinedRef, schema?.fields]);
 
-  const handleSubmit: SubmitHandler<any> = async (formData: any) => {
+  const handleSubmit: SubmitHandler<any> = useCallback(async (formData: any) => {
     try {
       Keyboard.dismiss();
       setChildrenAsDirty();
@@ -187,7 +187,7 @@ const Component: FormComponent = ({
 
       onSubmitError(Object.keys(validationErrors).length > 0 ? validationErrors : err, formData);
     }
-  };
+  }, [combinedRef, onSubmit, onSubmitError, setChildrenAsDirty, validate]);
 
   return (
     <Container>

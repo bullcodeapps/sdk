@@ -1,6 +1,7 @@
 import styled from 'styled-components/native';
 import ChevronUpSvg from '../../../../core/assets/icons/chevron-up.svg';
 import ChevronDownSvg from '../../../../core/assets/icons/chevron-down.svg';
+import { Animated } from 'react-native';
 
 
 export type SelectStateStyles = {
@@ -54,7 +55,7 @@ export const Container = styled.View`
   margin-top: 10px;
 `;
 
-export const IconContainer = styled.View`
+export const IconContainer = styled(Animated.View)`
   width: 25px;
   height: 25px;
   align-items: center;

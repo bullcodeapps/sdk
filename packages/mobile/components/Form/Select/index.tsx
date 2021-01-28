@@ -20,7 +20,7 @@ import {
   SelectStyle,
 } from './styles';
 import RNPickerSelect, { PickerSelectProps, PickerStyle } from 'react-native-picker-select';
-import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps } from 'react-native';
+import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps, Animated } from 'react-native';
 import { useCombinedRefs } from '../../../../core/hooks';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
@@ -84,7 +84,7 @@ const Component: SelectComponent = ({
   const ctx = useContext<SelectContextType>(SelectContext);
 
   // States
-  const [value, setValue] = useState<any>(defaultValue);
+  const [value, setValue] = useState<any>(null);
   const [opened, setOpened] = useState<boolean>(false);
   const [isDirty, setIsDirty] = useState(false);
   const { fieldName, registerField, error, defaultValue: unformDefaultValue } = useField(name);
@@ -95,6 +95,7 @@ const Component: SelectComponent = ({
   const textInputProps = useRef<TextInputProps & { ref: Ref<FieldType> }>({
     ref: combinedRef,
   }).current;
+  const iconRotateAnimation = useRef(new Animated.Value(0)).current;
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
@@ -105,7 +106,7 @@ const Component: SelectComponent = ({
   }, [unformDefaultValue]);
 
   useEffect(() => {
-    if (defaultValue) {
+    if (defaultValue !== undefined) {
       setValue(defaultValue);
     }
   }, [defaultValue]);
@@ -139,7 +140,7 @@ const Component: SelectComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
-    if (!isDirty && !value) {
+    if (!isDirty) {
       return selectedColor?.default;
     }
 
@@ -150,22 +151,8 @@ const Component: SelectComponent = ({
       return getColorTypeByValidity(propValidity);
     }
 
-    if (error) {
-      return selectedColor?.invalid || selectedColor?.default;
-    } else {
-      return getColorTypeByValidity(!error);
-    }
-
-  }, [
-    error,
-    getColorTypeByValidity,
-    propValidity,
-    selectedColor?.default,
-    selectedColor?.invalid,
-    usingValidity,
-    value,
-    isDirty,
-  ]);
+    return getColorTypeByValidity(isDirty && !error);
+  }, [error, getColorTypeByValidity, propValidity, selectedColor.default, usingValidity, value, isDirty]);
 
   const defaultPickerSelectStyles = StyleSheet.create({
     placeholder: {
@@ -212,6 +199,16 @@ const Component: SelectComponent = ({
   });
 
   useEffect(() => {
+    combinedRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+    };
+  }, [isDirty]);
+
+  useEffect(() => {
     registerField<any>({
       name: fieldName,
       ref: combinedRef.current,
@@ -236,38 +233,64 @@ const Component: SelectComponent = ({
     };
   }, [currentValidationStyles?.dropdownIconColor, iconStyle, selectedColor?.default?.dropdownIconColor]);
 
+  useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+    Animated.timing(iconRotateAnimation, {
+      toValue: +opened,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  }, [iconRotateAnimation, opened]);
+
   const Icon = useCallback(
     () => (
-      <IconContainer>
+      <IconContainer
+        style={
+          Platform.OS === 'ios'
+            ? {
+                transform: [
+                  {
+                    rotateZ: iconRotateAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0rad', `${Math.PI}rad`],
+                    }),
+                  },
+                ],
+              }
+            : null
+        }>
         {/* Unfortunately, we can't get the onClose event on Android devices, so we made it static */}
         {Platform.OS === 'ios' ? (
-          opened ? (
-            <ChevronUpIcon style={chevronIconsStyle} />
-          ) : (
-              <ChevronDownIcon style={chevronIconsStyle} />
-            )
+          <ChevronDownIcon style={chevronIconsStyle} />
         ) : (
-            <ChevronDownIcon style={chevronIconsStyle} />
-          )}
+          <ChevronDownIcon style={chevronIconsStyle} />
+        )}
       </IconContainer>
     ),
-    [chevronIconsStyle, opened],
+    [chevronIconsStyle, iconRotateAnimation],
   );
 
-  const handleOpen = () => {
-    setOpened(true);
-    rest?.onOpen && rest?.onOpen();
+  const handleDone = useCallback(() => {
+    setOpened(false);
+    rest?.onDonePress && rest?.onDonePress();
+  }, [rest]);
 
+  const handleOpen = useCallback(() => {
+    setOpened(true);
     if (!isDirty) {
       setIsDirty(true);
     }
-  };
-
-  const handleClose = () => {
-    setOpened(false);
-    rest?.onClose && rest?.onClose();
     combinedRef?.current?.validate && combinedRef.current.validate(value);
-  };
+    rest?.onOpen && rest?.onOpen();
+  }, [combinedRef, isDirty, rest, value]);
+
+  const handleClose = useCallback(() => {
+    setOpened(false);
+    combinedRef?.current?.validate && combinedRef.current.validate(value);
+    rest?.onClose && rest?.onClose();
+  }, [combinedRef, rest, value]);
 
   const inputStyles = useMemo(
     () => ({
@@ -317,10 +340,17 @@ const Component: SelectComponent = ({
     onChangeValidity && onChangeValidity(!error);
   }, [error, onChangeValidity]);
 
-  const handleValueChange = (val) => {
-    onValueChange && onValueChange(val);
-    setValue(val);
-  };
+  const handleValueChange = useCallback(
+    (val) => {
+      setValue(val);
+      if (!isDirty) {
+        setIsDirty(true);
+      }
+      combinedRef?.current?.validate && combinedRef.current.validate(val);
+      onValueChange && onValueChange(val);
+    },
+    [combinedRef, isDirty, onValueChange],
+  );
 
   return (
     <Container style={styles?.selectContainer}>
@@ -337,6 +367,7 @@ const Component: SelectComponent = ({
         items={items}
         onOpen={handleOpen}
         onClose={handleClose}
+        onDonePress={handleDone}
       />
       {loading && <Loading />}
     </Container>
