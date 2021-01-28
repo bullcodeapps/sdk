@@ -7,7 +7,7 @@ export {
   DEFAULT_DISABLED_COLORS,
 } from './Button/context';
 export { default as ButtonText } from './Button/ButtonText';
-export { default as DateTimePicker } from './DateTimePicker';
+export { default as DateTimePicker } from './Form/DateTimePicker';
 export { default as ChipButton } from './Form/ChipButton';
 export { default as ChipsList } from './Form/ChipsList';
 export { default as Input, setInputColors } from './Form/Input';
