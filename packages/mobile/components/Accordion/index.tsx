@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect, memo, PropsWithChildren } from 'react';
+import React, { useState, useCallback, useRef, useEffect, memo, PropsWithChildren, useMemo } from 'react';
 
 import {
   Container,
@@ -42,16 +42,25 @@ const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange
     toggleExpand();
   }, [toggleExpand]);
 
-  const bodyHeight = animatedController.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, bodySectionHeight],
-    easing: Easing.bezier(0.4, 0.0, 0.2, 1),
-  });
+  const bodyHeight = useMemo(
+    () =>
+      animatedController.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, Math.floor(bodySectionHeight)],
+        extrapolate: 'clamp',
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+      }),
+    [animatedController, bodySectionHeight],
+  );
 
-  const arrowAngle = animatedController.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0rad', `${Math.PI}rad`],
-  });
+  const arrowAngle = useMemo(
+    () =>
+      animatedController.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0rad', `${Math.PI}rad`],
+      }),
+    [animatedController],
+  );
 
   // It should not be triggered when re-rendering the component, so we ignore onChange as a dependency!
   useEffect(() => {
@@ -69,7 +78,7 @@ const Accordion: React.FC<AccordionProps> = ({ headerContent, children, onChange
         </AccordionChevronCircle>
       </AccordionHeader>
       <AccordionContent style={{ height: bodyHeight }}>
-        <BodyContainer onLayout={(event) => setBodySectionHeight(event.nativeEvent.layout.height)}>
+        <BodyContainer onLayout={(event) => setBodySectionHeight(event?.nativeEvent?.layout?.height)}>
           {children}
         </BodyContainer>
       </AccordionContent>

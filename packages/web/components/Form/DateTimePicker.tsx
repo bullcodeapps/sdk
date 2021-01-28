@@ -59,7 +59,7 @@ export default function DateTimePicker({
   const onChangeDateTime = (date: Date) => {
     const newMinDate = typeof minDate === 'string' ? new Date(minDate) : minDate;
     const newMaxDate = typeof maxDate === 'string' ? new Date(maxDate) : maxDate;
-    const newDate = new Date();
+    const newDate = date as Date;
 
     if (minDate && maxDate && isWithinInterval(newDate, { start: newMinDate, end: newMaxDate })) {
       setSelected(newDate);
@@ -78,9 +78,7 @@ export default function DateTimePicker({
       onChange && onChange(newMaxDate);
       return newMaxDate;
     }
-
     setSelected(newDate);
-
     onChange && onChange(newDate);
   };
 

@@ -3,7 +3,7 @@ import { ContainerDefaults, Circle } from '../../global-styles';
 import ChevronDownSvg from '../../../core/assets/icons/chevron-down.svg';
 import { Animated } from 'react-native';
 
-export const Container = styled.View`
+export const Container = styled(Animated.View)`
   border-bottom-width: 1px;
   border-bottom-color: #bbc8cf;
 `;
@@ -40,7 +40,7 @@ export const AccordionContent = styled(Animated.View)`
   overflow: hidden;
 `;
 
-export const BodyContainer = styled.View`
+export const BodyContainer = styled(Animated.View)`
   position: absolute;
   /* top: 0; do not use this attribute here */
   right: 0;

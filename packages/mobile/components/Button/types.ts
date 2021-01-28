@@ -1,28 +1,23 @@
-export type ButtonStyles = {
-  backgroundColor: string,
-  borderColor: string,
+import { TextStyle, ViewStyle } from "react-native";
+
+export type ButtonStyleType = {
+  buttonStyle?: ViewStyle,
+  textStyle?: TextStyle,
+  textType?: string
+  activityIndicatorColor?: string;
 };
 
-export type ButtonTextStyles = {
-  color: string,
+export type ButtonStyleTypes = {
+  outline: ButtonStyleType,
+  solid: ButtonStyleType,
 };
 
-export type ButtonColorTypes = {
-  outline: ButtonStyles & ButtonTextStyles,
-  solid: ButtonStyles & ButtonTextStyles,
-  borderRadius?: number,
-};
-
-export type ButtonActiveColorTypes = {
-  outline: ButtonStyles,
-  solid: ButtonStyles,
-};
-
-export type ButtonColor = {
+export type ButtonStyle = {
   name: string;
-  default: ButtonColorTypes;
-  active?: ButtonActiveColorTypes;
-  disabled?: ButtonColorTypes;
+  default: ButtonStyleTypes;
+  active?: ButtonStyleTypes;
+  disabled?: ButtonStyleTypes;
+  borderRadius?: number;
 };
 
-export type ButtonColors = Array<ButtonColor>;
+export type ContextButtonStyles = Array<ButtonStyle>;

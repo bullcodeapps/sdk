@@ -59,7 +59,8 @@ export default function DatePicker({
         const newDate = typeof val === 'string' ? new Date(val) : val;
         setSelected(newDate);
       }
-    }, [inputRef.current, fieldName, defaultValue]); // eslint-disable-line
+    });
+  }, [inputRef.current, fieldName, defaultValue]); // eslint-disable-line
 
     const onChangeDate = (date: any) => {
       setSelected(date as Date);
