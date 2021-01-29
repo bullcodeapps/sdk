@@ -1,22 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback, memo, useContext, useMemo } from 'react';
 
-import { Container, SwitchLine, SwitchLabel, SwitchButton, SwitchColors } from './styles';
+import { Container, SwitchLine, SwitchLabel, SwitchButton } from './styles';
 import { ViewProps, Switch, SwitchProps } from 'react-native';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
 
-export type SwitchContextType = { colors: SwitchColors };
-
-export const SwitchContext = React.createContext<SwitchContextType>({ colors: null });
-
-export const setSwitchColors = (colors: SwitchColors) => {
-  const ctx = useContext<SwitchContextType>(SwitchContext);
-  ctx.colors = colors;
-};
+import { SwitchContextType, SwitchContext } from './context';
 
 type FormSwitchProps = {
   name?: string;
-  color?: string;
+  theme?: string;
   label?: string | React.ReactNode;
   defaultValue?: boolean;
   value?: boolean;
@@ -29,7 +22,7 @@ type FieldType = FormFieldType<Switch>;
 
 const FormSwitch = ({
   name,
-  color,
+  theme,
   label,
   onChange,
   value: propValue,
@@ -84,68 +77,43 @@ const FormSwitch = ({
     });
   }, [clear, fieldName, handleChange, registerField, value]);
 
-  const trueColor = useMemo(() => {
-    const colors = ctx?.colors;
-    if (!color) {
+  const selectedStyle = useCallback(() => {
+    const colors = ctx?.styles;
+    if (!theme) {
       const foundColor = colors?.find((_color) => _color.name === 'default');
       if (foundColor) {
-        return foundColor?.default?.trueStyle?.backgroundColor;
+        return foundColor?.default;
       }
       return;
     }
-    const foundColor = colors?.find((_color) => _color.name === color);
+    const foundColor = colors?.find((_color) => _color.name === theme);
     if (!foundColor) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return;
     }
 
-    return foundColor?.default?.trueStyle?.backgroundColor;
-  }, [color, ctx.colors]);
+    return foundColor?.default;
+  }, [theme, ctx.styles])
+
+  const trueColor = useMemo(() => {
+    const style = selectedStyle();
+
+    return style?.trueStyle?.backgroundColor;
+  }, [theme, ctx.styles]);
 
   const falseColor = useMemo(() => {
-    const colors = ctx?.colors;
-    if (!color) {
-      const foundColor = colors?.find((_color) => _color.name === 'default');
-      if (foundColor) {
-        return foundColor?.default?.falseStyle?.backgroundColor;
-      }
-      return;
-    }
-    const foundColor = colors?.find((_color) => _color.name === color);
-    if (!foundColor) {
-      console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
-      );
-      return;
-    }
+    const style = selectedStyle();
 
-    return foundColor?.default?.falseStyle?.backgroundColor;
-  }, [color, ctx.colors]);
+    return style?.falseStyle?.backgroundColor;
+  }, [theme, ctx.styles]);
 
   const thumbColor = useMemo(() => {
-    const colors = ctx?.colors;
-    if (!color) {
-      const foundColor = colors?.find((_color) => _color.name === 'default');
-      if (foundColor) {
-        return value ? foundColor?.default?.trueStyle?.thumbColor : foundColor?.default?.falseStyle?.thumbColor;
-      }
-      return;
-    }
-    const foundColor = colors?.find((_color) => _color.name === color);
-    if (!foundColor) {
-      console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
-      );
-      return;
-    }
+    const style = selectedStyle();
 
-    if (value) {
-      return foundColor?.default?.trueStyle?.thumbColor;
-    }
-    return foundColor?.default?.falseStyle?.thumbColor;
-  }, [color, ctx.colors, value]);
+    return value ? style?.trueStyle?.thumbColor : style?.falseStyle?.thumbColor;
+  }, [theme, ctx.styles, value]);
 
   return (
     <Container style={contentContainerStyle}>
