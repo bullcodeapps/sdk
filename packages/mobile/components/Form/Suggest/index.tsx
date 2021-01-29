@@ -8,12 +8,13 @@ import { useDebouncedState } from '../../../../core/hooks';
 import { FormFieldType } from '..';
 
 import { Autocomplete, Row, Text, Input } from './styles';
-import { InputContextType, InputContext } from '@bullcode/mobile/components/Form/Input';
-import { DefaultColors, InputStyle } from '@bullcode/mobile/components/Form/Input/styles';
+import { InputContextType, InputContext, DefaultStyles } from '@bullcode/mobile/components/Form/Input/context';
+import { InputStyle } from '@bullcode/mobile/components/Form/Input/types';
+import { getColorTypeByValidity } from '../../../utils';
 
 type Props = {
   name: string;
-  color?: string;
+  theme?: string;
   data: Array<Object>;
   onChange?: (text?: string) => void;
   onFocus?: (text?: string) => void;
@@ -33,7 +34,7 @@ type Props = {
 
 const Suggest: React.FC<Props> = ({
   name,
-  color,
+  theme,
   data,
   onChange,
   onFocus,
@@ -62,7 +63,6 @@ const Suggest: React.FC<Props> = ({
   const [term, setTerm] = useState('');
   const debouncedTerm = useDebouncedState(term);
   const [isFocused, setIsFocused] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
 
   // Form
   const { fieldName, registerField, error } = useField(name);
@@ -120,74 +120,45 @@ const Suggest: React.FC<Props> = ({
     if (term?.length === 0) {
       onFocus && onFocus(term);
     }
-
-    if (!isDirty) {
-      setIsDirty(true);
-    }
-  }, [onFocus, term, isDirty]);
-
-  useEffect(() => {
-    inputRef.current.markAsDirty = () => {
-      if (isDirty) {
-        return;
-      }
-
-      setIsDirty(true);
-    };
-  }, [isDirty]);
+  }, [onFocus, term]);
 
   const handleInputBlur = useCallback(() => setIsFocused(false), []);
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
-  const selectedColor: InputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: InputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
-    if (!isDirty) {
-      return selectedColor?.default;
-    }
-
     if (usingValidity) {
-      return getColorTypeByValidity(propValidity);
+      return getColorTypeByValidity(propValidity, selectedStyle);
     }
     if (selectedItem && Object.keys(selectedItem)?.length > 0) {
-      return getColorTypeByValidity(!error);
+      return getColorTypeByValidity(!error, selectedStyle);
     }
 
-    if (!!error) {
-      return selectedColor?.invalid || selectedColor?.default;
+    if (!!error && !!selectedItem) {
+      return selectedStyle?.invalid || selectedStyle?.default;
     }
 
-    return selectedColor?.default;
+    return selectedStyle?.default;
   }, [
     usingValidity,
     selectedItem,
     error,
-    selectedColor.default,
-    selectedColor.invalid,
+    selectedStyle.default,
+    selectedStyle.invalid,
     getColorTypeByValidity,
     propValidity,
-    isDirty,
   ]);
 
   const handleInpuOnKeyPress = useCallback(
@@ -200,22 +171,6 @@ const Suggest: React.FC<Props> = ({
     },
     [selectedItem],
   );
-
-  const validity = useMemo(() => {
-    if (!isDirty) {
-      return 'keepDefault';
-    }
-
-    if (error) {
-      return false;
-    }
-
-    if (![null, undefined].includes(selectedItem) && [null, undefined].includes(error)) {
-      return true;
-    }
-
-    return 'keepDefault';
-  }, [isDirty, error, selectedItem]);
 
   const renderInput = useCallback(
     (props) => {
@@ -231,7 +186,7 @@ const Suggest: React.FC<Props> = ({
         <Input
           ref={props.ref}
           name={`inner-text-input-${fieldName}`}
-          color={color}
+          theme={theme}
           useValidityMark={!inputIcon && useValidityMark}
           selectTextOnFocus
           placeholder={placeholder}
@@ -244,7 +199,7 @@ const Suggest: React.FC<Props> = ({
             handleInpuOnKeyPress(e);
             props?.onKeyPress && props.onKeyPress(e);
           }}
-          validity={validity}
+          validity={!!selectedItem && !!value?.length ? !error : 'keepDefault'}
           value={value}
           style={
             hideResults
@@ -254,13 +209,12 @@ const Suggest: React.FC<Props> = ({
                 borderBottomRightRadius: 0,
               }
           }
-          isDirty={isDirty}
         />
       );
     },
     [
       cleanOnPress,
-      color,
+      theme,
       error,
       fieldName,
       handleInpuOnKeyPress,
@@ -273,7 +227,6 @@ const Suggest: React.FC<Props> = ({
       selectedItem,
       term,
       useValidityMark,
-      validity
     ],
   );
 
