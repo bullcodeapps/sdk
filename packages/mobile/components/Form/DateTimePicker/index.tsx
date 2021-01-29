@@ -31,7 +31,7 @@ import { getStyleByValidity } from '@bullcode/mobile/utils';
 export type DateTimePickerProps = {
   name?: string;
   mode?: 'date' | 'time';
-  color?: string;
+  theme?: string;
   placeholder?: string;
   displayFormat?: string;
   value?: Date;
@@ -53,7 +53,7 @@ export type DateTimePickerComponent = React.FC<DateTimePickerProps>;
 const DateTimePicker: DateTimePickerComponent = ({
   name,
   mode = 'date',
-  color,
+  theme,
   placeholder = 'date',
   value,
   doneText = 'Done',
@@ -277,16 +277,16 @@ const DateTimePicker: DateTimePickerComponent = ({
   }, [date, isDirty, onChangeValue, togglePicker]);
 
   const selectedStyle: InputStyle = useMemo(() => {
-    const colors = ctx?.styles || DefaultStyles;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_color) => _color.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.styles]);
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (usingValidity) {
@@ -353,7 +353,7 @@ const DateTimePicker: DateTimePickerComponent = ({
               }
               return <DefaultIcon color={currentValidationStyles?.borderColor} />;
             }}
-            color={color}
+            theme={theme}
             isDirty={isDirty}
             onFocus={handleOnFocusInput}
             {...inputProps}
