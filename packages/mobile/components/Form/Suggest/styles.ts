@@ -9,7 +9,7 @@ export const Autocomplete = styled(BaseAutocomplete)``;
 export const Row = styled(TouchableOpacity).attrs({
   hitSlop: { top: 5, left: 20, bottom: 5, right: 20 },
   disallowInterruption: Platform.OS !== 'ios',
-})<BaseButtonProperties>`
+}) <BaseButtonProperties>`
   flex-grow: 1;
   flex-shrink: 0;
   padding: 10px 15px;

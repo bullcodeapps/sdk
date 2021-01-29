@@ -8,12 +8,13 @@ import { useDebouncedState } from '../../../../core/hooks';
 import { FormFieldType } from '..';
 
 import { Autocomplete, Row, Text, Input } from './styles';
-import { InputContextType, InputContext } from '@bullcode/mobile/components/Form/Input';
-import { DefaultColors, InputStyle } from '@bullcode/mobile/components/Form/Input/styles';
+import { InputContextType, InputContext, DefaultStyles } from '@bullcode/mobile/components/Form/Input/context';
+import { InputStyle } from '@bullcode/mobile/components/Form/Input/types';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
 type Props = {
   name: string;
-  color?: string;
+  theme?: string;
   data: Array<Object>;
   onChange?: (text?: string) => void;
   onFocus?: (text?: string) => void;
@@ -33,7 +34,7 @@ type Props = {
 
 const Suggest: React.FC<Props> = ({
   name,
-  color,
+  theme,
   data,
   onChange,
   onFocus,
@@ -140,52 +141,42 @@ const Suggest: React.FC<Props> = ({
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
-  const selectedColor: InputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: InputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (!isDirty) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
     if (usingValidity) {
-      return getColorTypeByValidity(propValidity);
+      return getStyleByValidity(propValidity, selectedStyle);
     }
     if (selectedItem && Object.keys(selectedItem)?.length > 0) {
-      return getColorTypeByValidity(!error);
+      return getStyleByValidity(!error, selectedStyle);
     }
 
     if (!!error) {
-      return selectedColor?.invalid || selectedColor?.default;
+      return selectedStyle?.invalid || selectedStyle?.default;
     }
 
-    return selectedColor?.default;
+    return selectedStyle?.default;
   }, [
     usingValidity,
     selectedItem,
     error,
-    selectedColor.default,
-    selectedColor.invalid,
-    getColorTypeByValidity,
+    selectedStyle.default,
+    selectedStyle.invalid,
+    getStyleByValidity,
     propValidity,
     isDirty,
   ]);
@@ -231,7 +222,7 @@ const Suggest: React.FC<Props> = ({
         <Input
           ref={props.ref}
           name={`inner-text-input-${fieldName}`}
-          color={color}
+          theme={theme}
           useValidityMark={!inputIcon && useValidityMark}
           selectTextOnFocus
           placeholder={placeholder}
@@ -260,7 +251,7 @@ const Suggest: React.FC<Props> = ({
     },
     [
       cleanOnPress,
-      color,
+      theme,
       error,
       fieldName,
       handleInpuOnKeyPress,
