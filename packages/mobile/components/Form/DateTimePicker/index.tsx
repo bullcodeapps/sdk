@@ -13,7 +13,9 @@ import {
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
-import { InputProps, InputContextType, InputContext } from '../Input';
+import { InputProps } from '../Input';
+import { InputStyle } from '../Input/types';
+import { DefaultStyles, InputContextType, InputContext } from '../Input/context';
 import {
   format,
   isAfter,
@@ -23,13 +25,13 @@ import {
   isWithinInterval,
 } from 'date-fns';
 import { useField } from '@unform/core';
-import { InputStyle, DefaultColors } from '@bullcode/mobile/components/Form/Input/styles';
 import { SvgProps } from 'react-native-svg';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
 export type DateTimePickerProps = {
   name?: string;
   mode?: 'date' | 'time';
-  color?: string;
+  theme?: string;
   placeholder?: string;
   displayFormat?: string;
   value?: Date;
@@ -51,7 +53,7 @@ export type DateTimePickerComponent = React.FC<DateTimePickerProps>;
 const DateTimePicker: DateTimePickerComponent = ({
   name,
   mode = 'date',
-  color,
+  theme,
   placeholder = 'date',
   value,
   doneText = 'Done',
@@ -274,47 +276,37 @@ const DateTimePicker: DateTimePickerComponent = ({
     }
   }, [date, isDirty, onChangeValue, togglePicker]);
 
-  const selectedColor: InputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: InputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_color) => _color.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (usingValidity) {
       if (inputProps?.validity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(inputProps?.validity);
+      return getStyleByValidity(inputProps?.validity, selectedStyle);
     }
     if (date) {
-      return selectedColor?.valid || selectedColor?.default;
+      return selectedStyle?.valid || selectedStyle?.default;
     }
 
-    return selectedColor?.default;
+    return selectedStyle?.default;
   }, [
     usingValidity,
     date,
-    selectedColor?.default,
-    selectedColor?.valid,
+    selectedStyle?.default,
+    selectedStyle?.valid,
     inputProps?.validity,
-    getColorTypeByValidity,
+    getStyleByValidity,
   ]);
 
   const isValidField = useMemo(() => {
@@ -361,7 +353,7 @@ const DateTimePicker: DateTimePickerComponent = ({
               }
               return <DefaultIcon color={currentValidationStyles?.borderColor} />;
             }}
-            color={color}
+            theme={theme}
             isDirty={isDirty}
             onFocus={handleOnFocusInput}
             {...inputProps}
