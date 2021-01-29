@@ -5,28 +5,6 @@ import { Animated } from 'react-native';
 
 export const DEFAULT_STAR_SIZE = 35;
 
-export type RatingStarsStateStyles = {
-  backgroundStarColor: string,
-  foregroundStarColor: string,
-};
-
-export type RatingStarsStyle = {
-  name: string;
-  default: RatingStarsStateStyles;
-};
-
-export type RatingStarsStyles = Array<RatingStarsStyle>;
-
-export const DefaultColors: RatingStarsStyles = [
-  {
-    name: 'primary',
-    default: {
-      backgroundStarColor: '#bbc8cf',
-      foregroundStarColor: '#ffc962',
-    },
-  },
-];
-
 export const Container = styled.View`
   flex-grow: 1;
 `;
@@ -55,26 +33,18 @@ export const ForegroundStars = styled(StarsContainer)`
   elevation: 2;
 `;
 
-export const BackgroundStarIcon = styled(StarRegularSvg) <{ size?: number, color?: string }>`
+export const BackgroundStarIcon = styled(StarRegularSvg) <{ size?: number }>`
   ${(props) =>
     !isNaN(props?.size)
       ? `width: ${props?.size}px; height: ${props?.size}px;`
       : `width: ${DEFAULT_STAR_SIZE}px; height: ${DEFAULT_STAR_SIZE}px;`}
-
-  ${props => props.color && `
-    color: ${props.color};
-  `}
 `;
 
-export const ForegroundStarIcon = styled(StarSvg) <{ size?: number, color?: string }>`
+export const ForegroundStarIcon = styled(StarSvg) <{ size?: number }>`
   ${(props) =>
     !isNaN(props?.size)
       ? `width: ${props?.size}px; height: ${props?.size}px;`
       : `width: ${DEFAULT_STAR_SIZE}px; height: ${DEFAULT_STAR_SIZE}px;`}
-
-  ${props => props.color && `
-    color: ${props.color};
-  `}
 `;
 
 export const MaskContainer = styled(StarsContainer)`
