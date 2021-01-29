@@ -14,9 +14,6 @@ import {
   MapLocationColoredIcon,
   MapLocationFilterIconContainer,
   CloseSearchIcon,
-  SuggestGooglePlacesStyles,
-  SuggestGooglePlacesStyle,
-  DefaultColors,
   ListEmptyContainer,
   ListEmptyText,
 } from './styles';
@@ -47,14 +44,9 @@ import Config from 'react-native-config';
 import { FormFieldType } from '..';
 import * as Yup from 'yup';
 
-export type SuggestGooglePlacesContextType = { colors: SuggestGooglePlacesStyles };
-
-export const SuggestGooglePlacesContext = React.createContext<SuggestGooglePlacesContextType>({ colors: null });
-
-export const setSuggestGooglePlacesColors = (colors: SuggestGooglePlacesStyles) => {
-  const ctx = useContext<SuggestGooglePlacesContextType>(SuggestGooglePlacesContext);
-  ctx.colors = colors;
-};
+import { SuggestGooglePlacesContextType, SuggestGooglePlacesContext, DefaultStyles } from './context';
+import { SuggestGooglePlacesStyle } from './types';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
 export interface GooglePlace {
   placeId?: string;
@@ -69,7 +61,7 @@ export interface GooglePlace {
 interface CustomProps {
   outerRef?: Ref<TextInput>;
   name?: string;
-  color?: string;
+  theme?: string;
   placeholder?: string;
   language?: string;
   value?: GooglePlace;
@@ -101,7 +93,7 @@ const SEARCH_MIN_LENGTH = 2;
 const Component: SuggestGooglePlacesComponent = ({
   outerRef,
   name,
-  color,
+  theme,
   language = 'en',
   placeholder = 'Enter location...',
   currentLocationLabel = 'Current location',
@@ -275,50 +267,40 @@ const Component: SuggestGooglePlacesComponent = ({
     setSelected(null);
   };
 
-  const selectedColor: SuggestGooglePlacesStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: SuggestGooglePlacesStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_color) => _color.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (!isDirty && !selected) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(propValidity);
+      return getStyleByValidity(propValidity, selectedStyle);
     }
 
     if (selected || (text && !isFocused)) {
-      return getColorTypeByValidity(!!selected && !!text);
+      return getStyleByValidity(!!selected && !!text, selectedStyle);
     }
 
     if (error) {
-      return selectedColor?.invalid || selectedColor?.default;
+      return selectedStyle?.invalid || selectedStyle?.default;
     }
 
-    return selectedColor?.default;
-  }, [getColorTypeByValidity, isFocused, propValidity, selected, selectedColor?.default, text, usingValidity, isDirty, error, name]);
+    return selectedStyle?.default;
+  }, [getStyleByValidity, isFocused, propValidity, selected, selectedStyle?.default, text, usingValidity, isDirty, error, name]);
 
   useEffect(() => {
     if (!canUseCurrentLocation) {
@@ -421,9 +403,9 @@ const Component: SuggestGooglePlacesComponent = ({
           width: '100%',
           alignSelf: 'center',
           borderWidth: 1,
-          borderColor: selectedColor?.default?.borderColor,
-          borderBottomLeftRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
-          borderBottomRightRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
+          borderColor: selectedStyle?.default?.borderColor,
+          borderBottomLeftRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
+          borderBottomRightRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
           borderTopWidth: 0,
           paddingTop: 55 / 2,
           borderTopColor: 'transparent',
@@ -433,7 +415,7 @@ const Component: SuggestGooglePlacesComponent = ({
           zIndex: 1,
         },
         separator: {
-          backgroundColor: selectedColor?.default?.borderColor,
+          backgroundColor: selectedStyle?.default?.borderColor,
         },
         row: {
           height: 50,
@@ -467,7 +449,7 @@ const Component: SuggestGooglePlacesComponent = ({
         {
           InputComp: Input,
           name: `descriptionSuggestGooglePlaces${name ? `-${name}` : ''}`,
-          color,
+          theme,
           clearButtonMode: 'never',
           clearTextOnFocus: false,
           autoCorrect: false,
@@ -477,7 +459,7 @@ const Component: SuggestGooglePlacesComponent = ({
             height: 55,
             paddingLeft: 20,
             paddingBottom: 10,
-            borderRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
+            borderRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
             borderWidth: 1,
             fontSize: 16,
             fontWeight: '500',
