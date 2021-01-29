@@ -4,12 +4,12 @@ import ChevronDownSvg from '../../../core/assets/icons/chevron-down.svg';
 import { Animated } from 'react-native';
 
 export type AccordionStateStyles = {
-  expandedIcon: {
-    backgroundColor: string,
-    iconColor: string,
+  expandedIcon?: {
+    backgroundColor?: string,
+    iconColor?: string,
   },
-  borderColor?: string,
-  borderWidth?: number,
+  borderBottomColor?: string,
+  borderBottomWidth?: number,
 };
 
 export type AccordionStyle = {
@@ -27,15 +27,16 @@ export const DefaultColors: AccordionStyles = [
         backgroundColor: '#d9dadb',
         iconColor: '#7a7a7b'
       },
-      borderColor: '#bbc8cf',
-      borderWidth: 1
+      borderBottomColor: '#bbc8cf',
+      borderBottomWidth: 1
     },
   },
 ];
 
-export const Container = styled.View<{ borderWidth: number, borderColor: string }>`
-  border-bottom-width: ${({ borderWidth }) => borderWidth}px;
-  border-bottom-color: ${({ borderColor }) => borderColor};
+export const Container = styled.View`
+  flex-grow: 1;
+  border-bottom-width: 1px;
+  border-bottom-color: #bbc8cf;
 `;
 
 export const Header = styled.TouchableOpacity`
@@ -47,7 +48,7 @@ export const Header = styled.TouchableOpacity`
 `;
 
 export const AccordionHeaderContent = styled.View`
-  flex: 1;
+  flex-grow: 1;
 `;
 
 export const IndicatorIconContainer = styled(Circle)`
@@ -59,10 +60,10 @@ export const IconWrapper = styled(Animated.View)`
   flex-shrink: 1;
 `;
 
-export const ChevronDownIcon = styled(ChevronDownSvg) <{ color: string }>`
+export const ChevronDownIcon = styled(ChevronDownSvg)`
   width: 10px;
   height: 10px;
-  color: ${props => props.color};
+  color: #7A7A7B;
 `;
 
 export const Content = styled(Animated.View)`

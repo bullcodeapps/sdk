@@ -1,4 +1,4 @@
-export { default as Accordion } from './Accordion';
+export { default as Accordion, setAccordionColors} from './Accordion';
 export { default as ActivationCodeInput } from './ActivationCodeInput';
 export { default as Button } from './Button';
 export {

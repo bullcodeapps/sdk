@@ -8,7 +8,7 @@ import React, {
   PropsWithChildren,
   useMemo,
 } from 'react';
-import { Animated, Easing, ViewStyle } from 'react-native';
+import { Animated, Easing, ViewStyle, StyleSheet } from 'react-native';
 
 import {
   Container,
@@ -31,28 +31,30 @@ export const setAccordionColors = (colors: AccordionStyles) => {
   ctx.colors = colors;
 };
 
+type CustomExpansionOptions = Omit<Animated.TimingAnimationConfig, 'toValue' | 'useNativeDriver'>;
+
 type AccordionProps = PropsWithChildren<{
   headerContent?: React.ReactNode;
-  onChange?: (state: boolean) => void;
-  expanded?: boolean | null;
+  customHeader?: React.ReactNode;
+  arrowDownIcon?: React.SVGProps<SVGSVGElement>;
   autoExpand?: boolean;
+  expansionAnimationOptions?: CustomExpansionOptions;
   color?: string;
   style?: ViewStyle;
   headerStyle?: ViewStyle;
   arrowContainerStyle?: ViewStyle;
   arrowStyle?: ViewStyle;
-  // This was done in this way to avoid the definition of height,
-  // since the height is the Accordion that defines, because your body is of unlimited size
   contentContainerStyle?: Omit<ViewStyle, 'height'>;
-  customHeader?: React.ReactNode;
-  arrowDownIcon?: React.SVGProps<SVGSVGElement>;
+  expanded?: boolean;
+  onChange?: (state: boolean) => void;
 }>;
 
 const Accordion: React.FC<AccordionProps> = ({
   headerContent,
-  onChange,
-  expanded: propExpanded = null,
+  customHeader,
+  arrowDownIcon,
   autoExpand = false,
+  expansionAnimationOptions = {},
   color = 'primary',
   children,
   style,
@@ -60,63 +62,65 @@ const Accordion: React.FC<AccordionProps> = ({
   arrowContainerStyle,
   arrowStyle,
   contentContainerStyle,
-  customHeader: CustomHeader = null,
-  arrowDownIcon: ArrowDownIcon = null
+  expanded: propExpanded,
+  onChange,
 }) => {
   // Refs
   const animatedController = useRef(new Animated.Value(0)).current;
   const ctx = useContext<AccordionContextType>(AccordionContext);
 
   // States
+  const [lastPropExpanded, setLastPropExpanded] = useState<boolean>();
   const [expanded, setExpanded] = useState<boolean>(false);
   const [bodySectionHeight, setBodySectionHeight] = useState(0);
-
   const [isFirstRender, setIsFirstRender] = useState(true);
 
-  const toggleExpand = useCallback((toValue: number) => {
-    Animated.timing(animatedController, {
-      duration: 150,
-      toValue,
-      useNativeDriver: false,
-    }).start();
-  }, [animatedController]);
+  const handleExpansion = useCallback(
+    (newState?: boolean, options?: CustomExpansionOptions) => {
+      Animated.timing(animatedController, {
+        duration: 150,
+        ...options,
+        toValue: +newState,
+        useNativeDriver: false,
+      }).start();
+      // this change of state cannot remain within the callback of the animation (when animation ends),
+      // as this ensures that, when you touch the Accordion several times,
+      // this animation continues where it left off, even before the previous animation ended.
+      setExpanded(newState);
+    },
+    [animatedController, expanded],
+  );
 
-  useEffect(() => {
-    if (isFirstRender) {
-      setIsFirstRender(false);
-    }
-  }, [isFirstRender]);
-
-  useEffect(() => {
-    if ([null, undefined].includes(propExpanded)) {
-      return;
-    }
-
-    if (isFirstRender && propExpanded) {
-      return;
-    }
-
-    setExpanded(propExpanded);
-  }, [propExpanded, isFirstRender]);
+  const toggleExpand = useCallback(() => {
+    const newExpandedValue = !expanded;
+    handleExpansion(newExpandedValue);
+  }, [expanded, handleExpansion]);
 
   useEffect(() => {
     if (isFirstRender && autoExpand) {
-      setTimeout(() => {
-        toggleExpand(1);
-        setExpanded(true);
-      }, 150);
+      setIsFirstRender(false);
+      handleExpansion(true, {
+        duration: 350,
+        delay: 250,
+        ...expansionAnimationOptions,
+      });
     }
-  }, [autoExpand, isFirstRender]);
+  }, [isFirstRender, autoExpand]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleAccordionOnPress = useCallback(() => {
-    const newExpandedValue = !expanded;
+  useEffect(() => {
+    if (isFirstRender && autoExpand) {
+      return;
+    }
+    if (![null, undefined]?.includes(propExpanded) && propExpanded !== lastPropExpanded) {
+      setLastPropExpanded(propExpanded);
+      handleExpansion(propExpanded, expansionAnimationOptions);
+    }
+  }, [autoExpand, expansionAnimationOptions, handleExpansion, isFirstRender, propExpanded]);
 
-    // this change of state cannot remain within the callback of the animation (when animation ends),
-    // as this ensures that, when you touch the Accordion several times,
-    // this animation continues where it left off, even before the previous animation ended.
-    setExpanded(newExpandedValue);
-    onChange && onChange(newExpandedValue);
-  }, [toggleExpand, expanded]);
+  // It should not be triggered when re-rendering the component, so we ignore onChange as a dependency!
+  useEffect(() => {
+    onChange && onChange(expanded);
+  }, [expanded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const bodyHeight = useMemo(
     () =>
@@ -138,10 +142,6 @@ const Accordion: React.FC<AccordionProps> = ({
     [animatedController],
   );
 
-  useEffect(() => {
-    toggleExpand(+expanded);
-  }, [expanded]);
-
   const selectedColor = useMemo(() => {
     const colors = ctx?.colors || DefaultColors;
     const foundColor = colors.find((_color) => _color.name === color);
@@ -151,28 +151,43 @@ const Accordion: React.FC<AccordionProps> = ({
       );
       return DefaultColors[0];
     }
-    return foundColor;
+
+    // Overwrite default colors with global-styles
+    return {
+      ...foundColor,
+      default: StyleSheet.flatten([DefaultColors[0].default, foundColor?.default]),
+    };
   }, [color, ctx?.colors]);
 
   return (
     <Container
-      borderWidth={selectedColor?.default?.borderWidth}
-      borderColor={selectedColor?.default?.borderColor}
-      style={style}>
-      {![null, undefined].includes(CustomHeader) ? CustomHeader : (
-        <Header activeOpacity={0.8} onPress={handleAccordionOnPress} style={headerStyle}>
+      style={[
+        {
+          borderBottomWidth: selectedColor?.default?.borderBottomWidth,
+          borderBottomColor: selectedColor?.default?.borderBottomColor,
+        },
+        style,
+      ]}>
+      {customHeader || (
+        <Header activeOpacity={0.8} onPress={toggleExpand} style={headerStyle}>
           <AccordionHeaderContent>{headerContent}</AccordionHeaderContent>
-          <IndicatorIconContainer size={25} color={selectedColor?.default?.expandedIcon?.backgroundColor} style={arrowContainerStyle}>
+          <IndicatorIconContainer
+            size={25}
+            color={selectedColor?.default?.expandedIcon?.backgroundColor || '#d9dadb'}
+            style={arrowContainerStyle}>
             <IconWrapper style={{ transform: [{ rotateZ: arrowAngle }] }}>
-              {![null, undefined].includes(ArrowDownIcon)
-                ? ArrowDownIcon
-                : <ChevronDownIcon color={selectedColor?.default?.expandedIcon?.iconColor} style={arrowStyle} />}
+              {arrowDownIcon || (
+                <ChevronDownIcon
+                  color={selectedColor?.default?.expandedIcon?.iconColor || '#7a7a7b'}
+                  style={arrowStyle}
+                />
+              )}
             </IconWrapper>
           </IndicatorIconContainer>
         </Header>
       )}
-      <Content style={[{ height: bodyHeight }, contentContainerStyle]}>
-        <BodyContainer onLayout={(event) => setBodySectionHeight(event.nativeEvent.layout.height)}>
+      <Content style={[contentContainerStyle, { height: bodyHeight }]}>
+        <BodyContainer onLayout={(event) => setBodySectionHeight(event?.nativeEvent?.layout?.height)}>
           {children}
         </BodyContainer>
       </Content>
