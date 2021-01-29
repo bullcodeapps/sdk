@@ -7,8 +7,6 @@ import {
   PointLabel,
   TouchablePointArea,
   PointCircle,
-  RangeInputStyles,
-  DefaultColors,
 } from './styles';
 import { ViewStyle, LayoutChangeEvent } from 'react-native';
 import { useField } from '@unform/core';
@@ -16,14 +14,7 @@ import MultiSlider, { MarkerProps } from '@ptomasroos/react-native-multi-slider'
 import { useDebouncedState } from '../../../../core/hooks';
 import { FormFieldType } from '..';
 
-export type RangeInputContextType = { colors: RangeInputStyles };
-
-export const RangeInputContext = React.createContext<RangeInputContextType>({ colors: null });
-
-export const setRangeInputColors = (colors: RangeInputStyles) => {
-  const ctx = useContext<RangeInputContextType>(RangeInputContext);
-  ctx.colors = colors;
-};
+import { RangeInputContextType, RangeInputContext, DefaultStyles } from './context';
 
 export type RangeInputResponse = {
   min: number;
@@ -32,7 +23,7 @@ export type RangeInputResponse = {
 
 export type RangeInputProps = {
   name?: string;
-  color?: string;
+  theme?: string;
   labelPosition?: 'top' | 'bottom';
   style?: ViewStyle;
   initialPoint?: number;
@@ -53,7 +44,7 @@ type RangeInputComponent = React.FC<RangeInputProps>;
 
 const RangeInput: RangeInputComponent = ({
   name,
-  color,
+  theme,
   labelPosition,
   style,
   initialPoint,
@@ -122,23 +113,23 @@ const RangeInput: RangeInputComponent = ({
   }, [debouncedValues]);
 
   const selectedColor = useMemo(() => {
-    const colors = ctx?.colors;
-    if (!color && !!colors?.length) {
-      const foundColor = colors?.find((_color) => _color.name === 'default');
+    const styles = ctx?.styles;
+    if (!theme && !!styles?.length) {
+      const foundColor = styles?.find((_style) => _style.name === 'default');
       if (foundColor) {
         return foundColor;
       }
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    const foundColor = colors?.find((_color) => _color.name === color);
+    const foundColor = styles?.find((_style) => _style.name === theme);
     if (!foundColor) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
     return foundColor;
-  }, [color, ctx?.colors]);
+  }, [theme, ctx?.styles]);
 
   const CustomMarker = useCallback(
     ({ enabled }: MarkerProps) => (
