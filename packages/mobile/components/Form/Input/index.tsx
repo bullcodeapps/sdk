@@ -30,33 +30,24 @@ import {
   IconContainer,
   CounterBox,
   CounterText,
-  DefaultColors,
-  InputStyles,
-  InputStyle,
-  ValidityMarkComponentType,
 } from './styles';
 import { useField } from '@unform/core';
 import { useCombinedRefs } from '../../../../core/hooks';
 import ValidityMark from './ValidityMark';
 import { FormFieldType } from '..';
 
-export type InputContextType = { colors: InputStyles };
-
-export const InputContext = React.createContext<InputContextType>({ colors: null });
-
-export const setInputColors = (colors: InputStyles) => {
-  const ctx = useContext<InputContextType>(InputContext);
-  ctx.colors = colors;
-};
+import { InputContextType, InputContext, DefaultStyles } from './context';
+import { InputStyle, ValidityMarkComponentType, } from './types';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
 export type InputRef<T = any> = T & (Animated.AnimatedComponent<ComponentType<TextInput>> | TextInput);
 export type InputFieldType<T = any> = FormFieldType<InputRef<T>>;
 
 export interface InputProps<T = any>
   extends Omit<TextInputProps, 'ref'>,
-    Readonly<{ children?: ReactNode }>,
-    Partial<NativeMethods>,
-    Partial<TimerMixin> {
+  Readonly<{ children?: ReactNode }>,
+  Partial<NativeMethods>,
+  Partial<TimerMixin> {
   ref?: Ref<InputRef<T>>;
   outerRef?: Ref<InputRef<T>>;
   name?: any;
@@ -66,7 +57,7 @@ export interface InputProps<T = any>
   containerProps?: ViewProps;
   useValidityMark?: boolean;
   validity?: boolean | 'keepDefault';
-  color?: string;
+  theme?: string;
   isDirty?: boolean;
   onChangeValidity?: (isValid: boolean) => void;
   onMarkPress?: (event: GestureResponderEvent) => void;
@@ -75,7 +66,7 @@ export interface InputProps<T = any>
 export type InputComponent<T = any> = FunctionComponent<InputProps<T>>;
 
 const Component: InputComponent = ({
-  color = 'primary',
+  theme = 'primary',
   name,
   iconComponent,
   outerRef,
@@ -152,54 +143,44 @@ const Component: InputComponent = ({
     });
   }, [combinedRef, fieldName, handleOnChangeText, isDirty, registerField, value]);
 
-  const selectedColor: InputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: InputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (!isDirty && !value) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(propValidity);
+      return getStyleByValidity(propValidity, selectedStyle);
     }
     if (value?.length > 0) {
-      return getColorTypeByValidity(!error);
+      return getStyleByValidity(!error, selectedStyle);
     }
 
     if (error) {
-      return selectedColor?.invalid || selectedColor?.default;
+      return selectedStyle?.invalid || selectedStyle?.default;
     }
 
-    return selectedColor?.default;
+    return selectedStyle?.default;
   }, [
     error,
-    getColorTypeByValidity,
+    getStyleByValidity,
     propValidity,
-    selectedColor?.default,
-    selectedColor?.invalid,
+    selectedStyle?.default,
+    selectedStyle?.invalid,
     usingValidity,
     value,
     isDirty,
@@ -210,11 +191,11 @@ const Component: InputComponent = ({
   }, [error, onChangeValidity]);
 
   const ValidityMarkComponent: ValidityMarkComponentType = useMemo(() => {
-    if (!selectedColor?.validityMarkComponent) {
+    if (!selectedStyle?.validityMarkComponent) {
       return ValidityMark;
     }
-    return selectedColor?.validityMarkComponent;
-  }, [selectedColor.validityMarkComponent]);
+    return selectedStyle?.validityMarkComponent;
+  }, [selectedStyle.validityMarkComponent]);
 
   const IconComponent = useMemo(() => iconComponent, [iconComponent]);
 
@@ -259,7 +240,7 @@ const Component: InputComponent = ({
             backgroundColor: currentValidationStyles?.backgroundColor || 'transparent',
             borderColor: currentValidationStyles?.borderColor,
             color: currentValidationStyles?.color,
-            borderRadius: selectedColor?.default?.borderRadius,
+            borderRadius: selectedStyle?.default?.borderRadius,
             paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
           },
           style,
@@ -274,16 +255,16 @@ const Component: InputComponent = ({
         {canShowValidityMark && (
           <ValidityMarkComponent
             isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
-            colorName={selectedColor.name}
-            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
+            colorName={selectedStyle.name}
+            {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
             onPress={(e) => !!onMarkPress && onMarkPress(e)}
           />
         )}
         {!!iconComponent && (
           <IconComponent
             isValid={!error}
-            colorName={selectedColor.name}
-            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
+            colorName={selectedStyle.name}
+            {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
             onPress={(e) => !!onMarkPress && onMarkPress(e)}
           />
         )}
