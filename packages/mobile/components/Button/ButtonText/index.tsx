@@ -38,40 +38,53 @@ const ButtonText: React.FC<ButtonTextProps> = ({
     return styles.find((_style) => _style.name === theme);
   }, [ctx?.styles, theme]);
 
-  const buttonStyleType: ButtonStyleType = useMemo(() => {
+  const buttonTextActiveType = useMemo(() => {
     if (!foundStyle) {
       console.log(
         `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return {};
     }
+
     if (disabled) {
       return foundStyle?.disabled[outline ? 'outline' : 'solid'];
     }
-    return foundStyle?.default[outline ? 'outline' : 'solid'];
+
+    return foundStyle?.active[outline ? 'outline' : 'solid'];
   }, [disabled, foundStyle, outline, theme]);
 
-  const activityIndicatorColor: string = useMemo(() => {
+  const buttonTextDefaultType = useMemo(() => {
     if (!foundStyle) {
       console.log(
         `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return;
-    }
-
-    if (showingUnderlay) {
-      const { activityIndicatorColor } = foundStyle.active[outline ? 'outline' : 'solid'];
-      return activityIndicatorColor;
+      return {};
     }
 
     if (disabled) {
-      const { activityIndicatorColor } = foundStyle?.disabled[outline ? 'outline' : 'solid'];
-      return activityIndicatorColor;
+      return foundStyle?.disabled[outline ? 'outline' : 'solid'];
     }
 
-    const { activityIndicatorColor } = foundStyle.default[outline ? 'outline' : 'solid'];
-    return activityIndicatorColor;
-  }, [disabled, foundStyle, outline, showingUnderlay, theme]);
+    return foundStyle?.default[outline ? 'outline' : 'solid'];
+  }, [disabled, foundStyle, outline, theme]);
+
+  const buttonTextStyle = useMemo(
+    () => (showingUnderlay ? buttonTextActiveType?.textStyle : buttonTextDefaultType?.textStyle),
+    [buttonTextActiveType?.textStyle, buttonTextDefaultType?.textStyle, showingUnderlay],
+  );
+
+  const buttonTextType = useMemo(
+    () => (showingUnderlay ? buttonTextActiveType?.textType : buttonTextDefaultType?.textType),
+    [buttonTextActiveType?.textType, buttonTextDefaultType?.textType, showingUnderlay],
+  );
+
+  const activityIndicatorColor: string = useMemo(
+    () =>
+      showingUnderlay
+        ? buttonTextActiveType?.activityIndicatorColor
+        : buttonTextDefaultType?.activityIndicatorColor,
+    [buttonTextActiveType?.activityIndicatorColor, buttonTextDefaultType?.activityIndicatorColor, showingUnderlay],
+  );
 
   return loading ? (
     <ActivityIndicator
@@ -79,7 +92,7 @@ const ButtonText: React.FC<ButtonTextProps> = ({
       color={propActivityIndicatorColor || activityIndicatorColor}
     />
   ) : (
-    <Text type={buttonStyleType?.textType} {...rest} style={[buttonStyleType?.textStyle, rest?.style]} />
+    <Text type={buttonTextType} {...rest} style={[buttonTextStyle, rest?.style]} />
   );
 };
 
