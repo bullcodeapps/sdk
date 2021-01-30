@@ -47,9 +47,13 @@ const Component: SectionComponent = ({
       {selectedStyle?.sectionTitleComponent ? (
         selectedStyle?.sectionTitleComponent
       ) : typeof title === 'string' ? (
-        <SectionTitle type={titleType || selectedStyle?.default?.titleType} style={[selectedStyle?.default?.titleStyle, titleStyle]}>{title}</SectionTitle>
+        <SectionTitle
+          type={titleType || selectedStyle?.default?.titleType}
+          style={[selectedStyle?.default?.titleStyle, titleStyle]}>
+          {title}
+        </SectionTitle>
       ) : (
-        { title }
+        title
       )}
       <Content style={[selectedStyle?.default?.contentContainerStyle, contentContainerStyle]}>{children}</Content>
     </Container>
