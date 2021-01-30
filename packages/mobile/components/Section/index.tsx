@@ -8,7 +8,7 @@ type CustomProps = {
   theme?: string;
   outerRef?: Ref<View>;
   contentContainerStyle?: ViewStyle;
-  title: string;
+  title: string | React.ReactNode;
   children: any;
   titleStyle?: TextStyle;
   titleType?: string;
