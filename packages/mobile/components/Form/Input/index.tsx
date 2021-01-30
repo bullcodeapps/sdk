@@ -66,9 +66,10 @@ export interface InputProps<T = any>
   containerProps?: ViewProps;
   useValidityMark?: boolean;
   validity?: boolean | 'keepDefault';
+  color?: string;
+  isDirty?: boolean;
   onChangeValidity?: (isValid: boolean) => void;
   onMarkPress?: (event: GestureResponderEvent) => void;
-  color?: string;
 }
 
 export type InputComponent<T = any> = FunctionComponent<InputProps<T>>;
@@ -82,17 +83,20 @@ const Component: InputComponent = ({
   containerStyle,
   containerProps,
   useValidityMark = false,
+  style,
   validity: propValidity,
+  isDirty: propIsDirty = false,
+  onFocus: propOnFocus,
   onChangeValidity,
   onMarkPress,
   onChangeText,
-  style,
   ...rest
 }) => {
   const ctx = useContext<InputContextType>(InputContext);
 
   // States
   const [value, setValue] = useState<string>('');
+  const [isDirty, setIsDirty] = useState(propIsDirty);
   const { fieldName, registerField, error } = useField(name);
 
   // Refs
@@ -103,15 +107,30 @@ const Component: InputComponent = ({
 
   const handleOnChangeText = useCallback(
     (text: string) => {
+      if (value === text) {
+        return;
+      }
       setValue(text || '');
       !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(text || '');
       onChangeText && onChangeText(text || '');
     },
-    [combinedRef, onChangeText, usingValidity],
+    [combinedRef, onChangeText, usingValidity, value],
   );
 
   useEffect(() => {
-    handleOnChangeText(rest?.value);
+    inputRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+    };
+  }, [isDirty]);
+
+  useEffect(() => {
+    if (rest?.value !== undefined && !isDirty) {
+      handleOnChangeText(rest?.value);
+    }
   }, [handleOnChangeText, rest?.value]);
 
   useEffect(() => {
@@ -122,13 +141,16 @@ const Component: InputComponent = ({
         handleOnChangeText('');
       },
       setValue: (ref: TextInput, val: string) => {
-        handleOnChangeText(val);
+        // Avoid from form auto-fill and mark as dirty
+        if (val !== undefined && !isDirty) {
+          handleOnChangeText(val);
+        }
       },
       getValue: () => {
         return value;
       },
     });
-  }, [combinedRef, fieldName, handleOnChangeText, registerField, value]);
+  }, [combinedRef, fieldName, handleOnChangeText, isDirty, registerField, value]);
 
   const selectedColor: InputStyle = useMemo(() => {
     const colors = ctx?.colors || DefaultColors;
@@ -153,6 +175,10 @@ const Component: InputComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
+    if (!isDirty && !value) {
+      return selectedColor?.default;
+    }
+
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
         return selectedColor?.default;
@@ -163,7 +189,7 @@ const Component: InputComponent = ({
       return getColorTypeByValidity(!error);
     }
 
-    if (!!error && !!value) {
+    if (error) {
       return selectedColor?.invalid || selectedColor?.default;
     }
 
@@ -176,6 +202,7 @@ const Component: InputComponent = ({
     selectedColor?.invalid,
     usingValidity,
     value,
+    isDirty,
   ]);
 
   useEffect(() => {
@@ -189,7 +216,29 @@ const Component: InputComponent = ({
     return selectedColor?.validityMarkComponent;
   }, [selectedColor.validityMarkComponent]);
 
-  const IconComponent = iconComponent;
+  const IconComponent = useMemo(() => iconComponent, [iconComponent]);
+
+  const onFocus = useCallback(
+    (e) => {
+      if (!isDirty) {
+        !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(value || '');
+        setIsDirty(true);
+      }
+
+      propOnFocus && propOnFocus(e);
+    },
+    [combinedRef, isDirty, propOnFocus, usingValidity, value],
+  );
+
+  const canShowValidityMark = useMemo(() => {
+    if (!useValidityMark) {
+      return false;
+    }
+    if (usingValidity) {
+      return propValidity !== 'keepDefault';
+    }
+    return isDirty;
+  }, [isDirty, propValidity, useValidityMark, usingValidity]);
 
   return (
     <Container style={containerStyle} {...containerProps}>
@@ -211,29 +260,25 @@ const Component: InputComponent = ({
             borderColor: currentValidationStyles?.borderColor,
             color: currentValidationStyles?.color,
             borderRadius: selectedColor?.default?.borderRadius,
-            paddingRight: iconComponent ? 45 : rest?.multiline ? 20 : 0,
+            paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
           },
           style,
         ]}
         onChangeText={handleOnChangeText}
+        onFocus={onFocus}
       />
       <IconContainer
         isMultiline={rest.multiline}
-        usingValidityMark={
-          iconComponent &&
-          useValidityMark &&
-          (usingValidity ? propValidity !== 'keepDefault' && propValidity : value?.length > 0)
-        }>
-        {!iconComponent &&
-          useValidityMark &&
-          (usingValidity ? propValidity !== 'keepDefault' && propValidity : value?.length > 0) && (
-            <ValidityMarkComponent
-              isValid={!error}
-              colorName={selectedColor.name}
-              {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
-              onPress={(e) => !!onMarkPress && onMarkPress(e)}
-            />
-          )}
+        hasIconComponent={!!iconComponent}
+        canShowValidityMark={canShowValidityMark}>
+        {canShowValidityMark && (
+          <ValidityMarkComponent
+            isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
+            colorName={selectedColor.name}
+            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
+            onPress={(e) => !!onMarkPress && onMarkPress(e)}
+          />
+        )}
         {!!iconComponent && (
           <IconComponent
             isValid={!error}

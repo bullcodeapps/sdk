@@ -71,6 +71,7 @@ const PhoneInput: PhoneInputComponent = ({
   onChange,
   onChangeCountry,
   onMarkPress,
+  onFocus: propOnFocus,
   ...rest
 }) => {
   const ctx = useContext<PhoneInputContextType>(PhoneInputContext);
@@ -81,6 +82,7 @@ const PhoneInput: PhoneInputComponent = ({
   const [selectIsValid, setSelectIsValid] = useState<boolean>();
   const [inputIsValid, setInputIsValid] = useState<boolean>();
   const [phone, setPhone] = useState<string>();
+  const [isDirty, setIsDirty] = useState(false);
   const { fieldName, registerField, error } = useField(name);
 
   // Refs
@@ -226,6 +228,10 @@ const PhoneInput: PhoneInputComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
+    if (!isDirty && !phone) {
+      return selectedColor?.default;
+    }
+
     if (usingValidity) {
       if (rest?.validity === 'keepDefault') {
         return selectedColor?.default;
@@ -236,7 +242,7 @@ const PhoneInput: PhoneInputComponent = ({
       return getColorTypeByValidity(isValid);
     }
 
-    if (isValid && !!phone) {
+    if (!!error) {
       return selectedColor?.invalid || selectedColor?.default;
     }
 
@@ -249,6 +255,8 @@ const PhoneInput: PhoneInputComponent = ({
     selectedColor?.invalid,
     rest?.validity,
     getColorTypeByValidity,
+    isDirty,
+    error,
   ]);
 
   const defaultSelectStyle: NativeSelectStyle = useMemo(
@@ -317,6 +325,32 @@ const PhoneInput: PhoneInputComponent = ({
     [currentValidationStyles?.select?.dropDownIcon, selectedColor?.default?.select?.dropDownIcon],
   );
 
+  useEffect(() => {
+    combinedRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+    };
+  }, [isDirty]);
+
+  const validity = useMemo(() => {
+    if (!isDirty) {
+      return 'keepDefault';
+    }
+
+    return isValid;
+  }, [isDirty, isValid]);
+
+  const onFocus = useCallback((e) => {
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+
+    propOnFocus && propOnFocus(e);
+  }, [isDirty]);
+
   return (
     <PhoneInputContainer
       color={rest?.color}
@@ -340,7 +374,7 @@ const PhoneInput: PhoneInputComponent = ({
       <Input
         ref={combinedRef}
         name={`formatted-number-input-${name}`}
-        validity={!phone?.length ? 'keepDefault' : isValid}
+        validity={validity}
         value={phone}
         placeholder={placeholder}
         maxLength={35}
@@ -368,7 +402,7 @@ const PhoneInput: PhoneInputComponent = ({
             const CustomValidityMark = selectedColor?.validityMarkComponent;
             return <CustomValidityMark {...props} />;
           }
-          return phone?.length > 0 ? (
+          return !!error && isDirty ? (
             <ValidityMark
               isValid={isValid}
               colors={selectedColor?.validityMark}
@@ -378,6 +412,8 @@ const PhoneInput: PhoneInputComponent = ({
             />
           ) : null;
         }}
+        isDirty={isDirty}
+        onFocus={onFocus}
       />
     </PhoneInputContainer>
   );
