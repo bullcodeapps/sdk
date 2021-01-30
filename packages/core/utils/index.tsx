@@ -14,6 +14,8 @@ export const getNextAvailableDay = (weekDay: WeekDays) => {
   return now;
 };
 
+export const delay = (ms: number) => new Promise<void>((resolve, reject) => setTimeout(resolve, ms));
+
 export function currencyFormat(amount: number, decimalCount = 2, decimal = ',', thousands = '.') {
   try {
     decimalCount = Math.abs(decimalCount);
