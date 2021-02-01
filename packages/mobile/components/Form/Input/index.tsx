@@ -54,14 +54,14 @@ export type InputFieldType<T = any> = FormFieldType<InputRef<T>>;
 
 export interface InputProps<T = any>
   extends Omit<TextInputProps, 'ref'>,
-    Readonly<{ children?: ReactNode }>,
-    Partial<NativeMethods>,
-    Partial<TimerMixin> {
+  Readonly<{ children?: ReactNode }>,
+  Partial<NativeMethods>,
+  Partial<TimerMixin> {
   ref?: Ref<InputRef<T>>;
   outerRef?: Ref<InputRef<T>>;
   name?: any;
   iconComponent?: ValidityMarkComponentType;
-  containerStyle?: any;
+  contentContainerStyle?: any;
   label?: string;
   containerProps?: ViewProps;
   useValidityMark?: boolean;
@@ -80,7 +80,7 @@ const Component: InputComponent = ({
   iconComponent,
   outerRef,
   label,
-  containerStyle,
+  contentContainerStyle,
   containerProps,
   useValidityMark = false,
   style,
@@ -241,7 +241,7 @@ const Component: InputComponent = ({
   }, [isDirty, propValidity, useValidityMark, usingValidity]);
 
   return (
-    <Container style={containerStyle} {...containerProps}>
+    <Container style={style} {...containerProps}>
       {label && (
         <LabelBox>
           <Text>{label}</Text>
@@ -262,7 +262,7 @@ const Component: InputComponent = ({
             borderRadius: selectedColor?.default?.borderRadius,
             paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
           },
-          style,
+          contentContainerStyle,
         ]}
         onChangeText={handleOnChangeText}
         onFocus={onFocus}
