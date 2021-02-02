@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, memo, useContext, useMemo } from 'react';
 
-import { Container, SwitchLine, SwitchLabel, SwitchButton, SwitchColors } from './styles';
-import { ViewProps, Switch, SwitchProps } from 'react-native';
+import { Container, SwitchLine, SwitchLabel, SwitchButton, SwitchColors, Content } from './styles';
+import { Switch, SwitchProps, TextStyle, ViewStyle } from 'react-native';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
 
@@ -20,7 +20,9 @@ type FormSwitchProps = {
   label?: string | React.ReactNode;
   defaultValue?: boolean;
   value?: boolean;
-  contentContainerStyle?: ViewProps;
+  style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
+  switchButtonStyle?: TextStyle;
   onChange?: (value?: boolean) => void;
   clear?: () => void;
 } & Omit<SwitchProps, 'trackColor' | 'thumbColor' | 'ios_backgroundColor'>;
@@ -35,7 +37,9 @@ const FormSwitch = ({
   value: propValue,
   defaultValue = false,
   clear: propClear,
+  style,
   contentContainerStyle,
+  switchButtonStyle,
   ...rest
 }: FormSwitchProps) => {
   const ctx = useContext<SwitchContextType>(SwitchContext);
@@ -148,19 +152,22 @@ const FormSwitch = ({
   }, [color, ctx.colors, value]);
 
   return (
-    <Container style={contentContainerStyle}>
-      <SwitchLine>
-        {typeof label === 'string' ? <SwitchLabel>{label}</SwitchLabel> : label}
-        <SwitchButton
-          ref={switchRef}
-          value={value}
-          onValueChange={handleChange}
-          trackColor={falseColor && trueColor ? { false: falseColor, true: trueColor } : null}
-          thumbColor={thumbColor}
-          ios_backgroundColor={falseColor}
-          {...rest}
-        />
-      </SwitchLine>
+    <Container style={style}>
+      <Content style={contentContainerStyle}>
+        <SwitchLine>
+          {typeof label === 'string' ? <SwitchLabel>{label}</SwitchLabel> : label}
+          <SwitchButton
+            ref={switchRef}
+            value={value}
+            onValueChange={handleChange}
+            trackColor={falseColor && trueColor ? { false: falseColor, true: trueColor } : null}
+            thumbColor={thumbColor}
+            ios_backgroundColor={falseColor}
+            style={switchButtonStyle}
+            {...rest}
+          />
+        </SwitchLine>
+      </Content>
     </Container>
   );
 };

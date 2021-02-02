@@ -9,6 +9,7 @@ import {
   PointCircle,
   RangeInputStyles,
   DefaultColors,
+  Content
 } from './styles';
 import { ViewStyle, LayoutChangeEvent } from 'react-native';
 import { useField } from '@unform/core';
@@ -35,6 +36,7 @@ export type RangeInputProps = {
   color?: string;
   labelPosition?: 'top' | 'bottom';
   style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
   initialPoint?: number;
   endPoint?: number;
   minValue: number;
@@ -56,6 +58,7 @@ const RangeInput: RangeInputComponent = ({
   color,
   labelPosition,
   style,
+  contentContainerStyle,
   initialPoint,
   endPoint,
   minValue,
@@ -198,23 +201,25 @@ const RangeInput: RangeInputComponent = ({
 
   return (
     <Container style={style} onLayout={handleOnLayoutContainer}>
-      <CustomSlider
-        ref={sliderRef}
-        sliderLength={sliderWidth}
-        customLabel={CustomLabel}
-        containerStyle={labelPosition === 'bottom' ? { paddingBottom: 15 } : { paddingTop: 15 }}
-        onValuesChange={handleValuesChange}
-        customMarker={CustomMarker}
-        values={rangeValues}
-        min={minValue}
-        max={maxValue}
-        optionsArray={optionsArray}
-        trackStyle={selectedColor?.trackStyle}
-        selectedStyle={selectedColor?.selectedStyle}
-        enabledOne={enabledOne}
-        enabledTwo={enabledTwo}
-        enableLabel={enableLabel}
-      />
+      <Content style={contentContainerStyle}>
+        <CustomSlider
+          ref={sliderRef}
+          sliderLength={sliderWidth}
+          customLabel={CustomLabel}
+          containerStyle={labelPosition === 'bottom' ? { paddingBottom: 15 } : { paddingTop: 15 }}
+          onValuesChange={handleValuesChange}
+          customMarker={CustomMarker}
+          values={rangeValues}
+          min={minValue}
+          max={maxValue}
+          optionsArray={optionsArray}
+          trackStyle={selectedColor?.trackStyle}
+          selectedStyle={selectedColor?.selectedStyle}
+          enabledOne={enabledOne}
+          enabledTwo={enabledTwo}
+          enableLabel={enableLabel}
+        />
+      </Content>
     </Container>
   );
 };

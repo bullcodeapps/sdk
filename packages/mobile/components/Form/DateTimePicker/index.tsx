@@ -10,10 +10,12 @@ import {
   ModalViewBottom,
   ClockIcon,
   CalendarIcon,
+  Content
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
 import { InputProps, InputContextType, InputContext } from '../Input';
+import { InputStyle, DefaultColors } from '../Input/styles';
 import {
   format,
   isAfter,
@@ -23,7 +25,6 @@ import {
   isWithinInterval,
 } from 'date-fns';
 import { useField } from '@unform/core';
-import { InputStyle, DefaultColors } from '@bullcode/mobile/components/Form/Input/styles';
 import { SvgProps } from 'react-native-svg';
 
 export type DateTimePickerProps = {
@@ -42,6 +43,7 @@ export type DateTimePickerProps = {
   inputProps?: InputProps;
   icon?: any;
   style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
   pickerStyle?: any;
   onChange?: (value: Date) => void;
 };
@@ -63,6 +65,7 @@ const DateTimePicker: DateTimePickerComponent = ({
   language = 'pt-BR',
   icon: Icon,
   style,
+  contentContainerStyle,
   pickerStyle,
   onChange,
   ...rest
@@ -346,28 +349,30 @@ const DateTimePicker: DateTimePickerComponent = ({
 
   return (
     <ViewContainer style={style}>
-      <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
-        <View pointerEvents="none">
-          <Input
-            ref={inputRef}
-            name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
-            editable={false}
-            validity={isValidField}
-            placeholder={placeholder}
-            value={dateFormatted}
-            iconComponent={() => {
-              if (Icon) {
-                return <Icon color={currentValidationStyles?.borderColor} />;
-              }
-              return <DefaultIcon color={currentValidationStyles?.borderColor} />;
-            }}
-            color={color}
-            isDirty={isDirty}
-            onFocus={handleOnFocusInput}
-            {...inputProps}
-          />
-        </View>
-      </TouchableOpacity>
+      <Content style={contentContainerStyle}>
+        <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
+          <View pointerEvents="none">
+            <Input
+              ref={inputRef}
+              name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
+              editable={false}
+              validity={isValidField}
+              placeholder={placeholder}
+              value={dateFormatted}
+              iconComponent={() => {
+                if (Icon) {
+                  return <Icon color={currentValidationStyles?.borderColor} />;
+                }
+                return <DefaultIcon color={currentValidationStyles?.borderColor} />;
+              }}
+              color={color}
+              isDirty={isDirty}
+              onFocus={handleOnFocusInput}
+              {...inputProps}
+            />
+          </View>
+        </TouchableOpacity>
+      </Content>
       <Modal
         visible={show}
         transparent

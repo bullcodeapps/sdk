@@ -25,7 +25,7 @@ type RatingStarsProps = {
   onChange?: (value: number) => void;
   color?: string;
   disabled?: boolean;
-  containerStyles?: ViewStyle;
+  style?: ViewStyle;
   contentContainerStyles?: ViewStyle;
   starContainerStyles?: ViewStyle;
   starStyles?: ViewStyle;
@@ -54,7 +54,7 @@ const RatingStars: React.FC<RatingStarsProps> = ({
   onChange,
   color = 'primary',
   disabled = false,
-  containerStyles,
+  style,
   contentContainerStyles,
   starContainerStyles,
   starStyles,
@@ -148,7 +148,7 @@ const RatingStars: React.FC<RatingStarsProps> = ({
   }, [color, ctx?.colors]);
 
   return (
-    <Container style={containerStyles}>
+    <Container style={style}>
       <BackgroundStars onLayout={onLayoutBackgroundStars} style={contentContainerStyles}>
         {stars.map((item, index) => (
           <StarTouchableContainer

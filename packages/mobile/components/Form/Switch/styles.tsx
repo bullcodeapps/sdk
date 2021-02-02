@@ -19,7 +19,7 @@ export type SwitchColor = {
 export type SwitchColors = Array<SwitchColor>;
 
 export const Container = styled.View`
-  flex-grow: 1;
+  flex: 1;
   margin-top: 10px;
 `;
 
@@ -40,4 +40,8 @@ export const SwitchLabel = styled.Text`
 
 export const SwitchButton = styled(Switch)`
   flex-shrink: 1;
+`;
+
+export const Content = styled.View`
+  flex-grow: 1;
 `;

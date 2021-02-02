@@ -138,7 +138,7 @@ export const CounterBox = styled.View`
   z-index: 1;
 `;
 
-export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
+export const CounterText = styled(Text) <{ maxLength: number; length: number }>`
   color: #bbc8cf;
   font-weight: 500;
   ${(props) => {
@@ -152,4 +152,8 @@ export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
       return 'color: #bbc8cf';
     }
   }};
+`;
+
+export const Content = styled.View`
+  flex-grow: 1;
 `;

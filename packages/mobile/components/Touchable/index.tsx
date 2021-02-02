@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, ComponentType } from 'react';
 
-import { AnimatedView } from './styles';
+import { Container, AnimatedView } from './styles';
 import {
   TapGestureHandlerStateChangeEvent,
   LongPressGestureHandler,
@@ -8,18 +8,22 @@ import {
   State,
   TapGestureHandler,
 } from 'react-native-gesture-handler';
-import { Animated, View, Platform } from 'react-native';
+import { Animated, View, Platform, ViewStyle } from 'react-native';
 
 export type TouchableProps = {
   activeOpacity?: number;
   children?: any;
   onPress?: (e: TapGestureHandlerStateChangeEvent) => void;
+  style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
 } & Animated.AnimatedComponent<ComponentType<View>>;
 
 export const Touchable: React.FC<TouchableProps> = ({
   activeOpacity: propActiveOpacity,
   children,
   onPress,
+  style,
+  contentContainerStyle,
   ...rest
 }) => {
   const [activeOpacityAnimValue] = useState(new Animated.Value(1));
@@ -70,32 +74,42 @@ export const Touchable: React.FC<TouchableProps> = ({
   };
 
   return Platform.OS === 'ios' ? (
-    <LongPressGestureHandler minDurationMs={0} onHandlerStateChange={handlerLongPressStateChange}>
-      <AnimatedView
-        style={{
-          opacity: activeOpacityAnimValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 1],
-          }),
-        }}
-        {...rest}>
-        {children}
-      </AnimatedView>
-    </LongPressGestureHandler>
+    <Container>
+      <LongPressGestureHandler minDurationMs={0} onHandlerStateChange={handlerLongPressStateChange}>
+        <AnimatedView
+          style={[
+            {
+              opacity: activeOpacityAnimValue.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 1],
+              }),
+            },
+            contentContainerStyle,
+          ]}
+          {...rest}>
+          {children}
+        </AnimatedView>
+      </LongPressGestureHandler>
+    </Container>
   ) : (
-    <TapGestureHandler onHandlerStateChange={handlerTapStateChange}>
-      <AnimatedView
-        style={{
-          opacity: activeOpacityAnimValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 1],
-          }),
-        }}
-        {...rest}>
-        {children}
-      </AnimatedView>
-    </TapGestureHandler>
-  );
+      <Container>
+        <TapGestureHandler onHandlerStateChange={handlerTapStateChange}>
+          <AnimatedView
+            style={[
+              {
+                opacity: activeOpacityAnimValue.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1],
+                }),
+              },
+              contentContainerStyle,
+            ]}
+            {...rest}>
+            {children}
+          </AnimatedView>
+        </TapGestureHandler>
+      </Container>
+    );
 };
 
 export default Touchable;

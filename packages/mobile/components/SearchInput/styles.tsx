@@ -56,3 +56,9 @@ export const CloseSearchIcon = styled(CloseSearchSvg)`
   height: 16px;
   margin-left: 15px;
 `;
+
+export const Content = styled.View`
+  flex-grow: 1;
+  flex-direction: row;
+  align-items: center;
+`;

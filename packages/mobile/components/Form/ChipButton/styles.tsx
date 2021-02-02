@@ -9,7 +9,7 @@ interface ContainerProps extends TouchableOpacityProps {
 
 export const Container = styled(TouchableOpacity).attrs((props) => ({
   activeOpacity: props.activeOpacity || Number(props.disabled ? 1 : 0.2),
-}))<ContainerProps>`
+})) <ContainerProps>`
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -43,4 +43,8 @@ export const ChipButtonText = styled.Text<ContainerProps>`
   align-self: center;
 
   ${(props) => props.active && props.fillWhenActive && `color: #ffffff`};
+`;
+
+export const Content = styled.View`
+  flex-grow: 1;
 `;
