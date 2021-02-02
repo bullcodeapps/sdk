@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import { Container, Form as StyledForm } from './styles';
 import { useCombinedRefs } from '../../../core/hooks';
 import { Keyboard } from 'react-native';
+import dot from 'dot-object';
 
 export type FormType = DefaultFormProps & FormHandles;
 export type FormFieldType<T> = T & { validate: (val: any) => void; markAsDirty: () => void };
@@ -24,12 +25,12 @@ export type FormComponent = React.FC<FormProps>;
 const Component: FormComponent = ({
   ref,
   outerRef,
-  onSubmit,
-  onSubmitError,
   schema,
   data,
-  onProgressChange,
   children,
+  onSubmit,
+  onSubmitError,
+  onProgressChange,
   ...other
 }) => {
   const formRef = useRef<FormType>(null);
@@ -118,20 +119,47 @@ const Component: FormComponent = ({
     [combinedRef, onProgressChange, requiredFields, schema],
   );
 
-  const addAutoValidationToFields = useCallback(
-    (objectSchema: Yup.ObjectSchema<any>) => {
-      if (!objectSchema?.fields) {
+  const applyRuleToAllFields = useCallback(
+    (fieldAction?: (fieldRef?: any, fieldName?: any) => void, _fields?: object, _lastName: string = '') => {
+      if (!schema?.fields && !_fields) {
         return;
       }
-      Object.keys(objectSchema.fields)?.forEach((fieldName) => {
-        const schemaField: any = objectSchema.fields[fieldName];
-        const field = combinedRef?.current?.getFieldRef(fieldName);
-        if (!field) {
+
+      // if there are no fields coming from the recursion then we use the fields
+      // from the first level of the schema.
+      const fields = _fields || schema?.fields;
+      const formDataKeys = Object.keys(fields);
+      formDataKeys?.forEach((fieldName) => {
+        // to get the correct name in dot notation to get the field reference,
+        // we will use the previous name of the recursion
+        const newFieldName = _lastName?.length ? _lastName + `.${fieldName}` : fieldName;
+        const fieldRef = combinedRef?.current?.getFieldRef(newFieldName);
+        const fieldChildren = fields[fieldName]?.fields;
+
+        // if there are fields at a lower level then let's go into recursion
+        if (typeof fieldChildren === 'object' && fieldChildren !== null && Object.keys(fieldChildren)?.length) {
+          return applyRuleToAllFields(fieldAction, fields[fieldName].fields, newFieldName);
+        }
+
+        // if the field reference does not exist, then that field does not exist.
+        // However, as you got here because of recursion, so let's just ignore it!
+        if (!fieldRef) {
           return;
         }
-        field.validate = (value: any) => {
+
+        fieldAction && fieldAction(fieldRef, newFieldName);
+      });
+    },
+    [combinedRef, schema?.fields],
+  );
+
+  const addAutoValidationToFields = useCallback(
+    () =>
+      applyRuleToAllFields((fieldRef, fieldName) => {
+        fieldRef.validate = (value: any) => {
           const formData = combinedRef?.current?.getData();
-          formData[fieldName] = value;
+          // replaces in the formData object the value of this field with what comes by parameter
+          dot.set(fieldName, value, formData, true);
 
           try {
             validate(formData);
@@ -141,53 +169,42 @@ const Component: FormComponent = ({
              */
           }
         };
-        if (schemaField?.fields && Object.keys(schemaField?.fields)?.length > 0) {
-          return addAutoValidationToFields(schemaField as Yup.ObjectSchema<any>);
-        }
-        return;
-      });
-    },
-    [combinedRef, validate],
+      }),
+    [applyRuleToAllFields, combinedRef, validate],
   );
 
-  useEffect(() => {
-    addAutoValidationToFields(schema);
-  }, [addAutoValidationToFields, schema]);
+  useEffect(addAutoValidationToFields, [addAutoValidationToFields]);
 
-  const setChildrenAsDirty = useCallback(() => {
-    if (!schema?.fields) {
-      return;
-    }
-    Object.keys(combinedRef?.current?.getData())?.forEach((fieldName) => {
-      const field = combinedRef?.current?.getFieldRef(fieldName);
+  const setChildrenAsDirty = useCallback(
+    () =>
+      applyRuleToAllFields((fieldRef) => {
+        fieldRef?.markAsDirty && fieldRef.markAsDirty();
+      }),
+    [applyRuleToAllFields],
+  );
 
-      if (!field) {
-        return;
+  const handleSubmit: SubmitHandler<any> = useCallback(
+    async (formData: any) => {
+      try {
+        Keyboard.dismiss();
+        setChildrenAsDirty();
+        const res = validate(formData);
+        onSubmit(res);
+      } catch (err) {
+        const validationErrors = {};
+
+        if (err instanceof Yup.ValidationError) {
+          err.inner.forEach((error) => {
+            validationErrors[error.path] = error.message;
+          });
+          combinedRef.current.setErrors(validationErrors);
+        }
+
+        onSubmitError(Object.keys(validationErrors).length > 0 ? validationErrors : err, formData);
       }
-
-      field?.markAsDirty && field.markAsDirty();
-    });
-  }, [combinedRef, schema?.fields]);
-
-  const handleSubmit: SubmitHandler<any> = useCallback(async (formData: any) => {
-    try {
-      Keyboard.dismiss();
-      setChildrenAsDirty();
-      const res = validate(formData);
-      onSubmit(res);
-    } catch (err) {
-      const validationErrors = {};
-
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          validationErrors[error.path] = error.message;
-        });
-        combinedRef.current.setErrors(validationErrors);
-      }
-
-      onSubmitError(Object.keys(validationErrors).length > 0 ? validationErrors : err, formData);
-    }
-  }, [combinedRef, onSubmit, onSubmitError, setChildrenAsDirty, validate]);
+    },
+    [combinedRef, onSubmitError, setChildrenAsDirty, validate],
+  );
 
   return (
     <Container>

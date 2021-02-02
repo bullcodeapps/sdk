@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/bullcodeapps/sdk#readme",
   "devDependencies": {
+    "@types/dot-object": "^2.1.2",
     "@types/react-native": "^0.62.5",
     "@types/react-native-autocomplete-input": "^4.0.1",
     "babel-plugin-module-resolver": "^4.0.0",
@@ -64,7 +65,8 @@
     "seamless-immutable": "^7.1.4",
     "styled-components": "^5.0.1",
     "typesafe-actions": "^5.1.0",
-    "yup": "^0.28.3"
+    "yup": "^0.28.3",
+    "dot-object": "^2.1.4"
   },
   "gitHead": "c31363229d5e2c17bb585c78514fe1413985ce8d"
 }

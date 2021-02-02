@@ -86,7 +86,6 @@ const Component: InputComponent = ({
   style,
   validity: propValidity,
   isDirty: propIsDirty = false,
-  onFocus: propOnFocus,
   onChangeValidity,
   onMarkPress,
   onChangeText,
@@ -110,33 +109,35 @@ const Component: InputComponent = ({
       if (value === text) {
         return;
       }
-      setValue(text || '');
-      !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(text || '');
-      onChangeText && onChangeText(text || '');
+      const newText = text || '';
+      setValue(newText);
+      !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText);
+      onChangeText && onChangeText(newText);
     },
-    [combinedRef, onChangeText, usingValidity, value],
+    [inputRef, onChangeText, usingValidity, value],
   );
 
   useEffect(() => {
     inputRef.current.markAsDirty = () => {
+      console.log('markAsDirty!', fieldName);
       if (isDirty) {
         return;
       }
 
       setIsDirty(true);
     };
-  }, [isDirty]);
+  }, [fieldName, isDirty]);
 
   useEffect(() => {
     if (rest?.value !== undefined && !isDirty) {
       handleOnChangeText(rest?.value);
     }
-  }, [handleOnChangeText, rest?.value]);
+  }, [handleOnChangeText, isDirty, rest.value]);
 
   useEffect(() => {
     registerField<string>({
       name: fieldName,
-      ref: combinedRef.current,
+      ref: inputRef.current,
       clearValue: () => {
         handleOnChangeText('');
       },
@@ -175,25 +176,18 @@ const Component: InputComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
-    if (!isDirty && !value) {
-      return selectedColor?.default;
-    }
-
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
         return selectedColor?.default;
       }
       return getColorTypeByValidity(propValidity);
     }
-    if (value?.length > 0) {
-      return getColorTypeByValidity(!error);
+
+    if (!isDirty) {
+      return selectedColor?.default;
     }
 
-    if (error) {
-      return selectedColor?.invalid || selectedColor?.default;
-    }
-
-    return selectedColor?.default;
+    return getColorTypeByValidity(!error);
   }, [
     error,
     getColorTypeByValidity,
@@ -225,9 +219,9 @@ const Component: InputComponent = ({
         setIsDirty(true);
       }
 
-      propOnFocus && propOnFocus(e);
+      rest?.onFocus && rest?.onFocus(e);
     },
-    [combinedRef, isDirty, propOnFocus, usingValidity, value],
+    [combinedRef, isDirty, rest, usingValidity, value],
   );
 
   const canShowValidityMark = useMemo(() => {

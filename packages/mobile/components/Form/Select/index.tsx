@@ -140,10 +140,6 @@ const Component: SelectComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
-    if (!isDirty) {
-      return selectedColor?.default;
-    }
-
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
         return selectedColor?.default;
@@ -151,8 +147,12 @@ const Component: SelectComponent = ({
       return getColorTypeByValidity(propValidity);
     }
 
-    return getColorTypeByValidity(isDirty && !error);
-  }, [error, getColorTypeByValidity, propValidity, selectedColor.default, usingValidity, value, isDirty]);
+    if (!isDirty) {
+      return selectedColor?.default;
+    }
+
+    return getColorTypeByValidity(!error);
+  }, [error, getColorTypeByValidity, propValidity, selectedColor?.default, usingValidity, isDirty]);
 
   const defaultPickerSelectStyles = StyleSheet.create({
     placeholder: {
@@ -206,7 +206,7 @@ const Component: SelectComponent = ({
 
       setIsDirty(true);
     };
-  }, [isDirty]);
+  }, [combinedRef, isDirty]);
 
   useEffect(() => {
     registerField<any>({
@@ -343,9 +343,6 @@ const Component: SelectComponent = ({
   const handleValueChange = useCallback(
     (val) => {
       setValue(val);
-      if (!isDirty) {
-        setIsDirty(true);
-      }
       combinedRef?.current?.validate && combinedRef.current.validate(val);
       onValueChange && onValueChange(val);
     },

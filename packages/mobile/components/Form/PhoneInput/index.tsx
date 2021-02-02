@@ -228,36 +228,19 @@ const PhoneInput: PhoneInputComponent = ({
   );
 
   const currentValidationStyles = useMemo(() => {
-    if (!isDirty && !phone) {
-      return selectedColor?.default;
-    }
-
     if (usingValidity) {
       if (rest?.validity === 'keepDefault') {
         return selectedColor?.default;
       }
       return getColorTypeByValidity(rest?.validity);
     }
-    if (phone?.length > 0) {
-      return getColorTypeByValidity(isValid);
+
+    if (!isDirty) {
+      return selectedColor?.default;
     }
 
-    if (!!error) {
-      return selectedColor?.invalid || selectedColor?.default;
-    }
-
-    return selectedColor?.default;
-  }, [
-    usingValidity,
-    phone,
-    isValid,
-    selectedColor?.default,
-    selectedColor?.invalid,
-    rest?.validity,
-    getColorTypeByValidity,
-    isDirty,
-    error,
-  ]);
+    return getColorTypeByValidity(isValid);
+  }, [usingValidity, isValid, selectedColor.default, rest?.validity, getColorTypeByValidity, isDirty]);
 
   const defaultSelectStyle: NativeSelectStyle = useMemo(
     () => ({
@@ -333,7 +316,7 @@ const PhoneInput: PhoneInputComponent = ({
 
       setIsDirty(true);
     };
-  }, [isDirty]);
+  }, [combinedRef, isDirty]);
 
   const validity = useMemo(() => {
     if (!isDirty) {
@@ -343,12 +326,21 @@ const PhoneInput: PhoneInputComponent = ({
     return isValid;
   }, [isDirty, isValid]);
 
-  const onFocus = useCallback((e) => {
+  const onFocus = useCallback(
+    (e) => {
+      if (!isDirty) {
+        setIsDirty(true);
+      }
+
+      propOnFocus && propOnFocus(e);
+    },
+    [isDirty, propOnFocus],
+  );
+
+  const handleOpenSelect = useCallback(() => {
     if (!isDirty) {
       setIsDirty(true);
     }
-
-    propOnFocus && propOnFocus(e);
   }, [isDirty]);
 
   return (
@@ -368,6 +360,7 @@ const PhoneInput: PhoneInputComponent = ({
         value={localSelectedCountry}
         onValueChange={(value: string | number | Object) => handleChangeCountry(value as CountryCode)}
         onChangeValidity={setSelectIsValid}
+        onOpen={handleOpenSelect}
         style={{ ...defaultSelectStyle, ...selectStyle }}
         iconStyle={selectIconStyle}
       />
@@ -402,7 +395,7 @@ const PhoneInput: PhoneInputComponent = ({
             const CustomValidityMark = selectedColor?.validityMarkComponent;
             return <CustomValidityMark {...props} />;
           }
-          return !!error && isDirty ? (
+          return isDirty ? (
             <ValidityMark
               isValid={isValid}
               colors={selectedColor?.validityMark}
@@ -418,6 +411,5 @@ const PhoneInput: PhoneInputComponent = ({
     </PhoneInputContainer>
   );
 };
-
 
 export default PhoneInput;

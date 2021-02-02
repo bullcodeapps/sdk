@@ -14,14 +14,7 @@ import {
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
 import { InputProps, InputContextType, InputContext } from '../Input';
-import {
-  format,
-  isAfter,
-  isBefore,
-  isEqual,
-  isValid,
-  isWithinInterval,
-} from 'date-fns';
+import { format, isAfter, isBefore, isEqual, isValid, isWithinInterval } from 'date-fns';
 import { useField } from '@unform/core';
 import { InputStyle, DefaultColors } from '@bullcode/mobile/components/Form/Input/styles';
 import { SvgProps } from 'react-native-svg';
@@ -43,6 +36,8 @@ export type DateTimePickerProps = {
   icon?: any;
   style?: ViewStyle;
   pickerStyle?: any;
+  isDirty?: boolean;
+  onFocus?: () => void;
   onChange?: (value: Date) => void;
 };
 
@@ -64,6 +59,8 @@ const DateTimePicker: DateTimePickerComponent = ({
   icon: Icon,
   style,
   pickerStyle,
+  isDirty: propIsDirty,
+  onFocus,
   onChange,
   ...rest
 }) => {
@@ -76,6 +73,7 @@ const DateTimePicker: DateTimePickerComponent = ({
   const [show, setShow] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const { fieldName, registerField, error } = useField(name);
+  const [initialDate, setInitialDate] = useState(new Date());
 
   // Refs
   const inputRef = useRef<FieldType>(null);
@@ -96,6 +94,12 @@ const DateTimePicker: DateTimePickerComponent = ({
     }
     return _date;
   }, []);
+
+  useEffect(() => {
+    if (![null, undefined].includes(propIsDirty)) {
+      setIsDirty(propIsDirty);
+    }
+  }, [propIsDirty]);
 
   /*
    * Will always bring the formatted date
@@ -175,14 +179,7 @@ const DateTimePicker: DateTimePickerComponent = ({
    * When the values are changed via prop we must do some things
    */
   useEffect(() => {
-    let newDate = parseStrToDate(value);
-
-    // Ensures that when using two fields, one for date and one for time and changing the date,
-    // the time field is also validated correctly
-    if (!isDirty) {
-      setIsDirty(true);
-    }
-
+    const newDate = parseStrToDate(value);
     setDate(newDate);
     inputRef?.current?.validate && inputRef.current.validate(newDate);
     onChange && onChange(newDate);
@@ -221,7 +218,8 @@ const DateTimePicker: DateTimePickerComponent = ({
 
   const clear = useCallback(() => {
     setShow(false);
-    onChangeValue({ currentDate: null, validate: false });
+    setInitialDate(new Date());
+    onChangeValue({ currentDate: null, validate: true });
   }, [onChangeValue]);
 
   useEffect(() => {
@@ -233,6 +231,7 @@ const DateTimePicker: DateTimePickerComponent = ({
         // Transforms dates from the form as a string to the data object automatically
         const newDate = parseStrToDate(val);
         setDate(newDate);
+        setInitialDate(newDate);
         inputRef?.current?.validate && inputRef.current.validate(newDate);
         onChange && onChange(newDate);
       },
@@ -258,21 +257,26 @@ const DateTimePicker: DateTimePickerComponent = ({
     }
   }, [date, onChangeValue, show]);
 
+  useEffect(() => {
+    // is first opening, then
+    if (show && [null, undefined].includes(date)) {
+      onChangeValue({ currentDate: initialDate, validate: true });
+      onFocus && onFocus();
+    }
+  }, [date, initialDate, onChangeValue, onFocus, show]);
+
   const done = useCallback(() => {
     setShow(false);
     onChangeValue({ currentDate: date, validate: true });
   }, [date, onChangeValue]);
 
   const handleInputPress = useCallback(() => {
-    if (!date) {
-      onChangeValue({ currentDate: new Date(), validate: true });
-    }
     togglePicker();
 
     if (!isDirty) {
       setIsDirty(true);
     }
-  }, [date, isDirty, onChangeValue, togglePicker]);
+  }, [isDirty, togglePicker]);
 
   const selectedColor: InputStyle = useMemo(() => {
     const colors = ctx?.colors || DefaultColors;
@@ -303,45 +307,36 @@ const DateTimePicker: DateTimePickerComponent = ({
       }
       return getColorTypeByValidity(inputProps?.validity);
     }
-    if (date) {
-      return selectedColor?.valid || selectedColor?.default;
+
+    if (!isDirty) {
+      return selectedColor?.default;
     }
 
-    return selectedColor?.default;
-  }, [
-    usingValidity,
-    date,
-    selectedColor?.default,
-    selectedColor?.valid,
-    inputProps?.validity,
-    getColorTypeByValidity,
-  ]);
+    return getColorTypeByValidity(!error);
+  }, [usingValidity, isDirty, getColorTypeByValidity, error, inputProps?.validity, selectedColor?.default]);
 
   const isValidField = useMemo(() => {
+    if (usingValidity) {
+      return inputProps?.validity;
+    }
+
     if (!isDirty) {
       return 'keepDefault';
     }
 
-    if (error) {
-      return false;
-    }
-
-    if (![null, undefined].includes(date) && [null, undefined].includes(error)) {
-      return true;
-    }
-
-    return 'keepDefault';
-  }, [date, error, isDirty]);
+    return [null, undefined].includes(error);
+  }, [error, inputProps?.validity, isDirty, usingValidity]);
 
   const handleOnFocusInput = useCallback(() => {
     if (!isDirty) {
       setIsDirty(true);
     }
-  }, [isDirty]);
+    onFocus && onFocus();
+  }, [isDirty, onFocus]);
 
   const pickerValue = useMemo(
-    () => ([undefined, null].includes(parseStrToDate(date)) ? new Date() : parseStrToDate(date)),
-    [date, parseStrToDate],
+    () => ([undefined, null].includes(parseStrToDate(date)) ? initialDate : parseStrToDate(date)),
+    [date, initialDate, parseStrToDate],
   );
 
   return (
