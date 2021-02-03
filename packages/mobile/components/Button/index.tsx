@@ -1,4 +1,4 @@
-import React, { memo, useContext, useMemo, useState } from 'react';
+import React, { memo, useContext, useMemo, useState, useCallback } from 'react';
 
 import { Container, ButtonBox } from './styles';
 import { GestureResponderEvent, ViewStyle, ViewProps, TouchableHighlight, View } from 'react-native';
@@ -22,6 +22,8 @@ export type ButtonProps = {
   contentContainerStyle?: ViewStyle;
   buttonTextStyle?: ViewStyle;
   textStyle?: string;
+  onShowUnderlay?: () => void;
+  onHideUnderlay?: () => void;
   onPress?: (event: GestureResponderEvent) => void;
 } & ViewProps;
 
@@ -39,6 +41,8 @@ const Component: ButtonComponent = ({
   contentContainerStyle,
   buttonTextStyle,
   textStyle,
+  onShowUnderlay,
+  onHideUnderlay,
   onPress,
   onLayout,
   ...rest
@@ -92,14 +96,23 @@ const Component: ButtonComponent = ({
     return { ...buttonStyle, borderRadius };
   }, [foundStyle, outline, showingUnderlay, disabled, theme, buttonActiveStyle]);
 
+  const handleOnShowUnderlay = useCallback(() => {
+    setShowingUnderlay(true);
+    onShowUnderlay && onShowUnderlay();
+  }, [onShowUnderlay]);
+  const handleOnHideUnderlay = useCallback(() => {
+    setShowingUnderlay(false);
+    onHideUnderlay && onHideUnderlay();
+  }, [onHideUnderlay]);
+
   return (
     <Container ref={outerRef} onLayout={onLayout} {...rest} style={[buttonStyles, rest?.style]}>
       <TouchableHighlight
         style={{ flexGrow: 1, width: '100%', height: '100%' }}
         underlayColor={'transparent'}
         activeOpacity={1}
-        onShowUnderlay={() => setShowingUnderlay(true)}
-        onHideUnderlay={() => setShowingUnderlay(false)}
+        onShowUnderlay={handleOnShowUnderlay}
+        onHideUnderlay={handleOnHideUnderlay}
         onPress={(e) => !loading && !disabled && onPress && onPress(e)}>
         <ButtonBox style={contentContainerStyle}>
           {typeof children === 'string' ? (
