@@ -216,6 +216,17 @@ const DateTimePicker: DateTimePickerComponent = ({
     }
   }, [mode, rest?.minuteInterval, value]);
 
+  useEffect(() => {
+    inputRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+      onFocus && onFocus();
+    };
+  }, [fieldName, isDirty]);
+
   const clear = useCallback(() => {
     setShow(false);
     setInitialDate(new Date());
