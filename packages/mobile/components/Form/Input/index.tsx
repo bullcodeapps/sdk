@@ -119,7 +119,6 @@ const Component: InputComponent = ({
 
   useEffect(() => {
     inputRef.current.markAsDirty = () => {
-      console.log('markAsDirty!', fieldName);
       if (isDirty) {
         return;
       }
