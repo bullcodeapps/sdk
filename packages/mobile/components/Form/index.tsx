@@ -157,9 +157,9 @@ const Component: FormComponent = ({
     () =>
       applyRuleToAllFields((fieldRef, fieldName) => {
         fieldRef.validate = (value: any) => {
-          let formData = combinedRef?.current?.getData();
+          const formData = combinedRef?.current?.getData();
           // replaces in the formData object the value of this field with what comes by parameter
-          formData = dot.set(fieldName, value, formData, true);
+          dot.set(fieldName, value, formData, true);
 
           try {
             validate(formData);
