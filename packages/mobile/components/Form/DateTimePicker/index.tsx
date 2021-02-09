@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useContext, Ref } from 'react';
 
 import {
   FieldType,
@@ -13,13 +13,16 @@ import {
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
-import { InputProps, InputContextType, InputContext } from '../Input';
+import { InputProps, InputContextType, InputContext, InputRef } from '../Input';
 import { format, isAfter, isBefore, isEqual, isValid, isWithinInterval } from 'date-fns';
 import { useField } from '@unform/core';
 import { InputStyle, DefaultColors } from '@bullcode/mobile/components/Form/Input/styles';
 import { SvgProps } from 'react-native-svg';
+import { useCombinedRefs } from '@bullcode/core/hooks';
 
 export type DateTimePickerProps = {
+  ref?: Ref<InputRef>;
+  outerRef?: Ref<InputRef>;
   name?: string;
   mode?: 'date' | 'time';
   color?: string;
@@ -43,7 +46,8 @@ export type DateTimePickerProps = {
 
 export type DateTimePickerComponent = React.FC<DateTimePickerProps>;
 
-const DateTimePicker: DateTimePickerComponent = ({
+const Component: DateTimePickerComponent = ({
+  outerRef,
   name,
   mode = 'date',
   color,
@@ -77,6 +81,7 @@ const DateTimePicker: DateTimePickerComponent = ({
 
   // Refs
   const inputRef = useRef<FieldType>(null);
+  const combinedRef = useCombinedRefs<FieldType>(outerRef, inputRef);
 
   // Simple memo's
   const modeFormat = useMemo(() => (mode === 'time' ? 'HH:mm' : 'dd/MM/yyyy'), [mode]);
@@ -94,6 +99,11 @@ const DateTimePicker: DateTimePickerComponent = ({
     }
     return _date;
   }, []);
+
+  const pickerValue = useMemo(
+    () => ([undefined, null].includes(parseStrToDate(date)) ? initialDate : parseStrToDate(date)),
+    [date, initialDate, parseStrToDate],
+  );
 
   useEffect(() => {
     if (![null, undefined].includes(propIsDirty)) {
@@ -134,13 +144,13 @@ const DateTimePicker: DateTimePickerComponent = ({
         }
         onChange && onChange(newDate);
         if (_validate) {
-          inputRef?.current?.validate && inputRef.current.validate(newDate);
+          combinedRef?.current?.validate && combinedRef.current.validate(newDate);
         }
         return newDate;
       });
       return newDate;
     },
-    [mode, onChange, parseStrToDate],
+    [combinedRef, mode, onChange, parseStrToDate],
   );
 
   /*
@@ -159,18 +169,18 @@ const DateTimePicker: DateTimePickerComponent = ({
         parsedMaxDate &&
         isWithinInterval(newDate, { start: parsedMinDate, end: parsedMaxDate })
       ) {
-        return doValueChange(newDate);
+        return doValueChange(newDate, validate);
       }
 
       if (parsedMinDate && isBefore(parsedDate, parsedMinDate)) {
-        return doValueChange(parsedMinDate);
+        return doValueChange(parsedMinDate, validate);
       }
 
       if (parsedMaxDate && isAfter(parsedDate, parsedMaxDate)) {
-        return doValueChange(parsedMaxDate);
+        return doValueChange(parsedMaxDate, validate);
       }
 
-      return doValueChange(parsedDate);
+      return doValueChange(parsedDate, validate);
     },
     [doValueChange, maxDate, minDate, parseStrToDate],
   );
@@ -181,9 +191,9 @@ const DateTimePicker: DateTimePickerComponent = ({
   useEffect(() => {
     const newDate = parseStrToDate(value);
     setDate(newDate);
-    inputRef?.current?.validate && inputRef.current.validate(newDate);
+    combinedRef?.current?.validate && combinedRef.current.validate(newDate);
     onChange && onChange(newDate);
-  }, [isDirty, onChange, parseStrToDate, value]);
+  }, [combinedRef, isDirty, onChange, parseStrToDate, value]);
 
   /*
    * Rounds time to the suggested interval
@@ -216,17 +226,6 @@ const DateTimePicker: DateTimePickerComponent = ({
     }
   }, [mode, rest?.minuteInterval, value]);
 
-  useEffect(() => {
-    inputRef.current.markAsDirty = () => {
-      if (isDirty) {
-        return;
-      }
-
-      setIsDirty(true);
-      onFocus && onFocus();
-    };
-  }, [fieldName, isDirty]);
-
   const clear = useCallback(() => {
     setShow(false);
     setInitialDate(new Date());
@@ -236,29 +235,43 @@ const DateTimePicker: DateTimePickerComponent = ({
   useEffect(() => {
     registerField<Date>({
       name: fieldName,
-      ref: inputRef.current,
+      ref: combinedRef?.current,
       clearValue: clear,
       setValue: (ref: any, val: Date) => {
         // Transforms dates from the form as a string to the data object automatically
         const newDate = parseStrToDate(val);
         setDate(newDate);
         setInitialDate(newDate);
-        inputRef?.current?.validate && inputRef.current.validate(newDate);
+        combinedRef?.current?.validate && combinedRef.current.validate(newDate);
         onChange && onChange(newDate);
       },
       getValue: () => date,
     });
-  }, [fieldName, registerField, date]); // eslint-disable-line
+  }, [fieldName, registerField, date, clear, parseStrToDate, onChange, combinedRef]);
+
+  useEffect(() => {
+    if (!combinedRef?.current) {
+      return;
+    }
+    combinedRef.current.markAsDirty = () => {
+      if (isDirty) {
+        return;
+      }
+
+      setIsDirty(true);
+      onFocus && onFocus();
+    };
+  }, [combinedRef, fieldName, isDirty, onFocus]);
 
   const selectDate = useCallback(
     (event, newDate: Date) => {
-      if (newDate === date || isEqual(date, newDate)) {
+      if (newDate === pickerValue || isEqual(pickerValue, newDate)) {
         return;
       }
       setShow(Platform.OS === 'ios');
       onChangeValue({ currentDate: newDate, validate: true });
     },
-    [date, onChangeValue],
+    [onChangeValue, pickerValue],
   );
 
   const togglePicker = useCallback(() => {
@@ -277,6 +290,14 @@ const DateTimePicker: DateTimePickerComponent = ({
   }, [date, initialDate, onChangeValue, onFocus, show]);
 
   const done = useCallback(() => {
+    setShow(false);
+    onChangeValue({ currentDate: date, validate: true });
+  }, [date, onChangeValue]);
+
+  const close = useCallback(() => {
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
     setShow(false);
     onChangeValue({ currentDate: date, validate: true });
   }, [date, onChangeValue]);
@@ -345,17 +366,12 @@ const DateTimePicker: DateTimePickerComponent = ({
     onFocus && onFocus();
   }, [isDirty, onFocus]);
 
-  const pickerValue = useMemo(
-    () => ([undefined, null].includes(parseStrToDate(date)) ? initialDate : parseStrToDate(date)),
-    [date, initialDate, parseStrToDate],
-  );
-
   return (
     <ViewContainer style={style}>
       <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
         <View pointerEvents="none">
           <Input
-            ref={inputRef}
+            ref={combinedRef}
             name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
             editable={false}
             validity={isValidField}
@@ -379,15 +395,15 @@ const DateTimePicker: DateTimePickerComponent = ({
         transparent
         animationType={animationType}
         supportedOrientations={['portrait', 'landscape']}>
-        <ModalViewTop onPress={handleInputPress} />
+        <ModalViewTop onPress={close} />
         {Platform.OS === 'ios' && (
           <ModalViewMiddle>
-            <TouchableOpacity onPress={() => clear()} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
+            <TouchableOpacity onPress={clear} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <View>
                 <ActionText allowFontScaling={false}>{clearText}</ActionText>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => done()} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
+            <TouchableOpacity onPress={done} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <View>
                 <ActionText allowFontScaling={false}>{doneText}</ActionText>
               </View>
@@ -412,5 +428,9 @@ const DateTimePicker: DateTimePickerComponent = ({
     </ViewContainer>
   );
 };
+
+const DateTimePicker: DateTimePickerComponent = React.forwardRef((props: DateTimePickerProps, ref: Ref<InputRef>) => (
+  <Component outerRef={ref} {...props} />
+));
 
 export default DateTimePicker;

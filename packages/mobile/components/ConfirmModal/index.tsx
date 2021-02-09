@@ -7,7 +7,7 @@ import { DefaultContainer } from '../../global-styles';
 
 export type ConfirmModalProps = {
   title?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   danger?: boolean;
   loading?: boolean;
   cancelText?: string;
@@ -54,7 +54,7 @@ const ConfirmModal = ({
     <Container>
       <DefaultContainer>
         <Title>{title}</Title>
-        {description && <Description>{description}</Description>}
+        {typeof description === 'string' ? <Description>{description}</Description> : description}
         <ActionButtons>
           <CancelButton outline theme={cancelButtonColor || 'cancel'} onPress={handleOnCancel}>
             {(cancelText || 'Cancelar').toLowerCase()}

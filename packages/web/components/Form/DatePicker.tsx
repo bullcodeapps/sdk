@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { DatePicker as MUIDatePicker } from '@material-ui/pickers';
+import { DatePicker as MUIDatePicker, DatePickerProps } from '@material-ui/pickers';
 
 import { useField } from '@unform/core';
 import { parse } from 'date-fns';
 import { FormControl } from './styles';
 
-interface Props {
+type Props = {
   name: string;
   label?: string;
   helperText?: string;
@@ -17,7 +17,7 @@ interface Props {
   disablePast?: boolean;
   value?: string | Date;
   onChange?: (value: Date) => void;
-}
+} & Omit<DatePickerProps, 'value' | 'onChange'>;
 
 export default function DatePicker({
   name,
@@ -44,7 +44,7 @@ export default function DatePicker({
       const newDate = typeof value === 'string' ? new Date(value) : value;
       setSelected(newDate);
     } else if (![null, undefined].includes(defaultValue) || ![null, undefined].includes(value)) {
-      setSelected(defaultValue || value as Date);
+      setSelected(defaultValue || (value as Date));
     }
   }, [defaultValue, nullable, value]);
 
@@ -58,39 +58,39 @@ export default function DatePicker({
       setValue: (ref: any, val: Date | string) => {
         const newDate = typeof val === 'string' ? new Date(val) : val;
         setSelected(newDate);
-      }
+      },
     });
   }, [inputRef.current, fieldName, defaultValue]); // eslint-disable-line
 
-    const onChangeDate = (date: any) => {
-      setSelected(date as Date);
+  const onChangeDate = (date: any) => {
+    setSelected(date as Date);
 
-      if (onChange) {
-        onChange(date as Date);
-      }
-    };
+    if (onChange) {
+      onChange(date as Date);
+    }
+  };
 
-    return (
-      <FormControl error={!!error}>
-        {label && <label htmlFor={fieldName}>{label}</label>}
+  return (
+    <FormControl error={!!error}>
+      {label && <label htmlFor={fieldName}>{label}</label>}
 
-        <MUIDatePicker
-          autoOk={autoOk}
-          clearable={clearable}
-          disabled={disabled}
-          disableFuture={disableFuture}
-          disablePast={disablePast}
-          format="dd/MM/yyyy"
-          name={fieldName}
-          value={selected}
-          inputRef={inputRef}
-          onChange={onChangeDate}
-          inputVariant="outlined"
-          size="small"
-          margin="dense"
-          helperText={error || helperText}
-          {...other}
-        />
-      </FormControl>
-    );
-  }
+      <MUIDatePicker
+        autoOk={autoOk}
+        clearable={clearable}
+        disabled={disabled}
+        disableFuture={disableFuture}
+        disablePast={disablePast}
+        format="dd/MM/yyyy"
+        name={fieldName}
+        value={selected}
+        inputRef={inputRef}
+        onChange={onChangeDate}
+        inputVariant="outlined"
+        size="small"
+        margin="dense"
+        helperText={error || helperText}
+        {...other}
+      />
+    </FormControl>
+  );
+}
