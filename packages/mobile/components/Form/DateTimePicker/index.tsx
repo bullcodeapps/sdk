@@ -295,9 +295,6 @@ const Component: DateTimePickerComponent = ({
   }, [date, onChangeValue]);
 
   const close = useCallback(() => {
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
     setShow(false);
     onChangeValue({ currentDate: date, validate: true });
   }, [date, onChangeValue]);
