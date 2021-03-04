@@ -1,5 +1,5 @@
 import styled from 'styled-components/native';
-import { Animated, TextInput } from 'react-native';
+import { Animated, Platform, TextInput } from 'react-native';
 import Text from '../../Text';
 
 export type ValidityMarkComponentProps = {
@@ -127,7 +127,7 @@ export const CounterBox = styled.View`
   right: 10px;
   align-items: center;
   justify-content: center;
-  height: 20px;
+  height: ${Platform.OS === 'ios' ? '30' : '20'}px;
   padding-left: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -138,7 +138,7 @@ export const CounterBox = styled.View`
   z-index: 1;
 `;
 
-export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
+export const CounterText = styled(Text) <{ maxLength: number; length: number }>`
   color: #bbc8cf;
   font-weight: 500;
   ${(props) => {
