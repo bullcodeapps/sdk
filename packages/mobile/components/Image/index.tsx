@@ -1,6 +1,6 @@
 import React, { memo, useState, Ref, useRef, useCallback } from 'react';
 import { StyleSheet, Animated, StyleProp, ImageStyle } from 'react-native';
-import FastImage, { FastImageProps } from 'react-native-fast-image';
+import FastImage, { FastImageProps, Source } from 'react-native-fast-image';
 import { useCombinedRefs } from '@bullcode/core/hooks';
 
 const AnimatedFastImage = Animated.createAnimatedComponent(FastImage);
@@ -60,7 +60,7 @@ const Component: ImageComponent = ({
 
   return (
     <Animated.View style={[styles.container, style]}>
-      {!hasError && <CachedImageMemoized />}
+      {!hasError && ![null, undefined].includes((source as Source)?.uri) && <CachedImageMemoized />}
       {isLoading && PlaceholderComponent && <PlaceholderComponent />}
       {hasError && ErrorImageComponent && <ErrorImageComponent />}
     </Animated.View>
