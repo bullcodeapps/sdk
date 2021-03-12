@@ -13,11 +13,7 @@ import {
   Container,
   IconContainer,
   ChevronDownIcon,
-  ChevronUpIcon,
   Loading,
-  SelectStyles,
-  DefaultColors,
-  SelectStyle,
 } from './styles';
 import RNPickerSelect, { PickerSelectProps, PickerStyle } from 'react-native-picker-select';
 import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps, Animated } from 'react-native';
@@ -25,14 +21,9 @@ import { useCombinedRefs } from '../../../../core/hooks';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
 
-export type SelectContextType = { colors: SelectStyles };
-
-export const SelectContext = React.createContext<SelectContextType>({ colors: null });
-
-export const setSelectColors = (colors: SelectStyles) => {
-  const ctx = useContext<SelectContextType>(SelectContext);
-  ctx.colors = colors;
-};
+import { SelectContextType, SelectContext, DefaultStyles } from './context';
+import { SelectStyle, } from './types';
+import { getStyleByValidity } from '../../../utils';
 
 export interface SelectItem {
   label: string;
@@ -48,7 +39,7 @@ type FieldType = FormFieldType<TextInput>;
 export type SelectProps = {
   outerRef?: Ref<FieldType>;
   name?: string;
-  color?: string;
+  theme?: string;
   placeholder?: string;
   items: SelectItem[];
   style?: NativeSelectStyle;
@@ -67,7 +58,7 @@ export type SelectComponent = FunctionComponent<SelectProps>;
 const Component: SelectComponent = ({
   outerRef,
   name,
-  color = 'primary',
+  theme = 'primary',
   items,
   placeholder = 'select an item...',
   hideIcon,
@@ -117,42 +108,32 @@ const Component: SelectComponent = ({
     }
   }, [propValue]);
 
-  const selectedColor: SelectStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: SelectStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(propValidity);
+      return getStyleByValidity(propValidity, selectedStyle);
     }
 
     if (!isDirty) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
-    return getColorTypeByValidity(!error);
-  }, [error, getColorTypeByValidity, propValidity, selectedColor?.default, usingValidity, isDirty]);
+    return getStyleByValidity(!error, selectedStyle);
+  }, [error, getStyleByValidity, propValidity, selectedStyle?.default, usingValidity, isDirty]);
 
   const defaultPickerSelectStyles = StyleSheet.create({
     placeholder: {
@@ -229,9 +210,9 @@ const Component: SelectComponent = ({
       return iconStyle;
     }
     return {
-      color: currentValidationStyles?.dropdownIconColor || selectedColor?.default?.dropdownIconColor,
+      color: currentValidationStyles?.dropdownIconColor || selectedStyle?.default?.dropdownIconColor,
     };
-  }, [currentValidationStyles?.dropdownIconColor, iconStyle, selectedColor?.default?.dropdownIconColor]);
+  }, [currentValidationStyles?.dropdownIconColor, iconStyle, selectedStyle?.default?.dropdownIconColor]);
 
   useEffect(() => {
     if (Platform.OS !== 'ios') {
@@ -250,23 +231,23 @@ const Component: SelectComponent = ({
         style={
           Platform.OS === 'ios'
             ? {
-                transform: [
-                  {
-                    rotateZ: iconRotateAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0rad', `${Math.PI}rad`],
-                    }),
-                  },
-                ],
-              }
+              transform: [
+                {
+                  rotateZ: iconRotateAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0rad', `${Math.PI}rad`],
+                  }),
+                },
+              ],
+            }
             : null
         }>
         {/* Unfortunately, we can't get the onClose event on Android devices, so we made it static */}
         {Platform.OS === 'ios' ? (
           <ChevronDownIcon style={chevronIconsStyle} />
         ) : (
-          <ChevronDownIcon style={chevronIconsStyle} />
-        )}
+            <ChevronDownIcon style={chevronIconsStyle} />
+          )}
       </IconContainer>
     ),
     [chevronIconsStyle, iconRotateAnimation],
@@ -294,20 +275,20 @@ const Component: SelectComponent = ({
 
   const inputStyles = useMemo(
     () => ({
-      borderRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
-      backgroundColor: currentValidationStyles?.backgroundColor || selectedColor?.default?.backgroundColor,
-      borderColor: currentValidationStyles?.borderColor || selectedColor?.default?.borderColor,
-      color: currentValidationStyles?.color || selectedColor?.default?.color,
+      borderRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
+      backgroundColor: currentValidationStyles?.backgroundColor || selectedStyle?.default?.backgroundColor,
+      borderColor: currentValidationStyles?.borderColor || selectedStyle?.default?.borderColor,
+      color: currentValidationStyles?.color || selectedStyle?.default?.color,
     }),
     [
       currentValidationStyles?.backgroundColor,
       currentValidationStyles?.borderColor,
       currentValidationStyles?.borderRadius,
       currentValidationStyles?.color,
-      selectedColor?.default?.backgroundColor,
-      selectedColor?.default?.borderColor,
-      selectedColor?.default?.borderRadius,
-      selectedColor?.default?.color,
+      selectedStyle?.default?.backgroundColor,
+      selectedStyle?.default?.borderColor,
+      selectedStyle?.default?.borderRadius,
+      selectedStyle?.default?.color,
     ],
   );
 
@@ -323,7 +304,7 @@ const Component: SelectComponent = ({
         ...inputStyles,
       },
       selectContainer: {
-        color: currentValidationStyles?.selectionColor || selectedColor?.default?.selectionColor,
+        color: currentValidationStyles?.selectionColor || selectedStyle?.default?.selectionColor,
         ...rest?.style?.selectContainer,
       },
       ...rest?.style,
@@ -333,7 +314,7 @@ const Component: SelectComponent = ({
     defaultPickerSelectStyles,
     inputStyles,
     rest?.style,
-    selectedColor?.default?.selectionColor,
+    selectedStyle?.default?.selectionColor,
   ]);
 
   useEffect(() => {

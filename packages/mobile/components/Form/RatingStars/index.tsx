@@ -9,11 +9,11 @@ import {
   ForegroundStars,
   MaskContainer,
   DEFAULT_STAR_SIZE,
-  RatingStarsStyles,
-  DefaultColors,
 } from './styles';
 import { ViewProps, ViewStyle } from 'react-native';
 import { useField } from '@unform/core';
+
+import { RatingStarsContextType, RatingStarsContext, DefaultStyles } from './context';
 
 type RatingStarsProps = {
   name?: string;
@@ -23,7 +23,7 @@ type RatingStarsProps = {
   defaultValue?: number;
   required?: boolean;
   onChange?: (value: number) => void;
-  color?: string;
+  theme?: string;
   disabled?: boolean;
   style?: ViewStyle;
   contentContainerStyles?: ViewStyle;
@@ -35,15 +35,6 @@ type ComponentRef = {};
 
 const DEFAULT_STARS_NUMBER = 5;
 
-export type RatingStarsContextType = { colors: RatingStarsStyles };
-
-export const RatingStarsContext = React.createContext<RatingStarsContextType>({ colors: null });
-
-export const setRatingStarsColors = (colors: RatingStarsStyles) => {
-  const ctx = useContext<RatingStarsContextType>(RatingStarsContext);
-  ctx.colors = colors;
-};
-
 const RatingStars: React.FC<RatingStarsProps> = ({
   name,
   starsNumber = DEFAULT_STARS_NUMBER,
@@ -52,7 +43,7 @@ const RatingStars: React.FC<RatingStarsProps> = ({
   defaultValue,
   required,
   onChange,
-  color = 'primary',
+  theme = 'primary',
   disabled = false,
   style,
   contentContainerStyles,
@@ -135,35 +126,35 @@ const RatingStars: React.FC<RatingStarsProps> = ({
     return (starsSize * rating) + (margins + paddings) * Math.floor(rating);
   }, [starsSize, rating, starsNumber, starStyles]);
 
-  const selectedColor = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
+  const selectedStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundColor = styles.find((_color) => _color.name === theme);
     if (!foundColor) {
       console.warn(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
     return foundColor;
-  }, [color, ctx?.colors]);
+  }, [theme, ctx?.styles]);
 
   return (
-    <Container style={style}>
-      <BackgroundStars onLayout={onLayoutBackgroundStars} style={contentContainerStyles}>
+    <Container style={[style, selectedStyle?.default?.containerStyles]}>
+      <BackgroundStars onLayout={onLayoutBackgroundStars} style={[contentContainerStyles, selectedStyle?.default?.contentContainerStyles]}>
         {stars.map((item, index) => (
           <StarTouchableContainer
             key={index}
             activeOpacity={disabled ? 1 : 0.8}
             onPress={() => !disabled && handleStarPress(index)}
             onLayout={onLayoutStarTouchableContainer}
-            style={starContainerStyles}
+            style={[starContainerStyles, selectedStyle?.default?.starContainerStyles]}
           >
-            <BackgroundStarIcon size={starsSize} color={selectedColor?.default?.backgroundStarColor} style={starStyles} />
+            <BackgroundStarIcon size={starsSize} style={[starStyles, selectedStyle?.default?.backgroundStar]} />
           </StarTouchableContainer>
         ))}
       </BackgroundStars>
       <MaskContainer style={{ width }}>
-        <ForegroundStars style={[{ width: backgroundStarsWidth, height: backgroundStarsHeight }, contentContainerStyles]}>
+        <ForegroundStars style={[{ width: backgroundStarsWidth, height: backgroundStarsHeight }, contentContainerStyles, selectedStyle?.default?.contentContainerStyles]}>
           {stars.map((item, index) => (
             <StarTouchableContainer
               key={index}
@@ -172,9 +163,9 @@ const RatingStars: React.FC<RatingStarsProps> = ({
               style={[{
                 width: starTouchableContainerWidth,
                 height: starTouchableContainerHeight,
-              }, starContainerStyles]}
+              }, starContainerStyles, selectedStyle?.default?.starContainerStyles]}
             >
-              <ForegroundStarIcon size={starsSize} color={selectedColor?.default?.foregroundStarColor} style={starStyles} />
+              <ForegroundStarIcon size={starsSize} style={[starStyles, selectedStyle?.default?.foregroundStar]} />
             </StarTouchableContainer>
           ))}
         </ForegroundStars>

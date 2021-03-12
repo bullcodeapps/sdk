@@ -3,6 +3,7 @@ import { Platform, PixelRatio } from 'react-native';
 import analytics from '@react-native-firebase/analytics';
 
 import { windowWidth } from '../global-styles';
+import { GlobalStyle } from '../types';
 
 export type WeekDays = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -48,4 +49,11 @@ export async function logCurrentScreenAnalyticsEvent(screen: string) {
   } catch (e) {
     console.log('Error on dispatch analytics setCurrentScreen: ', e);
   }
+}
+
+export function getStyleByValidity(validity: boolean, selectedStyle: GlobalStyle) {
+  if (validity) {
+    return selectedStyle?.valid || selectedStyle?.default;
+  }
+  return selectedStyle?.invalid || selectedStyle?.default;
 }

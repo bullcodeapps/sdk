@@ -4,43 +4,6 @@ import MapLocationColoredSvg from '../../../../core/assets/icons/map-location-co
 import { TouchableOpacity } from 'react-native';
 import CloseSearchSvg from '../../../../core/assets/icons/search-close.svg';
 
-export type SuggestGooglePlacesStateStyles = {
-  selectionColor: string;
-  placeholder: string;
-  color: string;
-  borderColor?: string;
-  backgroundColor?: string;
-  borderRadius?: number;
-};
-
-export type SuggestGooglePlacesStyle = {
-  name: string;
-  default: SuggestGooglePlacesStateStyles;
-  valid?: Partial<SuggestGooglePlacesStateStyles>;
-  invalid?: Partial<SuggestGooglePlacesStateStyles>;
-};
-
-export type SuggestGooglePlacesStyles = Array<SuggestGooglePlacesStyle>;
-
-export const DefaultColors: SuggestGooglePlacesStyles = [
-  {
-    name: 'primary',
-    default: {
-      selectionColor: '#3a9def',
-      placeholder: '#b3c1c8',
-      color: '#2d2d30',
-      borderColor: '#b3c1c8',
-      borderRadius: 25,
-    },
-    valid: {
-      borderColor: '#3a9def',
-    },
-    invalid: {
-      borderColor: '#ffc962',
-    },
-  },
-];
-
 export const MapLocationFilterIconContainer = styled(TouchableOpacity)`
   align-items: center;
   justify-content: center;
@@ -81,6 +44,7 @@ export const ListEmptyContainer = styled.View`
   padding: 10px;
 `;
 
+// It must need to use the react native Text instead of SDK Text, because of the theme.
 export const ListEmptyText = styled.Text`
   font-size: 14px;
   font-weight: 500;

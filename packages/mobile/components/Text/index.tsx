@@ -2,23 +2,7 @@ import React, { useContext, useMemo, Ref } from 'react';
 
 import { Text as RNText, TextStyle as RNTextStyle, TextProps as RNTextProps } from 'react-native';
 
-export type TextType = {
-  name: string;
-  textStyles: RNTextStyle;
-};
-
-export type TextTypes = Array<TextType>;
-
-export type TextContextType = {
-  types: TextTypes;
-};
-
-export const TextContext = React.createContext<TextContextType>({ types: null });
-
-export const setTextTypes = (types: TextTypes) => {
-  const ctx = useContext<TextContextType>(TextContext);
-  ctx.types = types;
-};
+import { TextContextType, TextContext, DefaultStyles } from './context';
 
 export interface TextProps extends RNTextProps {
   type?: string;
