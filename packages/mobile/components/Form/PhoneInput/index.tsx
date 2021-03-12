@@ -6,12 +6,11 @@ import React, {
   useState,
   useMemo,
   useContext,
-  Ref,
 } from 'react';
-import { TextInput, GestureResponderEvent, ViewStyle } from 'react-native';
+import { TextInput, GestureResponderEvent, ViewStyle, TextStyle } from 'react-native';
 
 import Select, { SelectItem, NativeSelectStyle } from '../../../components/Form/Select';
-import { PhoneInputContainer, Input, PhoneInputStyles, PhoneInputStyle, DefaultColors } from './styles';
+import { PhoneInputContainer, Input, PhoneInputStyles, PhoneInputStyle, DefaultColors, Content } from './styles';
 
 import getUnicodeFlagIcon from 'country-flag-icons/unicode';
 import {
@@ -47,11 +46,13 @@ export type CustomProps = {
   placeholder?: string;
   useValidityMark?: boolean;
   defaultCountry?: CountryCode;
-  containerStyle?: ViewStyle;
-  selectStyle?: NativeSelectStyle & PickerStyle;
   onChange?: Dispatch<SetStateAction<string>>;
   onChangeCountry?: Dispatch<SetStateAction<CountryCode>>;
   onMarkPress?: (event?: GestureResponderEvent) => void;
+  style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
+  inputStyle?: TextStyle;
+  selectStyle?: NativeSelectStyle & PickerStyle;
 };
 
 export type PhoneInputProps = CustomProps & Omit<InputProps, 'name'>;
@@ -66,12 +67,14 @@ const PhoneInput: PhoneInputComponent = ({
   placeholder,
   useValidityMark,
   defaultCountry,
-  containerStyle,
-  selectStyle = {},
   onChange,
   onChangeCountry,
   onMarkPress,
   onFocus: propOnFocus,
+  style,
+  contentContainerStyle,
+  inputStyle,
+  selectStyle = {},
   ...rest
 }) => {
   const ctx = useContext<PhoneInputContextType>(PhoneInputContext);
@@ -351,63 +354,69 @@ const PhoneInput: PhoneInputComponent = ({
           borderRadius: selectedColor?.default?.borderRadius,
           borderColor: currentValidationStyles?.input?.borderColor,
         },
-        containerStyle,
+        style,
       ]}>
-      <Select
-        items={countries}
-        name={`country-select-${name}`}
-        defaultValue={defaultCountry}
-        value={localSelectedCountry}
-        onValueChange={(value: string | number | Object) => handleChangeCountry(value as CountryCode)}
-        onChangeValidity={setSelectIsValid}
-        onOpen={handleOpenSelect}
-        style={{ ...defaultSelectStyle, ...selectStyle }}
-        iconStyle={selectIconStyle}
-      />
-      <Input
-        ref={combinedRef}
-        name={`formatted-number-input-${name}`}
-        validity={validity}
-        value={phone}
-        placeholder={placeholder}
-        maxLength={35}
-        onChangeText={handleChangePhone}
-        returnKeyType="next"
-        onSubmitEditing={() => {
-          nextInputRef && nextInputRef.current?.focus();
-        }}
-        onChangeValidity={setInputIsValid}
-        keyboardType={'phone-pad'}
-        {...rest}
-        selectionColor={currentValidationStyles?.input?.selectionColor}
-        style={[
-          {
-            backgroundColor: currentValidationStyles?.input?.backgroundColor || 'transparent',
-            borderColor: currentValidationStyles?.input?.borderColor,
-            color: currentValidationStyles?.input?.color,
-            borderRadius: selectedColor?.default?.borderRadius,
-            paddingRight: usingValidity && useValidityMark ? 45 : 0,
-          },
-          rest?.style,
-        ]}
-        iconComponent={(props) => {
-          if (selectedColor?.validityMarkComponent) {
-            const CustomValidityMark = selectedColor?.validityMarkComponent;
-            return <CustomValidityMark {...props} />;
-          }
-          return isDirty ? (
-            <ValidityMark
-              isValid={isValid}
-              colors={selectedColor?.validityMark}
-              onPress={(e) => {
-                !!onMarkPress && onMarkPress(e);
-              }}
-            />
-          ) : null;
-        }}
-        isDirty={isDirty}
-        onFocus={onFocus}
-      />
+      <Content>
+        <Select
+          items={countries}
+          name={`country-select-${name}`}
+          defaultValue={defaultCountry}
+          value={localSelectedCountry}
+          onValueChange={(value: string | number | Object) => handleChangeCountry(value as CountryCode)}
+          onChangeValidity={setSelectIsValid}
+          onOpen={handleOpenSelect}
+          style={{ ...defaultSelectStyle, ...selectStyle }}
+          iconStyle={selectIconStyle}
+        />
+        <Input
+          ref={combinedRef}
+          name={`formatted-number-input-${name}`}
+          validity={validity}
+          value={phone}
+          placeholder={placeholder}
+          maxLength={35}
+          onChangeText={handleChangePhone}
+          returnKeyType="next"
+          onSubmitEditing={() => {
+            nextInputRef && nextInputRef.current?.focus();
+          }}
+          onChangeValidity={setInputIsValid}
+          keyboardType={'phone-pad'}
+          {...rest}
+          selectionColor={currentValidationStyles?.input?.selectionColor}
+          style={[
+            {
+              backgroundColor: currentValidationStyles?.input?.backgroundColor || 'transparent',
+              borderColor: currentValidationStyles?.input?.borderColor,
+              borderRadius: selectedColor?.default?.borderRadius,
+              paddingRight: usingValidity && useValidityMark ? 45 : 0,
+            },
+            rest?.style,
+          ]}
+          inputStyle={{
+            paddingLeft: 10,
+            borderWidth: 0,
+            color: currentValidationStyles?.input?.color
+          }}
+          iconComponent={(props) => {
+            if (selectedColor?.validityMarkComponent) {
+              const CustomValidityMark = selectedColor?.validityMarkComponent;
+              return <CustomValidityMark {...props} />;
+            }
+            return isDirty ? (
+              <ValidityMark
+                isValid={isValid}
+                colors={selectedColor?.validityMark}
+                onPress={(e) => {
+                  !!onMarkPress && onMarkPress(e);
+                }}
+              />
+            ) : null;
+          }}
+          isDirty={isDirty}
+          onFocus={onFocus}
+        />
+      </Content>
     </PhoneInputContainer>
   );
 };

@@ -1,6 +1,6 @@
 import { TextInput } from 'react-native';
 import styled from 'styled-components/native';
-import DefaultInput, { InputComponent } from '../Input';
+import DefaultInput, { InputComponent, InputProps } from '../Input';
 import { ValidityMarkComponentType } from '@bullcode/mobile/components/Form/Input/styles';
 
 
@@ -116,12 +116,13 @@ export const PhoneInputContainer = styled.View<PhoneInputContainerProps>`
   overflow: hidden;
 `;
 
-export const Input = styled(DefaultInput as InputComponent<TextInput>).attrs({
-  containerStyle: {
-    flex: 1,
-    marginTop: 0,
-  },
-})`
-  padding-left: 10px;
-  border: none;
+export const Content = styled.View`
+  flex-grow: 1;
+  flex-direction: row;
 `;
+
+export const Input = styled(DefaultInput as InputComponent<InputProps>)`
+  flex-grow: 1;
+  margin-top: 0;
+`;
+

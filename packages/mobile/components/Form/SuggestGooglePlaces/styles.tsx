@@ -3,7 +3,6 @@ import MapLocationSvg from '../../../../core/assets/icons/map-location.svg';
 import MapLocationColoredSvg from '../../../../core/assets/icons/map-location-colored.svg';
 import { TouchableOpacity } from 'react-native';
 import CloseSearchSvg from '../../../../core/assets/icons/search-close.svg';
-import { Text } from '@bullcode/mobile';
 
 export type SuggestGooglePlacesStateStyles = {
   selectionColor: string;
@@ -52,6 +51,7 @@ export const MapLocationFilterIconContainer = styled(TouchableOpacity)`
   width: 55px;
   z-index: 2;
   elevation: 2;
+  margin-top: -5px;
 `;
 
 export const MapLocationIcon = styled(MapLocationSvg)`

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, memo } from 'react';
 
-import { Container, ChipsBox, ChipButton, List } from './styles';
+import { Container, ChipsBox, ChipButton, List, Content } from './styles';
 import { useField } from '@unform/core';
 import { ChipsListComponent, ChipButtonData, ChipsListTypes, ChipListValue } from './types';
 
@@ -10,6 +10,8 @@ const ChipsList: ChipsListComponent = ({
   options: originalOptions = [],
   initialData = [],
   multiple = false,
+  style,
+  contentContainerStyle,
   buttonStyle,
   buttonTextStyle,
   onChange,
@@ -84,47 +86,49 @@ const ChipsList: ChipsListComponent = ({
   );
 
   return (
-    <Container ref={componentRef}>
-      {type !== ChipsListTypes.SCATTERED && (
-        <List
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={options instanceof Array ? options : []}
-          renderItem={({ item }) => (
-            <ChipButton
-              containerStyle={buttonStyle}
-              textStyle={buttonTextStyle}
-              active={item?.active}
-              type={type}
-              onPress={() => !item?.disabled && toggleActive(item)}
-              fillWhenActive={fillWhenActive}
-              disabled={item?.disabled}>
-              {item.label}
-            </ChipButton>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-          {...rest}
-        />
-      )}
-      {/*
+    <Container style={style} ref={componentRef}>
+      <Content style={contentContainerStyle}>
+        {type !== ChipsListTypes.SCATTERED && (
+          <List
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={options instanceof Array ? options : []}
+            renderItem={({ item }) => (
+              <ChipButton
+                style={buttonStyle}
+                textStyle={buttonTextStyle}
+                active={item?.active}
+                type={type}
+                onPress={() => !item?.disabled && toggleActive(item)}
+                fillWhenActive={fillWhenActive}
+                disabled={item?.disabled}>
+                {item.label}
+              </ChipButton>
+            )}
+            keyExtractor={(item, index) => index.toString()}
+            {...rest}
+          />
+        )}
+        {/*
        * It is necessary to keep this type separate from FlatList,
        * because FlatList does not allow to use a flex-wrap in VirtualizedList (ContentContainerStyle)
        */}
-      {type === ChipsListTypes.SCATTERED && (
-        <ChipsBox {...rest}>
-          {options?.map((item, index) => (
-            <ChipButton
-              key={index}
-              active={item?.active}
-              type={type}
-              onPress={() => toggleActive(item)}
-              containerStyle={buttonStyle}
-              fillWhenActive={fillWhenActive}>
-              {item.label}
-            </ChipButton>
-          ))}
-        </ChipsBox>
-      )}
+        {type === ChipsListTypes.SCATTERED && (
+          <ChipsBox {...rest}>
+            {options?.map((item, index) => (
+              <ChipButton
+                key={index}
+                active={item?.active}
+                type={type}
+                onPress={() => toggleActive(item)}
+                style={buttonStyle}
+                fillWhenActive={fillWhenActive}>
+                {item.label}
+              </ChipButton>
+            ))}
+          </ChipsBox>
+        )}
+      </Content>
     </Container>
   );
 };

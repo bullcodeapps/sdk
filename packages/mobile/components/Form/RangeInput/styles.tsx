@@ -74,3 +74,7 @@ export const PointCircle = styled(Animated.View)`
   height: 20px;
   border-radius: 20px;
 `;
+
+export const Content = styled.View`
+  flex-grow: 1;
+`;
