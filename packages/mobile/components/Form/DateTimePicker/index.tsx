@@ -10,7 +10,6 @@ import {
   ModalViewBottom,
   ClockIcon,
   CalendarIcon,
-  Content,
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
