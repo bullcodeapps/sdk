@@ -1,4 +1,4 @@
-export { default as Accordion, setAccordionColors} from './Accordion';
+export { default as Accordion, setAccordionColors } from './Accordion';
 export { default as ActivationCodeInput } from './ActivationCodeInput';
 export { default as Button } from './Button';
 export {
@@ -38,13 +38,9 @@ export { default as Section } from './Section';
 export { setSectionStyles } from './Section/context';
 export { default as Swipeable } from './Swipeable';
 export { default as Touchable } from './Touchable';
-export { default as Text, setTextTypes } from './Text';
+export { setTextTypes } from './Text/context';
+export { default as Text } from './Text';
 export { default as ListPageIndicator } from './ListPageIndicator';
 export { useModal, ModalProvider } from './Modal';
 export { default as ModalContainer } from './Modal/ModalContainer';
-export {
-  Toast,
-  ToastActions,
-  ToastActionsCreators,
-  toastReducer,
-} from './Toast';
+export { Toast, ToastActions, ToastActionsCreators, toastReducer } from './Toast';
