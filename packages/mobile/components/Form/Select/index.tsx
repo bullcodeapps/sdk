@@ -9,12 +9,7 @@ import React, {
   useCallback,
 } from 'react';
 
-import {
-  Container,
-  IconContainer,
-  ChevronDownIcon,
-  Loading,
-} from './styles';
+import { Container, IconContainer, ChevronDownIcon, Loading } from './styles';
 import RNPickerSelect, { PickerSelectProps, PickerStyle } from 'react-native-picker-select';
 import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps, Animated } from 'react-native';
 import { useCombinedRefs } from '../../../../core/hooks';
@@ -22,7 +17,7 @@ import { useField } from '@unform/core';
 import { FormFieldType } from '..';
 
 import { SelectContextType, SelectContext, DefaultStyles } from './context';
-import { SelectStyle, } from './types';
+import { SelectStyle, SelectStateStyles } from './types';
 import { getStyleByValidity } from '../../../utils';
 
 export interface SelectItem {
@@ -120,20 +115,20 @@ const Component: SelectComponent = ({
     return foundStyle;
   }, [theme, ctx?.styles]);
 
-  const currentValidationStyles = useMemo(() => {
+  const currentValidationStyles = useMemo((): SelectStateStyles => {
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
         return selectedStyle?.default;
       }
-      return getStyleByValidity(propValidity, selectedStyle);
+      return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(propValidity, selectedStyle)]);
     }
 
     if (!isDirty) {
       return selectedStyle?.default;
     }
 
-    return getStyleByValidity(!error, selectedStyle);
-  }, [error, getStyleByValidity, propValidity, selectedStyle?.default, usingValidity, isDirty]);
+    return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(!error, selectedStyle)]);
+  }, [usingValidity, isDirty, error, selectedStyle, propValidity]);
 
   const defaultPickerSelectStyles = StyleSheet.create({
     placeholder: {
@@ -148,10 +143,6 @@ const Component: SelectComponent = ({
       borderWidth: 1,
       fontSize: 16,
       fontWeight: 'bold',
-      borderRadius: currentValidationStyles?.borderRadius,
-      backgroundColor: currentValidationStyles?.backgroundColor,
-      borderColor: currentValidationStyles?.borderColor,
-      color: currentValidationStyles?.color,
       opacity: loading ? 0.3 : 1,
     },
     inputAndroid: {
@@ -163,10 +154,6 @@ const Component: SelectComponent = ({
       borderWidth: 1,
       fontSize: 16,
       fontWeight: 'bold',
-      borderRadius: currentValidationStyles?.borderRadius,
-      backgroundColor: currentValidationStyles?.backgroundColor,
-      borderColor: currentValidationStyles?.borderColor,
-      color: currentValidationStyles?.color,
       opacity: loading ? 0.3 : 1,
     },
     iconContainer: {
@@ -231,23 +218,23 @@ const Component: SelectComponent = ({
         style={
           Platform.OS === 'ios'
             ? {
-              transform: [
-                {
-                  rotateZ: iconRotateAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0rad', `${Math.PI}rad`],
-                  }),
-                },
-              ],
-            }
+                transform: [
+                  {
+                    rotateZ: iconRotateAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0rad', `${Math.PI}rad`],
+                    }),
+                  },
+                ],
+              }
             : null
         }>
         {/* Unfortunately, we can't get the onClose event on Android devices, so we made it static */}
         {Platform.OS === 'ios' ? (
           <ChevronDownIcon style={chevronIconsStyle} />
         ) : (
-            <ChevronDownIcon style={chevronIconsStyle} />
-          )}
+          <ChevronDownIcon style={chevronIconsStyle} />
+        )}
       </IconContainer>
     ),
     [chevronIconsStyle, iconRotateAnimation],
@@ -273,49 +260,25 @@ const Component: SelectComponent = ({
     rest?.onClose && rest?.onClose();
   }, [combinedRef, rest, value]);
 
-  const inputStyles = useMemo(
+  const styles: NativeSelectStyle = useMemo(
     () => ({
-      borderRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
-      backgroundColor: currentValidationStyles?.backgroundColor || selectedStyle?.default?.backgroundColor,
-      borderColor: currentValidationStyles?.borderColor || selectedStyle?.default?.borderColor,
-      color: currentValidationStyles?.color || selectedStyle?.default?.color,
-    }),
-    [
-      currentValidationStyles?.backgroundColor,
-      currentValidationStyles?.borderColor,
-      currentValidationStyles?.borderRadius,
-      currentValidationStyles?.color,
-      selectedStyle?.default?.backgroundColor,
-      selectedStyle?.default?.borderColor,
-      selectedStyle?.default?.borderRadius,
-      selectedStyle?.default?.color,
-    ],
-  );
-
-  const styles: NativeSelectStyle = useMemo(() => {
-    return {
       ...defaultPickerSelectStyles,
       inputIOS: {
         ...defaultPickerSelectStyles?.inputIOS,
-        ...inputStyles,
+        ...currentValidationStyles,
       },
       inputAndroid: {
         ...defaultPickerSelectStyles?.inputAndroid,
-        ...inputStyles,
+        ...currentValidationStyles,
       },
       selectContainer: {
-        color: currentValidationStyles?.selectionColor || selectedStyle?.default?.selectionColor,
+        color: currentValidationStyles?.selectionColor || currentValidationStyles?.selectionColor,
         ...rest?.style?.selectContainer,
       },
       ...rest?.style,
-    };
-  }, [
-    currentValidationStyles?.selectionColor,
-    defaultPickerSelectStyles,
-    inputStyles,
-    rest?.style,
-    selectedStyle?.default?.selectionColor,
-  ]);
+    }),
+    [currentValidationStyles, defaultPickerSelectStyles, rest.style],
+  );
 
   useEffect(() => {
     onChangeValidity && onChangeValidity(!error);
@@ -327,7 +290,7 @@ const Component: SelectComponent = ({
       combinedRef?.current?.validate && combinedRef.current.validate(val);
       onValueChange && onValueChange(val);
     },
-    [combinedRef, isDirty, onValueChange],
+    [combinedRef, onValueChange],
   );
 
   return (
