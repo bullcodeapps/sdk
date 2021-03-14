@@ -245,6 +245,11 @@ const Component: DateTimePickerComponent = ({
       setValue: (ref: any, val: Date) => {
         // Transforms dates from the form as a string to the data object automatically
         const newDate = parseStrToDate(val);
+        // if even after being converted into a date it is still not a valid date,
+        // then we will ignore the change of state
+        if (![null, undefined].includes(newDate) && !isValid(newDate)) {
+          return;
+        }
         setDate(newDate);
         setInitialDate(newDate);
         combinedRef?.current?.validate && combinedRef.current.validate(newDate);
@@ -340,7 +345,7 @@ const Component: DateTimePickerComponent = ({
     }
 
     return getStyleByValidity(!error, selectedStyle);
-  }, [usingValidity, isDirty, getStyleByValidity, error, inputProps?.validity, selectedStyle?.default]);
+  }, [usingValidity, isDirty, error, selectedStyle, inputProps?.validity]);
 
   const isValidField = useMemo(() => {
     if (usingValidity) {
@@ -424,8 +429,8 @@ const Component: DateTimePickerComponent = ({
   );
 };
 
-const DateTimePicker: DateTimePickerComponent = React.forwardRef((props: DateTimePickerProps, ref: Ref<InputRef>) => (
-  <Component outerRef={ref} {...props} />
-));
+const DateTimePicker: DateTimePickerComponent = React.forwardRef(
+  (props: DateTimePickerProps, ref: Ref<InputRef>) => <Component outerRef={ref} {...props} />,
+);
 
 export default DateTimePicker;
