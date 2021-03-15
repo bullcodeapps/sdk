@@ -248,7 +248,8 @@ const Component: InputComponent = ({
           onChangeText={handleOnChangeText}
           onFocus={onFocus}
         />
-        {!!useValidityMark && (
+        {!!useValidityMark ||
+          (!!iconComponent && (
           <IconContainer
             isMultiline={rest.multiline}
             usingValidityMark={canShowValidityMark}>
