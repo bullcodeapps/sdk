@@ -248,27 +248,28 @@ const Component: InputComponent = ({
           onChangeText={handleOnChangeText}
           onFocus={onFocus}
         />
-        <IconContainer
-          isMultiline={rest.multiline}
-          hasIconComponent={!!iconComponent}
-          canShowValidityMark={canShowValidityMark}>
-          {canShowValidityMark && (
-            <ValidityMarkComponent
-              isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
-              colorName={selectedStyle.name}
-              {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
-              onPress={(e) => !!onMarkPress && onMarkPress(e)}
-            />
-          )}
-          {!!iconComponent && (
-            <IconComponent
-              isValid={!error}
-              colorName={selectedStyle.name}
-              {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
-              onPress={(e) => !!onMarkPress && onMarkPress(e)}
-            />
-          )}
-        </IconContainer>
+        {!!useValidityMark && (
+          <IconContainer
+            isMultiline={rest.multiline}
+            usingValidityMark={canShowValidityMark}>
+            {canShowValidityMark && (
+              <ValidityMarkComponent
+                isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
+                colorName={selectedStyle.name}
+                {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
+                onPress={(e) => !!onMarkPress && onMarkPress(e)}
+              />
+            )}
+            {!!iconComponent && (
+              <IconComponent
+                isValid={!error}
+                colorName={selectedStyle.name}
+                {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
+                onPress={(e) => !!onMarkPress && onMarkPress(e)}
+              />
+            )}
+          </IconContainer>
+        )}
         {rest?.multiline && (
           <CounterBox>
             <CounterText maxLength={rest?.maxLength} length={value?.length}>
