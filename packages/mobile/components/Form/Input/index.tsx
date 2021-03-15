@@ -270,7 +270,7 @@ const Component: InputComponent = ({
               />
             )}
           </IconContainer>
-        )}
+        ))}
         {rest?.multiline && (
           <CounterBox>
             <CounterText maxLength={rest?.maxLength} length={value?.length}>
