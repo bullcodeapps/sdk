@@ -246,7 +246,8 @@ const Component: DateTimePickerComponent = ({
         const newDate = parseStrToDate(val);
         // if even after being converted into a date it is still not a valid date,
         // then we will ignore the change of state
-        if (![null, undefined].includes(newDate) && !isValid(newDate)) {
+        if ([null, undefined].includes(newDate) || !isValid(newDate)) {
+          clear();
           return;
         }
         setDate(newDate);
