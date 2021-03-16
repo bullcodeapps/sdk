@@ -260,25 +260,28 @@ const Component: SelectComponent = ({
     rest?.onClose && rest?.onClose();
   }, [combinedRef, rest, value]);
 
-  const styles: NativeSelectStyle = useMemo(
-    () => ({
+  const styles: NativeSelectStyle = useMemo(() => {
+    const { selectionColor, placeholder, dropdownIconColor, ...inputStyles } = currentValidationStyles;
+    return {
       ...defaultPickerSelectStyles,
       inputIOS: {
         ...defaultPickerSelectStyles?.inputIOS,
-        ...currentValidationStyles,
+        ...inputStyles,
       },
       inputAndroid: {
         ...defaultPickerSelectStyles?.inputAndroid,
-        ...currentValidationStyles,
+        ...inputStyles,
       },
       selectContainer: {
-        color: currentValidationStyles?.selectionColor || currentValidationStyles?.selectionColor,
+        color: selectionColor,
         ...rest?.style?.selectContainer,
       },
+      placeholder: {
+        color: placeholder,
+      },
       ...rest?.style,
-    }),
-    [currentValidationStyles, defaultPickerSelectStyles, rest.style],
-  );
+    };
+  }, [currentValidationStyles, defaultPickerSelectStyles, rest.style]);
 
   useEffect(() => {
     onChangeValidity && onChangeValidity(!error);
