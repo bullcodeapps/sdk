@@ -242,7 +242,7 @@ const Component: InputComponent = ({
               color: currentValidationStyles?.color,
               borderRadius: selectedStyle?.default?.borderRadius,
               paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
-              paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 0,
+              paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 'auto',
             },
             inputStyle,
           ]}
