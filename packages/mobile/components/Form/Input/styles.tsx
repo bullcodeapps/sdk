@@ -5,23 +5,23 @@ import Text from '../../Text';
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 export const Container = styled(Animated.View)`
-flex-grow: 1;
-margin-top: 10px;
+  flex-grow: 1;
+  margin-top: 10px;
 `;
 
 export const LabelBox = styled.View`
-height: 20px;
-margin-bottom: 5px;
+  height: 20px;
+  margin-bottom: 5px;
 `;
 
 export const InputField = styled(AnimatedTextInput)`
-height: 55px;
-padding-left: 20px;
-padding-top: 10px;
-padding-bottom: 10px;
-border-width: 1px;
-font-size: 16px;
-font-weight: 500;
+  height: 55px;
+  padding-left: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-width: 1px;
+  font-size: 16px;
+  font-weight: 500;
 `;
 
 export const IconContainer = styled.View<{ isMultiline?: boolean; usingValidityMark?: boolean }>`
@@ -36,24 +36,25 @@ min-width: 50px;
 max-height: 55px;
 `;
 
+export const COUNTER_BOX_BOTTOM = 10;
+
 export const CounterBox = styled.View`
-position: absolute;
-bottom: 10px;
-right: 10px;
-align-items: center;
-justify-content: center;
-height: 20px;
-padding-left: 5px;
-padding-top: 5px;
-padding-bottom: 5px;
-padding-right: 5px;
-background-color: #fff;
-box-shadow: 0px 0px 5px rgba(255, 255, 255, 1);
-border-radius: 5px;
-z-index: 1;
+  position: absolute;
+  bottom: ${COUNTER_BOX_BOTTOM}px;
+  right: 10px;
+  align-items: center;
+  justify-content: center;
+  padding-left: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-right: 5px;
+  background-color: #fff;
+  box-shadow: 0px 0px 5px rgba(255, 255, 255, 1);
+  border-radius: 5px;
+  z-index: 1;
 `;
 
-export const CounterText = styled(Text) <{ maxLength: number; length: number }>`
+export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
   color: #bbc8cf;
   font-weight: 500;
   ${(props) => {
