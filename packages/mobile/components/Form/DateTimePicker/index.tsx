@@ -63,10 +63,10 @@ const Component: DateTimePickerComponent = ({
   maxDate,
   minDate,
   language = 'pt-BR',
-  icon: Icon,
   style,
   contentContainerStyle,
   pickerStyle,
+  icon: Icon,
   isDirty: propIsDirty,
   onFocus,
   onChange,
@@ -93,7 +93,9 @@ const Component: DateTimePickerComponent = ({
   const usingValidity = useMemo(() => ![undefined, null].includes(inputProps?.validity), [inputProps?.validity]);
 
   const DefaultIcon = useCallback(
-    (props: SvgProps) => (mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />),
+    (props: SvgProps) => {
+      return mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />;
+    },
     [mode],
   );
 
@@ -275,13 +277,21 @@ const Component: DateTimePickerComponent = ({
 
   const selectDate = useCallback(
     (event, newDate: Date) => {
+      if (Platform.OS === 'android' && mode === 'time') {
+        if (isBefore(newDate, minDate)) {
+          newDate = minDate;
+        } else if (isAfter(newDate, maxDate)) {
+          newDate = maxDate;
+        }
+      }
+
       if (newDate === pickerValue || isEqual(pickerValue, newDate)) {
         return;
       }
       setShow(Platform.OS === 'ios');
       onChangeValue({ currentDate: newDate, validate: true });
     },
-    [onChangeValue, pickerValue],
+    [maxDate, minDate, mode, onChangeValue, pickerValue],
   );
 
   const togglePicker = useCallback(() => {
@@ -363,6 +373,26 @@ const Component: DateTimePickerComponent = ({
     onFocus && onFocus();
   }, [isDirty, onFocus]);
 
+  type MaxAndMinDateProps = {
+    maximumDate?: Date;
+    minimumDate?: Date;
+  };
+
+  // Prevents undeclared values from causing the app to break.
+  const maxAndMinDateProps = useMemo(() => {
+    let response: MaxAndMinDateProps = {};
+
+    if (![null, undefined].includes(maxDate) && isValid(maxDate)) {
+      response.maximumDate = maxDate;
+    }
+
+    if (![null, undefined].includes(minDate) && isValid(minDate)) {
+      response.maximumDate = minDate;
+    }
+
+    return response;
+  }, [maxDate, minDate]);
+
   return (
     <ViewContainer style={style}>
       <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
@@ -397,12 +427,12 @@ const Component: DateTimePickerComponent = ({
           <ModalViewMiddle>
             <TouchableOpacity onPress={clear} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <View>
-                <ActionText allowFontScaling={false}>{clearText}</ActionText>
+                <ActionText allowFontScaling={false}>{clearText || 'clear'}</ActionText>
               </View>
             </TouchableOpacity>
             <TouchableOpacity onPress={done} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <View>
-                <ActionText allowFontScaling={false}>{doneText}</ActionText>
+                <ActionText allowFontScaling={false}>{doneText || 'done'}</ActionText>
               </View>
             </TouchableOpacity>
           </ModalViewMiddle>
@@ -413,12 +443,11 @@ const Component: DateTimePickerComponent = ({
             style={pickerStyle}
             locale={language}
             value={pickerValue}
-            maximumDate={maxDate}
-            minimumDate={minDate}
             mode={mode as 'date' | 'time' | 'datetime' | 'countdown'}
             onChange={selectDate}
             display="spinner"
             textColor="black"
+            {...maxAndMinDateProps}
           />
         </ModalViewBottom>
       </Modal>
