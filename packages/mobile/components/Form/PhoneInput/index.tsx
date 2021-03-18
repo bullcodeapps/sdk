@@ -22,8 +22,7 @@ import {
   getCountryCallingCode,
   CountryCode as PNCountryCode,
   parsePhoneNumberFromString,
-  isValidNumber,
-} from 'libphonenumber-js';
+} from 'libphonenumber-js/max';
 import { useField } from '@unform/core';
 import { useCombinedRefs } from '../../../../core/hooks';
 import { InputRef, InputFieldType, InputProps } from '../Input';
@@ -92,13 +91,20 @@ const PhoneInput: PhoneInputComponent = ({
     const hasPhone = phone !== undefined && phone !== null;
     const hasLocalSelectedCountry = localSelectedCountry !== undefined && localSelectedCountry !== null;
 
-    return (
-      selectIsValid &&
-      inputIsValid &&
-      hasPhone &&
-      hasLocalSelectedCountry &&
-      isValidNumber(phone, localSelectedCountry)
-    );
+    if (phone) {
+      const asYouType = new AsYouType(localSelectedCountry);
+      asYouType.input(phone)
+
+      return (
+        selectIsValid &&
+        inputIsValid &&
+        hasPhone &&
+        hasLocalSelectedCountry &&
+        asYouType.getNumber().isValid()
+      );
+    }
+
+    return false;
   }, [selectIsValid, inputIsValid, phone, localSelectedCountry]);
 
   useEffect(() => {
