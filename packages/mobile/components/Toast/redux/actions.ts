@@ -1,4 +1,4 @@
-export const actions = {
+export const ACTIONS = {
   DISPLAY_ERROR: '@@TOAST/DISPLAY_ERROR',
   DISPLAY_WARNING: '@@TOAST/DISPLAY_WARNING',
   DISPLAY_INFO: '@@TOAST/DISPLAY_INFO',
@@ -13,20 +13,22 @@ const toastAction = (message, duration, type) => ({
   },
 });
 
+const defaultDuration = 4000;
+
 export const actionCreators = {
   hide() {
     return {
-      type: actions.HIDE,
+      type: ACTIONS.HIDE,
       payload: {},
     };
   },
-  displayError(message, duration = 4000) {
-    return toastAction(message, duration, actions.DISPLAY_ERROR);
+  displayError(message, duration = defaultDuration) {
+    return toastAction(message, duration, ACTIONS.DISPLAY_ERROR);
   },
-  displayWarning(message, duration = 4000) {
-    return toastAction(message, duration, actions.DISPLAY_WARNING);
+  displayWarning(message, duration = defaultDuration) {
+    return toastAction(message, duration, ACTIONS.DISPLAY_WARNING);
   },
-  displayInfo(message, duration = 4000) {
-    return toastAction(message, duration, actions.DISPLAY_INFO);
+  displayInfo(message, duration = defaultDuration) {
+    return toastAction(message, duration, ACTIONS.DISPLAY_INFO);
   },
 };

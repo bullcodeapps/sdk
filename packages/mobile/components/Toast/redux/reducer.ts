@@ -1,32 +1,33 @@
-import * as Immutable from 'seamless-immutable';
+import { ACTIONS } from './actions';
 
-import { actions } from './actions';
-
-const defaultState = {
+const DEFAULT_STATE = {
   message: null,
   error: false,
   warning: false,
   duration: null,
+  reseter: false,
 };
 
-export default function reducer(state = Immutable.from(defaultState), action) {
+export default function reducer(state = DEFAULT_STATE, action) {
+  const { payload, type } = action;
+
   switch (action.type) {
-    case actions.HIDE:
-    case actions.DISPLAY_ERROR:
-    case actions.DISPLAY_WARNING:
-    case actions.DISPLAY_INFO: {
-      return state.merge(
-        {
-          message: action.payload.message,
-          duration: action.payload.duration,
-          error: action.type === actions.DISPLAY_ERROR,
-          warning: action.type === actions.DISPLAY_WARNING,
-        },
-        { deep: true },
-      );
-    }
-    default: {
+    case ACTIONS.HIDE:
+      return {
+        ...DEFAULT_STATE,
+        reseter: state?.reseter,
+      };
+    case ACTIONS.DISPLAY_ERROR:
+    case ACTIONS.DISPLAY_WARNING:
+    case ACTIONS.DISPLAY_INFO:
+      return {
+        reseter: !state?.reseter,
+        message: payload?.message,
+        duration: payload?.duration,
+        error: type === ACTIONS.DISPLAY_ERROR,
+        warning: type === ACTIONS.DISPLAY_WARNING,
+      };
+    default:
       return state;
-    }
   }
 }
