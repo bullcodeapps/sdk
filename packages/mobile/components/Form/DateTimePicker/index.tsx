@@ -277,14 +277,6 @@ const Component: DateTimePickerComponent = ({
 
   const selectDate = useCallback(
     (event, newDate: Date) => {
-      if (Platform.OS === 'android' && mode === 'time') {
-        if (isBefore(newDate, minDate)) {
-          newDate = minDate;
-        } else if (isAfter(newDate, maxDate)) {
-          newDate = maxDate;
-        }
-      }
-
       if (newDate === pickerValue || isEqual(pickerValue, newDate)) {
         return;
       }
