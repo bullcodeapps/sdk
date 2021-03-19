@@ -283,7 +283,7 @@ const Component: DateTimePickerComponent = ({
       setShow(Platform.OS === 'ios');
       onChangeValue({ currentDate: newDate, validate: true });
     },
-    [maxDate, minDate, mode, onChangeValue, pickerValue],
+    [onChangeValue, pickerValue],
   );
 
   const togglePicker = useCallback(() => {
@@ -379,7 +379,7 @@ const Component: DateTimePickerComponent = ({
     }
 
     if (![null, undefined].includes(minDate) && isValid(minDate)) {
-      response.maximumDate = minDate;
+      response.minimumDate = minDate;
     }
 
     return response;
