@@ -11,7 +11,7 @@ interface Props {
   maxLength?: number;
   step?: string;
   startAdornment?: string | React.Component;
-  endAdornment?: string | React.Component;
+  endAdornment?: string | React.Component | JSX.Element;
   onChange?: (value: any) => void;
 }
 
@@ -65,8 +65,8 @@ export default function Input({
         helperText={type !== 'hidden' && (error || helperText)}
         inputProps={{ ref: inputRef, maxLength, step }}
         InputProps={{
-          startAdornment: (startAdornment && <InputAdornment position="start">{startAdornment}</InputAdornment>),
-          endAdornment: (endAdornment && <InputAdornment position="end">{endAdornment}</InputAdornment>),
+          startAdornment: startAdornment && <InputAdornment position="start">{startAdornment}</InputAdornment>,
+          endAdornment: endAdornment && <InputAdornment position="end">{endAdornment}</InputAdornment>,
         }}
         {...other}
         variant="outlined"
