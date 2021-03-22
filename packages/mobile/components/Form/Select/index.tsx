@@ -73,7 +73,7 @@ const Component: SelectComponent = ({
   const [value, setValue] = useState<any>(null);
   const [opened, setOpened] = useState<boolean>(false);
   const [isDirty, setIsDirty] = useState(false);
-  const { fieldName, registerField, error, defaultValue: unformDefaultValue } = useField(name);
+  const { fieldName, registerField, error } = useField(name);
 
   // Refs
   const pickerRef = useRef<FieldType>(null);
@@ -84,12 +84,6 @@ const Component: SelectComponent = ({
   const iconRotateAnimation = useRef(new Animated.Value(0)).current;
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
-
-  useEffect(() => {
-    if (unformDefaultValue) {
-      setValue(unformDefaultValue);
-    }
-  }, [unformDefaultValue]);
 
   useEffect(() => {
     if (defaultValue !== undefined) {
@@ -296,6 +290,25 @@ const Component: SelectComponent = ({
     [combinedRef, onValueChange],
   );
 
+  const newItems = useMemo(() => {
+    if (!Array.isArray(items)) {
+      return items;
+    }
+
+    return items?.map((_item, _itemIndex) => {
+      if (typeof _item?.value !== 'object' || _item?.value?.hasOwnProperty('key')) {
+        return _item;
+      }
+      return {
+        ..._item,
+        value: {
+          ..._item?.value,
+          key: _item?.value?.hasOwnProperty('id') ? (_item?.value as any)?.id : _itemIndex,
+        },
+      };
+    });
+  }, [items]);
+
   return (
     <Container style={styles?.selectContainer}>
       <RNPickerSelect
@@ -308,10 +321,11 @@ const Component: SelectComponent = ({
         onValueChange={handleValueChange}
         value={value}
         placeholder={{ label: placeholder, value: undefined }}
-        items={items}
+        items={newItems}
         onOpen={handleOpen}
         onClose={handleClose}
         onDonePress={handleDone}
+        itemKey={rest?.itemKey || value?.id}
       />
       {loading && <Loading />}
     </Container>
