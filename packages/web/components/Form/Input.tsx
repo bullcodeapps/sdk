@@ -10,8 +10,8 @@ interface Props {
   label?: string;
   maxLength?: number;
   step?: string;
-  startAdornment?: string | React.Component;
-  endAdornment?: string | React.Component | JSX.Element;
+  startAdornment?: string | React.ReactNode;
+  endAdornment?: string | React.ReactNode | JSX.Element;
   onChange?: (value: any) => void;
 }
 
