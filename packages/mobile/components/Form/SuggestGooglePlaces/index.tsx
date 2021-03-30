@@ -169,7 +169,7 @@ const Component: SuggestGooglePlacesComponent = ({
 
   const MapLocationFilterIcon = useCallback(
     () => (
-      <MapLocationFilterIconContainer onPress={handlePressIcon}>
+      <MapLocationFilterIconContainer disabled={!selected && !canUseCurrentLocation} onPress={handlePressIcon}>
         {selected ? <CloseSearchIcon /> : canUseCurrentLocation ? <MapLocationColoredIcon /> : <MapLocationIcon />}
       </MapLocationFilterIconContainer>
     ),
@@ -370,8 +370,8 @@ const Component: SuggestGooglePlacesComponent = ({
         {isLoading ? (
           <ActivityIndicator size="small" color="#9ca7ad" />
         ) : (
-            <ListEmptyText>{emptyListText || 'Nenhum endereço foi encontrado!'}</ListEmptyText>
-          )}
+          <ListEmptyText>{emptyListText || 'Nenhum endereço foi encontrado!'}</ListEmptyText>
+        )}
       </ListEmptyContainer>
     ),
     [emptyListText, isLoading],
