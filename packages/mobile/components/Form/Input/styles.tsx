@@ -24,12 +24,18 @@ export const InputField = styled(AnimatedTextInput)`
   font-weight: 500;
 `;
 
-export const IconContainer = styled.View<{ isMultiline?: boolean; usingValidityMark?: boolean }>`
+export const IconContainer = styled.View<{
+  isMultiline?: boolean;
+  usingValidityMark?: boolean;
+  usingIconComponent?: boolean;
+}>`
 position: absolute;
 top: 0;
-${(props) => (props.usingValidityMark && !props.isMultiline ? 'right: 55px;' : 'right: 5px;')}
-${(props) => (props.isMultiline ? (props.usingValidityMark ? 'top: 55px;' : 'top: 16px;') : 'top: 0;')}
-${(props) => (props.isMultiline ? 'bottom: auto;' : 'bottom: 0;')}
+${({ usingValidityMark, usingIconComponent }) =>
+  usingValidityMark && !!usingIconComponent ? 'right: 55px;' : 'right: 5px;'}
+${({ isMultiline, usingValidityMark }) =>
+  isMultiline ? (usingValidityMark ? 'top: 55px;' : 'top: 16px;') : 'top: 0;'}
+${({ isMultiline }) => (isMultiline ? 'bottom: auto;' : 'bottom: 0;')}
 align-items: center;
 justify-content: center;
 min-width: 50px;
