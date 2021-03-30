@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { GestureResponderEvent, TouchableOpacity } from 'react-native';
 import { CheckCircle, CheckMarkIcon, ExclamationMarkIcon } from './styles';
-import { ValidityMarkTypes } from '@bullcode/mobile/components/Form/Input/styles';
+import { ValidityMarkTypes } from '@bullcode/mobile/components/Form/Input/types';
 
 export type ValidityMarkProps = {
   isValid?: boolean;
