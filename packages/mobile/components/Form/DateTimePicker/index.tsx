@@ -122,7 +122,7 @@ const Component: DateTimePickerComponent = ({
    */
   const dateFormatted = useMemo(() => {
     const newDate = parseStrToDate(date);
-    if (!newDate || !isValid(newDate) || !choosenFormat) {
+    if (!newDate || typeof newDate === 'string' || !isValid(newDate) || !choosenFormat) {
       return null;
     }
     return format(newDate, choosenFormat, {
@@ -135,7 +135,14 @@ const Component: DateTimePickerComponent = ({
       let newDate = parseStrToDate(_date);
 
       setDate((_oldDate) => {
-        if (_oldDate && newDate && isValid(_oldDate) && isValid(newDate)) {
+        if (
+          _oldDate &&
+          newDate &&
+          typeof _oldDate !== 'string' &&
+          typeof newDate !== 'string' &&
+          isValid(_oldDate) &&
+          isValid(newDate)
+        ) {
           // Keep the old values from the opposite mode
           if (mode === 'time') {
             newDate?.setFullYear(_oldDate?.getFullYear());
@@ -248,7 +255,7 @@ const Component: DateTimePickerComponent = ({
         const newDate = parseStrToDate(val);
         // if even after being converted into a date it is still not a valid date,
         // then we will ignore the change of state
-        if ([null, undefined].includes(newDate) || !isValid(newDate)) {
+        if ([null, undefined].includes(newDate) || typeof newDate === 'string' || !isValid(newDate)) {
           clear();
           return;
         }
@@ -374,11 +381,11 @@ const Component: DateTimePickerComponent = ({
   const maxAndMinDateProps = useMemo(() => {
     let response: MaxAndMinDateProps = {};
 
-    if (![null, undefined].includes(maxDate) && isValid(maxDate)) {
+    if (![null, undefined].includes(maxDate) && typeof maxDate !== 'string' && isValid(maxDate)) {
       response.maximumDate = maxDate;
     }
 
-    if (![null, undefined].includes(minDate) && isValid(minDate)) {
+    if (![null, undefined].includes(minDate) && typeof minDate !== 'string' && isValid(minDate)) {
       response.minimumDate = minDate;
     }
 

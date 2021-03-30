@@ -106,13 +106,13 @@ const Component: InputComponent = ({
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
   const handleOnChangeText = useCallback(
-    (text: string) => {
+    (text: string, ignoreDebounce: boolean = true) => {
       if (value === text) {
         return;
       }
       const newText = text || '';
-      setValue(newText);
-      !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText);
+      setValue(`${newText}`);
+      !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText, ignoreDebounce);
       onChangeText && onChangeText(newText);
     },
     [inputRef, onChangeText, usingValidity, value],
@@ -130,7 +130,7 @@ const Component: InputComponent = ({
 
   useEffect(() => {
     if (rest?.value !== undefined && !isDirty) {
-      handleOnChangeText(rest?.value);
+      handleOnChangeText(`${rest?.value}`);
     }
   }, [handleOnChangeText, isDirty, rest.value]);
 
@@ -144,7 +144,7 @@ const Component: InputComponent = ({
       setValue: (ref: TextInput, val: string) => {
         // Avoid from form auto-fill and mark as dirty
         if (val !== undefined && !isDirty) {
-          handleOnChangeText(val);
+          handleOnChangeText(`${val}`, false);
         }
       },
       getValue: () => {
@@ -196,8 +196,8 @@ const Component: InputComponent = ({
   const onFocus = useCallback(
     (e) => {
       if (!isDirty) {
-        !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(value || '');
         setIsDirty(true);
+        !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(value || '', true);
       }
 
       rest?.onFocus && rest?.onFocus(e);
@@ -229,7 +229,7 @@ const Component: InputComponent = ({
       <Content style={contentContainerStyle}>
         <InputField
           ref={combinedRef}
-          value={value}
+          value={`${value}`}
           textAlignVertical={rest.multiline ? 'top' : 'center'}
           selectionColor={currentValidationStyles?.selectionColor}
           placeholderTextColor={currentValidationStyles?.placeholder}
@@ -288,4 +288,4 @@ const Input: InputComponent = React.forwardRef((props: InputProps, ref: Ref<Inpu
   <Component outerRef={ref} {...props} />
 ));
 
-export default memo(Input);
+export default Input;

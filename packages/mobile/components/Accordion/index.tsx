@@ -88,7 +88,7 @@ const Accordion: React.FC<AccordionProps> = ({
       // this animation continues where it left off, even before the previous animation ended.
       setExpanded(newState);
     },
-    [animatedController, expanded],
+    [animatedController],
   );
 
   const toggleExpand = useCallback(() => {
@@ -115,7 +115,7 @@ const Accordion: React.FC<AccordionProps> = ({
       setLastPropExpanded(propExpanded);
       handleExpansion(propExpanded, expansionAnimationOptions);
     }
-  }, [autoExpand, expansionAnimationOptions, handleExpansion, isFirstRender, propExpanded]);
+  }, [autoExpand, expansionAnimationOptions, handleExpansion, isFirstRender, lastPropExpanded, propExpanded]);
 
   // It should not be triggered when re-rendering the component, so we ignore onChange as a dependency!
   useEffect(() => {

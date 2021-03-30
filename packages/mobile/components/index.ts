@@ -41,6 +41,5 @@ export { default as Touchable } from './Touchable';
 export { setTextTypes } from './Text/context';
 export { default as Text } from './Text';
 export { default as ListPageIndicator } from './ListPageIndicator';
-export { useModal, ModalProvider } from './Modal';
-export { default as ModalContainer } from './Modal/ModalContainer';
-export { Toast, ToastActions, ToastActionsCreators, toastReducer } from './Toast';
+export * from './Modal';
+export * from './Toast';

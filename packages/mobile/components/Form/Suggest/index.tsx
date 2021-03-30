@@ -165,21 +165,12 @@ const Suggest: React.FC<Props> = ({
       return getStyleByValidity(!error, selectedStyle);
     }
 
-    if (!!error) {
+    if (error) {
       return selectedStyle?.invalid || selectedStyle?.default;
     }
 
     return selectedStyle?.default;
-  }, [
-    usingValidity,
-    selectedItem,
-    error,
-    selectedStyle.default,
-    selectedStyle.invalid,
-    getStyleByValidity,
-    propValidity,
-    isDirty,
-  ]);
+  }, [isDirty, usingValidity, selectedItem, error, selectedStyle, propValidity]);
 
   const handleInpuOnKeyPress = useCallback(
     (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
@@ -236,14 +227,14 @@ const Suggest: React.FC<Props> = ({
             props?.onKeyPress && props.onKeyPress(e);
           }}
           validity={validity}
-          value={value}
+          value={`${value}`}
           style={
             hideResults
               ? {}
               : {
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-              }
+                  borderBottomLeftRadius: 0,
+                  borderBottomRightRadius: 0,
+                }
           }
           isDirty={isDirty}
         />
@@ -251,20 +242,19 @@ const Suggest: React.FC<Props> = ({
     },
     [
       cleanOnPress,
-      theme,
-      error,
-      fieldName,
-      handleInpuOnKeyPress,
-      handleInputBlur,
-      handleInputFocus,
-      hideResults,
-      inputIcon,
-      loading,
-      placeholder,
-      selectedItem,
       term,
+      fieldName,
+      theme,
+      inputIcon,
       useValidityMark,
-      validity
+      placeholder,
+      handleInputFocus,
+      handleInputBlur,
+      loading,
+      validity,
+      hideResults,
+      isDirty,
+      handleInpuOnKeyPress,
     ],
   );
 
@@ -281,7 +271,7 @@ const Suggest: React.FC<Props> = ({
       keyExtractor={(item, index) => index.toString()}
       hideResults={hideResults}
       renderTextInput={renderInput}
-      value={!!selectedItem && selectedItem[listItemKey]}
+      value={`${selectedItem ? selectedItem[listItemKey] : ''}`}
       containerStyle={{
         flexGrow: 1,
         flexBasis: 'auto',

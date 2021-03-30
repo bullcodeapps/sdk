@@ -1,4 +1,4 @@
-import React, { memo, useState, Ref, useRef, useCallback } from 'react';
+import React, { useState, Ref, useRef, useCallback } from 'react';
 import { StyleSheet, Animated, StyleProp, ImageStyle, ViewStyle } from 'react-native';
 import FastImage, { FastImageProps } from 'react-native-fast-image';
 import { useCombinedRefs } from '@bullcode/core/hooks';
@@ -61,7 +61,7 @@ const Component: ImageComponent = ({
         />
       </Content>
     ),
-    [combinedRef, onError, onLoad, source, otherProps],
+    [contentContainerStyle, combinedRef, fastImageStyle, otherProps, source, onError, onLoad],
   );
 
   return (
@@ -92,4 +92,4 @@ const Image: ImageComponent = React.forwardRef(
   ),
 );
 
-export default memo(Image);
+export default Image;

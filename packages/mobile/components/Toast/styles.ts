@@ -23,17 +23,7 @@ export const MessageContainer = styled.View`
   border-radius: 15px;
 `;
 
-export const InfoMessage = styled(MessageContainer)`
-  background-color: #2abb9b;
-`;
-
-export const ErrorMessage = styled(MessageContainer)`
-  background-color: #d64541;
-`;
-
-export const WarningMessage = styled(MessageContainer)`
-  background-color: #f39c12;
-`;
+export const Message = styled(MessageContainer)``;
 
 export const MessageText = styled.Text`
   color: #fff;

@@ -12,7 +12,7 @@ type MonitorUserLocationProps = {
 const MonitorUserLocation: React.FC<MonitorUserLocationProps> = ({ disable }) => {
   const dispatch = useDispatch();
 
-  const { longitude, latitude } = usePosition();
+  const { longitude, latitude } = usePosition(disable);
 
   const onChangeLocation = useCallback(() => {
     if (!disable && longitude && latitude) {

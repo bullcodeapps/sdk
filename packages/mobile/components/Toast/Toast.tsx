@@ -1,25 +1,26 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useCallback, useState, useRef, useEffect, memo, useMemo } from 'react';
 import { Animated, ViewStyle, GestureResponderEvent, LayoutChangeEvent, LayoutRectangle } from 'react-native';
 
-import { actionCreators } from './redux/actions';
-import { ToastState } from './redux/types';
-import { Container, InfoMessage, ErrorMessage, WarningMessage, MessageText } from './styles';
+import { Container, Message, MessageText } from './styles';
+import { ToastState, ToastComponentProps } from './types';
 
 export type CustomProps = {
   containerStyle?: ViewStyle;
-  duration?: number;
-};
+  hide: ToastComponentProps['hide'];
+} & ToastState;
 
-export type ToastProps = CustomProps & ToastState & typeof actionCreators;
+export type ToastProps = CustomProps;
 
-const Toast: React.FC<ToastProps> = ({
-  message,
-  error,
-  warning,
+const Component: React.FC<Partial<ToastProps>> = ({
   containerStyle,
-  duration,
+  actionType,
+  message,
+  timeout,
   reseter,
-  hide: reduxHide,
+  visibility,
+  style,
+  textStyle,
+  hide: ctxHide,
 }) => {
   // Refs
   const fadeAnimation = useRef(new Animated.Value(0)).current;
@@ -40,6 +41,21 @@ const Toast: React.FC<ToastProps> = ({
     x: 0,
     y: 0,
   });
+
+  useEffect(() => {
+    if (canShow === visibility) {
+      return;
+    }
+    setCanShow(visibility);
+  }, [canShow, visibility]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutHandler?.current) {
+        clearTimeout(timeoutHandler.current);
+      }
+    };
+  }, []);
 
   const getFadeAnimation = useCallback(
     (opening?: boolean) =>
@@ -64,12 +80,11 @@ const Toast: React.FC<ToastProps> = ({
   }, [doClearTimeout]);
 
   const doHide = useCallback(() => {
-    reduxHide();
+    ctxHide();
     doClearTimeout();
     translationX.setValue(0);
     translationY.setValue(0);
-    setCanShow(false);
-  }, [reduxHide, doClearTimeout, translationX, translationY]);
+  }, [ctxHide, doClearTimeout, translationX, translationY]);
 
   const hide = useCallback(
     (doAnimation?: boolean) => {
@@ -83,7 +98,7 @@ const Toast: React.FC<ToastProps> = ({
   );
 
   const startTimeout = useCallback(
-    (time: number = duration) => {
+    (time: number = timeout) => {
       const now = new Date();
       setStartTimeoutTime(now?.getTime());
       setStoppedTimeoutTime(null);
@@ -93,7 +108,7 @@ const Toast: React.FC<ToastProps> = ({
         setStoppedTimeoutTime(null);
       }, time);
     },
-    [duration, hide],
+    [timeout, hide],
   );
 
   const resumeTimeout = useCallback(() => {
@@ -111,7 +126,6 @@ const Toast: React.FC<ToastProps> = ({
   }, [startTimeout, doClearTimeout]);
 
   const show = useCallback(() => {
-    setCanShow(true);
     translationX.setValue(0);
     translationY.setValue(0);
     resetTimeout();
@@ -184,79 +198,84 @@ const Toast: React.FC<ToastProps> = ({
     [fadeAnimation, shadowOpacity, translationX, translationY],
   );
 
-  const animateDissmiss = (cardianX: number, cardianY: number) => {
-    //          ┬ Y
-    // (-x, y)  │   (x, y)
-    //          │ ┌>Tolerance Shape
-    //       ┌──┼──┐
-    // ├─────┼──┼──┼─────┤ X
-    //       └──┼──┘
-    //          │
-    // (-x, -y) │  (x, -y)
-    //          ┴
-    const toleranceShape = {
-      x: {
-        positive: 50,
-        negative: -50,
-      },
-      y: {
-        positive: 30,
-        negative: -30,
-      },
-    };
+  const animateDissmiss = useCallback(
+    (cardianX: number, cardianY: number) => {
+      //          ┬ Y
+      // (-x, y)  │   (x, y)
+      //          │ ┌>Tolerance Shape
+      //       ┌──┼──┐
+      // ├─────┼──┼──┼─────┤ X
+      //       └──┼──┘
+      //          │
+      // (-x, -y) │  (x, -y)
+      //          ┴
+      const toleranceShape = {
+        x: {
+          positive: 50,
+          negative: -50,
+        },
+        y: {
+          positive: 30,
+          negative: -30,
+        },
+      };
 
-    const xIsInsideToleranceBox = cardianX < toleranceShape?.x?.positive && cardianX > toleranceShape?.x?.negative;
-    const yIsInsideToleranceBox = cardianY < toleranceShape?.y?.positive && cardianY > toleranceShape?.y?.negative;
-    const fullyInsideToleranceBox = xIsInsideToleranceBox && yIsInsideToleranceBox;
+      const xIsInsideToleranceBox =
+        cardianX < toleranceShape?.x?.positive && cardianX > toleranceShape?.x?.negative;
+      const yIsInsideToleranceBox =
+        cardianY < toleranceShape?.y?.positive && cardianY > toleranceShape?.y?.negative;
+      const fullyInsideToleranceBox = xIsInsideToleranceBox && yIsInsideToleranceBox;
 
-    if (fullyInsideToleranceBox) {
-      // As long as the offset is less than the movement limit to dissmiss the message,
-      // we must return it to the initial position
-      animateToInitialPosition();
-      resumeTimeout();
-    }
+      if (fullyInsideToleranceBox) {
+        // As long as the offset is less than the movement limit to dissmiss the message,
+        // we must return it to the initial position
+        animateToInitialPosition();
+        resumeTimeout();
+      }
 
-    let animation: Animated.CompositeAnimation;
+      let animation: Animated.CompositeAnimation;
 
-    const defaultValue = layout?.height * layout?.width;
-    const parseCardianYToTranslationY = (valY) => -valY;
+      const defaultValue = layout?.height * layout?.width;
+      const parseCardianYToTranslationY = (valY) => -valY;
 
-    // Top
-    if (xIsInsideToleranceBox && cardianY > toleranceShape?.y?.positive) {
-      animation = getDissmissAnimation(0, parseCardianYToTranslationY(defaultValue));
-    }
-    // Right
-    if (yIsInsideToleranceBox && cardianX > toleranceShape?.x?.positive) {
-      animation = getDissmissAnimation(defaultValue, 0);
-    }
-    // Left
-    if (yIsInsideToleranceBox && cardianX < toleranceShape?.x?.negative) {
-      animation = getDissmissAnimation(-defaultValue, 0);
-    }
-    // Top Right
-    if (cardianX > toleranceShape?.x?.positive && cardianY > toleranceShape?.y?.positive) {
-      animation = getDissmissAnimation(defaultValue, parseCardianYToTranslationY(defaultValue));
-    }
-    // Top Left
-    if (cardianX < toleranceShape?.x?.negative && cardianY > toleranceShape?.y?.positive) {
-      animation = getDissmissAnimation(-defaultValue, parseCardianYToTranslationY(defaultValue));
-    }
-    // Bottom
-    if (xIsInsideToleranceBox && cardianY < toleranceShape?.y?.negative) {
-      animateToInitialPosition();
-      resumeTimeout();
-    }
-    // Bottom Right
-    if (cardianX > toleranceShape?.x?.positive && cardianY < toleranceShape?.y?.negative) {
-      animation = getDissmissAnimation(defaultValue, parseCardianYToTranslationY(-defaultValue));
-    }
-    // Bottom Left
-    if (cardianX < toleranceShape?.x?.negative && cardianY < toleranceShape?.y?.negative) {
-      animation = getDissmissAnimation(-defaultValue, parseCardianYToTranslationY(-defaultValue));
-    }
+      // Top
+      if (xIsInsideToleranceBox && cardianY > toleranceShape?.y?.positive) {
+        animation = getDissmissAnimation(0, parseCardianYToTranslationY(defaultValue));
+      }
+      // Right
+      if (yIsInsideToleranceBox && cardianX > toleranceShape?.x?.positive) {
+        animation = getDissmissAnimation(defaultValue, 0);
+      }
+      // Left
+      if (yIsInsideToleranceBox && cardianX < toleranceShape?.x?.negative) {
+        animation = getDissmissAnimation(-defaultValue, 0);
+      }
+      // Top Right
+      if (cardianX > toleranceShape?.x?.positive && cardianY > toleranceShape?.y?.positive) {
+        animation = getDissmissAnimation(defaultValue, parseCardianYToTranslationY(defaultValue));
+      }
+      // Top Left
+      if (cardianX < toleranceShape?.x?.negative && cardianY > toleranceShape?.y?.positive) {
+        animation = getDissmissAnimation(-defaultValue, parseCardianYToTranslationY(defaultValue));
+      }
+      // Bottom
+      if (xIsInsideToleranceBox && cardianY < toleranceShape?.y?.negative) {
+        animateToInitialPosition();
+        resumeTimeout();
+      }
+      // Bottom Right
+      if (cardianX > toleranceShape?.x?.positive && cardianY < toleranceShape?.y?.negative) {
+        animation = getDissmissAnimation(defaultValue, parseCardianYToTranslationY(-defaultValue));
+      }
+      // Bottom Left
+      if (cardianX < toleranceShape?.x?.negative && cardianY < toleranceShape?.y?.negative) {
+        animation = getDissmissAnimation(-defaultValue, parseCardianYToTranslationY(-defaultValue));
+      }
 
-    animation?.start(() => hide());
-  };
+      animation?.start(() => hide);
+    },
+    [animateToInitialPosition, getDissmissAnimation, hide, layout?.height, layout?.width, resumeTimeout],
+  );
 
   const onTouchEnd = (e?: GestureResponderEvent) => {
     const { pageX, pageY } = e?.nativeEvent;
@@ -278,36 +297,24 @@ const Toast: React.FC<ToastProps> = ({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onLayout={handleOnLayout}
-        style={[
-          {
-            opacity: fadeAnimation,
-            shadowOpacity: shadowOpacity,
-            transform: [
-              {
-                translateX: translationX,
-                translateY: translationY,
-              },
-            ],
-          },
-        ]}>
-        {!error && !warning && (
-          <InfoMessage style={containerStyle}>
-            <MessageText>{message}</MessageText>
-          </InfoMessage>
-        )}
-        {error && (
-          <ErrorMessage style={containerStyle}>
-            <MessageText>{message}</MessageText>
-          </ErrorMessage>
-        )}
-        {warning && (
-          <WarningMessage style={containerStyle}>
-            <MessageText>{message}</MessageText>
-          </WarningMessage>
-        )}
+        style={{
+          opacity: fadeAnimation,
+          shadowOpacity: shadowOpacity,
+          transform: [
+            {
+              translateX: translationX,
+              translateY: translationY,
+            },
+          ],
+        }}>
+        <Message style={[style || {}, containerStyle]}>
+          <MessageText style={textStyle || {}}>{message}</MessageText>
+        </Message>
       </Container>
     )
   );
 };
+
+const Toast = memo(Component);
 
 export default Toast;
