@@ -52,9 +52,9 @@ export type InputFieldType<T = any> = FormFieldType<InputRef<T>>;
 
 export interface InputProps<T = any>
   extends Omit<TextInputProps, 'ref'>,
-    Readonly<{ children?: ReactNode }>,
-    Partial<NativeMethods>,
-    Partial<TimerMixin> {
+  Readonly<{ children?: ReactNode }>,
+  Partial<NativeMethods>,
+  Partial<TimerMixin> {
   ref?: Ref<InputRef<T>>;
   outerRef?: Ref<InputRef<T>>;
   name?: any;
@@ -232,7 +232,7 @@ const Component: InputComponent = ({
           value={value}
           textAlignVertical={rest.multiline ? 'top' : 'center'}
           selectionColor={currentValidationStyles?.selectionColor}
-          placeholderTextColor={currentValidationStyles?.placeholder}
+          placeholderTextColor={currentValidationStyles?.placeholder || selectedStyle?.default?.placeholder}
           {...rest}
           style={[
             {
