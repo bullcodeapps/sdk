@@ -158,7 +158,7 @@ const Component: SelectComponent = ({
       alignItems: 'center',
       justifyContent: 'center',
     },
-  });
+  } as NativeSelectStyle);
 
   useEffect(() => {
     combinedRef.current.markAsDirty = () => {
@@ -320,12 +320,12 @@ const Component: SelectComponent = ({
         Icon={!hideIcon ? Icon : null}
         onValueChange={handleValueChange}
         value={value}
-        placeholder={{ label: placeholder, value: undefined }}
+        placeholder={{ key: '@@placeholder', label: placeholder, value: undefined }}
         items={newItems}
         onOpen={handleOpen}
         onClose={handleClose}
         onDonePress={handleDone}
-        itemKey={rest?.itemKey || value?.id}
+        itemKey={rest?.itemKey || typeof value === 'object' ? value?.id : null}
       />
       {loading && <Loading />}
     </Container>
