@@ -36,8 +36,6 @@ export { default as MonitorUserLocation } from './MonitorUserLocation';
 export { default as SearchInput } from './SearchInput';
 export { default as Section } from './Section';
 export { setSectionStyles } from './Section/context';
-export { default as Swipeable } from './Swipeable';
-export { default as Touchable } from './Touchable';
 export { setTextTypes } from './Text/context';
 export { default as Text } from './Text';
 export { default as ListPageIndicator } from './ListPageIndicator';

@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
-import { TextInput, ActivityIndicator, TextInputKeyPressEventData, NativeSyntheticEvent } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import {
+  TextInput,
+  ActivityIndicator,
+  TextInputKeyPressEventData,
+  NativeSyntheticEvent,
+  ScrollView,
+} from 'react-native';
 
 import { useField } from '@unform/core';
 import { useDebouncedState } from '../../../../core/hooks';
