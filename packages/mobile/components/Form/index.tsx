@@ -167,7 +167,9 @@ const Component: FormComponent = ({
             () => {
               const formData = combinedRef?.current?.getData();
               // replaces in the formData object the value of this field with what comes by parameter
-              dot.set(fieldName, value, formData, true);
+              if (![null, undefined].includes(value) || ![null, undefined].includes(fieldName)) {
+                dot?.set(fieldName, value, formData, true);
+              }
 
               try {
                 validate(formData);
