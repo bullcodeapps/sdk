@@ -1,51 +1,49 @@
+import { getStyleByValidity } from '@bullcode/mobile/utils';
+import { useField } from '@unform/core';
 import React, {
+  ComponentType,
+  FunctionComponent,
   ReactNode,
   Ref,
-  FunctionComponent,
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
   useCallback,
-  memo,
-  ComponentType,
   useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
-
 import {
-  Text,
-  TextInputProps,
-  ViewProps,
-  GestureResponderEvent,
   Animated,
-  TextInput,
-  TimerMixin,
-  NativeMethods,
-  ViewStyle,
-  TextStyle,
+  GestureResponderEvent,
   LayoutChangeEvent,
   LayoutRectangle,
+  NativeMethods,
   Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  TimerMixin,
+  ViewProps,
+  ViewStyle,
 } from 'react-native';
 
+import { useCombinedRefs } from '../../../../core/hooks';
+import { FormFieldType } from '..';
+import { DefaultStyles, InputContext, InputContextType } from './context';
 import {
   Container,
-  LabelBox,
-  InputField,
-  IconContainer,
-  CounterBox,
-  CounterText,
   Content,
   COUNTER_BOX_BOTTOM,
+  CounterBox,
+  CounterText,
+  IconContainer,
+  InputField,
+  LabelBox,
 } from './styles';
-import { useField } from '@unform/core';
-import { useCombinedRefs } from '../../../../core/hooks';
-import ValidityMark from './ValidityMark';
-import { FormFieldType } from '..';
-
-import { InputContextType, InputContext, DefaultStyles } from './context';
 import { InputStyle, ValidityMarkComponentType } from './types';
-import { getStyleByValidity } from '@bullcode/mobile/utils';
+import ValidityMark from './ValidityMark';
 
 export type InputRef<T = any> = T & (Animated.AnimatedComponent<ComponentType<TextInput>> | TextInput);
 export type InputFieldType<T = any> = FormFieldType<InputRef<T>>;
@@ -170,14 +168,14 @@ const Component: InputComponent = ({
       if (propValidity === 'keepDefault') {
         return selectedStyle?.default;
       }
-      return getStyleByValidity(propValidity, selectedStyle);
+      return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(propValidity, selectedStyle)]);
     }
 
     if (!isDirty) {
       return selectedStyle?.default;
     }
 
-    return getStyleByValidity(!error, selectedStyle);
+    return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(!error, selectedStyle)]);
   }, [usingValidity, isDirty, error, selectedStyle, propValidity]);
 
   useEffect(() => {
