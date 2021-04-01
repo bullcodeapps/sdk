@@ -171,7 +171,7 @@ const Component: SuggestGooglePlacesComponent = ({
 
   const MapLocationFilterIcon = useCallback(
     () => (
-      <MapLocationFilterIconContainer onPress={handlePressIcon}>
+      <MapLocationFilterIconContainer disabled={!selected && !canUseCurrentLocation} onPress={handlePressIcon}>
         {selected ? <CloseSearchIcon /> : canUseCurrentLocation ? <MapLocationColoredIcon /> : <MapLocationIcon />}
       </MapLocationFilterIconContainer>
     ),
