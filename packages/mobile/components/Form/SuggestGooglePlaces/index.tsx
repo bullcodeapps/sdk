@@ -138,7 +138,7 @@ const Component: SuggestGooglePlacesComponent = ({
         if (val?.placeId && val?.placeId === selected?.placeId) {
           return;
         }
-        setText(`${val?.description}`);
+        setText(val?.description || '');
         setSelected(val);
       },
       getValue: () => selected,
@@ -485,7 +485,7 @@ const Component: SuggestGooglePlacesComponent = ({
             ...inputStyles,
           },
           selectionColor: currentValidationStyles?.selectionColor,
-          value: `${selected?.description || text}`,
+          value: `${selected?.description || text || ''}`,
           placeholderTextColor: currentValidationStyles?.placeholder,
           returnKeyType: Platform?.select<ReturnKeyTypeOptions>({
             ios: 'search',

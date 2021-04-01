@@ -111,7 +111,7 @@ const Component: InputComponent = ({
         return;
       }
       const newText = text || '';
-      setValue(`${newText}`);
+      setValue(newText);
       !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText, ignoreDebounce);
       onChangeText && onChangeText(newText);
     },
@@ -130,7 +130,7 @@ const Component: InputComponent = ({
 
   useEffect(() => {
     if (rest?.value !== undefined && !isDirty) {
-      handleOnChangeText(`${rest?.value}`);
+      handleOnChangeText(rest?.value || '');
     }
   }, [handleOnChangeText, isDirty, rest.value]);
 
@@ -144,7 +144,7 @@ const Component: InputComponent = ({
       setValue: (ref: TextInput, val: string) => {
         // Avoid from form auto-fill and mark as dirty
         if (val !== undefined && !isDirty) {
-          handleOnChangeText(`${val}`, false);
+          handleOnChangeText(val || '', false);
         }
       },
       getValue: () => {
@@ -229,7 +229,7 @@ const Component: InputComponent = ({
       <Content style={contentContainerStyle}>
         <InputField
           ref={combinedRef}
-          value={`${value}`}
+          value={value}
           textAlignVertical={rest.multiline ? 'top' : 'center'}
           selectionColor={currentValidationStyles?.selectionColor}
           placeholderTextColor={currentValidationStyles?.placeholder}
