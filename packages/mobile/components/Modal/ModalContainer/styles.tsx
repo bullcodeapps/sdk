@@ -1,6 +1,6 @@
-import styled from 'styled-components/native';
-import { Animated, TouchableOpacityProperties, TouchableOpacity, Platform } from 'react-native';
+import { Animated, Platform, TouchableOpacity, TouchableOpacityProperties } from 'react-native';
 import { initialWindowSafeAreaInsets } from 'react-native-safe-area-context';
+import styled from 'styled-components/native';
 
 const { top: insetTop, bottom: insetBottom } = initialWindowSafeAreaInsets;
 
@@ -33,7 +33,6 @@ export const Content = styled.View`
 `;
 
 export const Backdrop = styled(TouchableOpacity).attrs(({ color }: { color?: string }) => ({
-  disallowInterruption: Platform.OS !== 'ios',
   containerStyle: {
     flex: 1,
     position: 'absolute',
@@ -45,7 +44,18 @@ export const Backdrop = styled(TouchableOpacity).attrs(({ color }: { color?: str
     elevation: 1,
     backgroundColor: ![null, undefined].includes(color) ? color : 'rgba(0, 0, 0, 0.5)',
   },
-}))<BackdropProps>``;
+}))<BackdropProps>`
+  flex: 1;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  elevation: 1;
+  ${({ color }) =>
+    ![null, undefined].includes(color) ? `background-color: ${color};` : 'background-color: rgba(0, 0, 0, 0.5);'};
+`;
 
 export const AnimatedModalWindow = styled(Animated.View)`
   flex-shrink: 1;
