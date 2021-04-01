@@ -32,19 +32,7 @@ export const Content = styled.View`
   elevation: 2;
 `;
 
-export const Backdrop = styled(TouchableOpacity).attrs(({ color }: { color?: string }) => ({
-  containerStyle: {
-    flex: 1,
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 1,
-    elevation: 1,
-    backgroundColor: ![null, undefined].includes(color) ? color : 'rgba(0, 0, 0, 0.5)',
-  },
-}))<BackdropProps>`
+export const Backdrop = styled(TouchableOpacity)<BackdropProps>`
   flex: 1;
   position: absolute;
   top: 0;
