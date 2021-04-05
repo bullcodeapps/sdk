@@ -195,10 +195,10 @@ const Component: InputComponent = ({
     (e) => {
       if (!isDirty) {
         setIsDirty(true);
-        !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(value || '', true);
       }
 
       rest?.onFocus && rest?.onFocus(e);
+      combinedRef?.current?.validate && combinedRef.current.validate(value || '', true);
     },
     [combinedRef, isDirty, rest, usingValidity, value],
   );

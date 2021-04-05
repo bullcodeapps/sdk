@@ -339,31 +339,31 @@ const Component: DateTimePickerComponent = ({
   }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
-    if (usingValidity) {
-      if (inputProps?.validity === 'keepDefault') {
-        return selectedStyle?.default;
-      }
-      return getStyleByValidity(inputProps?.validity, selectedStyle);
-    }
-
     if (!isDirty) {
       return selectedStyle?.default;
     }
 
-    return getStyleByValidity(!error, selectedStyle);
-  }, [usingValidity, isDirty, error, selectedStyle, inputProps?.validity]);
-
-  const isValidField = useMemo(() => {
-    if (usingValidity) {
-      return inputProps?.validity;
+    const newDate = parseStrToDate(date);
+    if (!newDate || typeof newDate === 'string' || !isValid(newDate) || !choosenFormat) {
+      return getStyleByValidity(false, selectedStyle);
     }
 
+    return getStyleByValidity(true, selectedStyle);
+
+  }, [usingValidity, isDirty, error, selectedStyle, inputProps?.validity, date]);
+
+  const isValidField = useMemo(() => {
     if (!isDirty) {
       return 'keepDefault';
     }
 
-    return [null, undefined].includes(error);
-  }, [error, inputProps?.validity, isDirty, usingValidity]);
+    const newDate = parseStrToDate(date);
+    if (!newDate || typeof newDate === 'string' || !isValid(newDate) || !choosenFormat) {
+      return false;
+    }
+
+    return true;
+  }, [error, inputProps?.validity, isDirty, usingValidity, date]);
 
   const handleOnFocusInput = useCallback(() => {
     if (!isDirty) {
