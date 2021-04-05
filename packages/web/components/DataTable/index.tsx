@@ -211,7 +211,10 @@ export default function DataTable({
           <MenuItem
             key={action.name}
             style={{ justifyContent: 'space-between', minWidth: 150 }}
-            onClick={() => action.handler && action.handler(data[tableMeta.rowIndex])}
+            onClick={() => {
+              action.handler && action.handler(data[tableMeta.rowIndex]);
+              setAnchorEl([]);
+            }}
           >
             {action.name}
             <span style={{ paddingLeft: 15 }}>{action.icon}</span>
