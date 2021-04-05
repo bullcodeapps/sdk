@@ -2,74 +2,6 @@ import styled from 'styled-components/native';
 import { Animated, TextInput } from 'react-native';
 import Text from '../../Text';
 
-export type ValidityMarkComponentProps = {
-  isValid?: boolean;
-  colorName?: string;
-  onPress?: (data: any) => void;
-};
-
-export type ValidityMarkComponentType = React.FC<ValidityMarkComponentProps>;
-
-export type InputStateStyles = {
-  selectionColor: string;
-  placeholder: string;
-  color: string;
-  borderColor?: string;
-  backgroundColor?: string;
-  borderRadius?: number;
-};
-
-export type ValidityMarkColor = {
-  backgroundColor: string;
-  color: string;
-};
-
-export type ValidityMarkTypes = {
-  valid: ValidityMarkColor;
-  invalid: ValidityMarkColor;
-};
-
-export type InputStyle = {
-  name: string;
-  default: InputStateStyles;
-  valid?: Partial<InputStateStyles>;
-  invalid?: Partial<InputStateStyles>;
-  validityMarkComponent: ValidityMarkComponentType;
-  validityMark: ValidityMarkTypes;
-};
-
-export type InputStyles = Array<InputStyle>;
-
-export const DefaultColors: InputStyles = [
-  {
-    name: 'primary',
-    default: {
-      selectionColor: '#3a9def',
-      placeholder: '#b3c1c8',
-      color: '#2d2d30',
-      borderColor: '#b3c1c8',
-      borderRadius: 25,
-    },
-    valid: {
-      borderColor: '#3a9def',
-    },
-    invalid: {
-      borderColor: '#ffc962',
-    },
-    validityMarkComponent: null,
-    validityMark: {
-      valid: {
-        backgroundColor: '#3a9def',
-        color: '#ffffff',
-      },
-      invalid: {
-        backgroundColor: '#ffc962',
-        color: '#ffffff',
-      },
-    },
-  },
-];
-
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 export const Container = styled(Animated.View)`
@@ -90,44 +22,34 @@ export const InputField = styled(AnimatedTextInput)`
   border-width: 1px;
   font-size: 16px;
   font-weight: 500;
-  overflow: hidden;
 `;
 
-type IconContainerProps = {
-  hasIconComponent?: boolean;
+export const IconContainer = styled.View<{
   isMultiline?: boolean;
-  canShowValidityMark?: boolean;
-};
-
-export const IconContainer = styled.View<IconContainerProps>`
-  position: absolute;
-  top: 0;
-  align-items: center;
-  justify-content: center;
-  min-width: 50px;
-  max-height: 55px;
-  ${({ canShowValidityMark, hasIconComponent, isMultiline }) => {
-    if (canShowValidityMark && hasIconComponent && !isMultiline) {
-      return 'right: 55px;';
-    }
-    return 'right: 5px;';
-  }}
-  ${({ canShowValidityMark, isMultiline }) => {
-    if (isMultiline) {
-      return canShowValidityMark ? 'top: 55px;' : 'top: 16px;';
-    }
-    return 'top: 0;';
-  }}
-  ${({ isMultiline }) => (isMultiline ? 'bottom: auto;' : 'bottom: 0;')}
+  usingValidityMark?: boolean;
+  usingIconComponent?: boolean;
+}>`
+position: absolute;
+top: 0;
+${({ usingValidityMark, usingIconComponent }) =>
+  usingValidityMark && !!usingIconComponent ? 'right: 55px;' : 'right: 5px;'}
+${({ isMultiline, usingValidityMark }) =>
+  isMultiline ? (usingValidityMark ? 'top: 55px;' : 'top: 16px;') : 'top: 0;'}
+${({ isMultiline }) => (isMultiline ? 'bottom: auto;' : 'bottom: 0;')}
+align-items: center;
+justify-content: center;
+min-width: 50px;
+max-height: 55px;
 `;
+
+export const COUNTER_BOX_BOTTOM = 10;
 
 export const CounterBox = styled.View`
   position: absolute;
-  bottom: 10px;
+  bottom: ${COUNTER_BOX_BOTTOM}px;
   right: 10px;
   align-items: center;
   justify-content: center;
-  height: 20px;
   padding-left: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -152,4 +74,8 @@ export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
       return 'color: #bbc8cf';
     }
   }};
+`;
+
+export const Content = styled.View`
+  flex-grow: 1;
 `;

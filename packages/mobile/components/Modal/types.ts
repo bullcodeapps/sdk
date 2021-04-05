@@ -11,14 +11,14 @@ export type ModalConfig = {
   exitOnBackdrop?: boolean;
 };
 
-type StateType = {
+export type ModalState = {
   component: any;
   config: ModalConfig;
   visibility: boolean;
 };
 
-export type ModalComponent = {
-  state: StateType;
+export type ModalComponentProps = {
+  getState: () => ModalState,
   show: (component: any, config?: ModalConfig) => void;
   hide: () => void;
 };

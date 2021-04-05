@@ -13,19 +13,21 @@ import {
 } from './styles';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { Platform, View, TouchableOpacity, Modal, ViewStyle } from 'react-native';
-import { InputProps, InputContextType, InputContext, InputRef } from '../Input';
 import { format, isAfter, isBefore, isEqual, isValid, isWithinInterval } from 'date-fns';
 import { useField } from '@unform/core';
-import { InputStyle, DefaultColors } from '@bullcode/mobile/components/Form/Input/styles';
 import { SvgProps } from 'react-native-svg';
 import { useCombinedRefs } from '@bullcode/core/hooks';
+import { InputProps, InputRef } from '../Input';
+import { InputStyle } from '../Input/types';
+import { DefaultStyles, InputContextType, InputContext } from '../Input/context';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
 export type DateTimePickerProps = {
   ref?: Ref<InputRef>;
   outerRef?: Ref<InputRef>;
   name?: string;
   mode?: 'date' | 'time';
-  color?: string;
+  theme?: string;
   placeholder?: string;
   displayFormat?: string;
   value?: Date;
@@ -38,6 +40,7 @@ export type DateTimePickerProps = {
   inputProps?: InputProps;
   icon?: any;
   style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
   pickerStyle?: any;
   isDirty?: boolean;
   onFocus?: () => void;
@@ -50,7 +53,7 @@ const Component: DateTimePickerComponent = ({
   outerRef,
   name,
   mode = 'date',
-  color,
+  theme,
   placeholder = 'date',
   value,
   doneText = 'Done',
@@ -60,9 +63,10 @@ const Component: DateTimePickerComponent = ({
   maxDate,
   minDate,
   language = 'pt-BR',
-  icon: Icon,
   style,
+  contentContainerStyle,
   pickerStyle,
+  icon: Icon,
   isDirty: propIsDirty,
   onFocus,
   onChange,
@@ -89,7 +93,9 @@ const Component: DateTimePickerComponent = ({
   const usingValidity = useMemo(() => ![undefined, null].includes(inputProps?.validity), [inputProps?.validity]);
 
   const DefaultIcon = useCallback(
-    (props: SvgProps) => (mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />),
+    (props: SvgProps) => {
+      return mode === 'time' ? <ClockIcon {...props} /> : <CalendarIcon {...props} />;
+    },
     [mode],
   );
 
@@ -116,7 +122,7 @@ const Component: DateTimePickerComponent = ({
    */
   const dateFormatted = useMemo(() => {
     const newDate = parseStrToDate(date);
-    if (!newDate || !isValid(newDate) || !choosenFormat) {
+    if (!newDate || typeof newDate === 'string' || !isValid(newDate) || !choosenFormat) {
       return null;
     }
     return format(newDate, choosenFormat, {
@@ -129,7 +135,14 @@ const Component: DateTimePickerComponent = ({
       let newDate = parseStrToDate(_date);
 
       setDate((_oldDate) => {
-        if (_oldDate && newDate && isValid(_oldDate) && isValid(newDate)) {
+        if (
+          _oldDate &&
+          newDate &&
+          typeof _oldDate !== 'string' &&
+          typeof newDate !== 'string' &&
+          isValid(_oldDate) &&
+          isValid(newDate)
+        ) {
           // Keep the old values from the opposite mode
           if (mode === 'time') {
             newDate?.setFullYear(_oldDate?.getFullYear());
@@ -240,6 +253,12 @@ const Component: DateTimePickerComponent = ({
       setValue: (ref: any, val: Date) => {
         // Transforms dates from the form as a string to the data object automatically
         const newDate = parseStrToDate(val);
+        // if even after being converted into a date it is still not a valid date,
+        // then we will ignore the change of state
+        if ([null, undefined].includes(newDate) || typeof newDate === 'string' || !isValid(newDate)) {
+          clear();
+          return;
+        }
         setDate(newDate);
         setInitialDate(newDate);
         combinedRef?.current?.validate && combinedRef.current.validate(newDate);
@@ -295,9 +314,6 @@ const Component: DateTimePickerComponent = ({
   }, [date, onChangeValue]);
 
   const close = useCallback(() => {
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
     setShow(false);
     onChangeValue({ currentDate: date, validate: true });
   }, [date, onChangeValue]);
@@ -310,42 +326,32 @@ const Component: DateTimePickerComponent = ({
     }
   }, [isDirty, togglePicker]);
 
-  const selectedColor: InputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: InputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_color) => _color.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (usingValidity) {
       if (inputProps?.validity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(inputProps?.validity);
+      return getStyleByValidity(inputProps?.validity, selectedStyle);
     }
 
     if (!isDirty) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
-    return getColorTypeByValidity(!error);
-  }, [usingValidity, isDirty, getColorTypeByValidity, error, inputProps?.validity, selectedColor?.default]);
+    return getStyleByValidity(!error, selectedStyle);
+  }, [usingValidity, isDirty, error, selectedStyle, inputProps?.validity]);
 
   const isValidField = useMemo(() => {
     if (usingValidity) {
@@ -366,12 +372,32 @@ const Component: DateTimePickerComponent = ({
     onFocus && onFocus();
   }, [isDirty, onFocus]);
 
+  type MaxAndMinDateProps = {
+    maximumDate?: Date;
+    minimumDate?: Date;
+  };
+
+  // Prevents undeclared values from causing the app to break.
+  const maxAndMinDateProps = useMemo(() => {
+    let response: MaxAndMinDateProps = {};
+
+    if (![null, undefined].includes(maxDate) && typeof maxDate !== 'string' && isValid(maxDate)) {
+      response.maximumDate = maxDate;
+    }
+
+    if (![null, undefined].includes(minDate) && typeof minDate !== 'string' && isValid(minDate)) {
+      response.minimumDate = minDate;
+    }
+
+    return response;
+  }, [maxDate, minDate]);
+
   return (
     <ViewContainer style={style}>
       <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
         <View pointerEvents="none">
           <Input
-            ref={combinedRef}
+            ref={inputRef}
             name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
             editable={false}
             validity={isValidField}
@@ -383,7 +409,7 @@ const Component: DateTimePickerComponent = ({
               }
               return <DefaultIcon color={currentValidationStyles?.borderColor} />;
             }}
-            color={color}
+            theme={theme}
             isDirty={isDirty}
             onFocus={handleOnFocusInput}
             {...inputProps}
@@ -400,12 +426,12 @@ const Component: DateTimePickerComponent = ({
           <ModalViewMiddle>
             <TouchableOpacity onPress={clear} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <View>
-                <ActionText allowFontScaling={false}>{clearText}</ActionText>
+                <ActionText allowFontScaling={false}>{clearText || 'clear'}</ActionText>
               </View>
             </TouchableOpacity>
             <TouchableOpacity onPress={done} hitSlop={{ top: 4, right: 4, bottom: 4, left: 4 }}>
               <View>
-                <ActionText allowFontScaling={false}>{doneText}</ActionText>
+                <ActionText allowFontScaling={false}>{doneText || 'done'}</ActionText>
               </View>
             </TouchableOpacity>
           </ModalViewMiddle>
@@ -416,12 +442,11 @@ const Component: DateTimePickerComponent = ({
             style={pickerStyle}
             locale={language}
             value={pickerValue}
-            maximumDate={maxDate}
-            minimumDate={minDate}
             mode={mode as 'date' | 'time' | 'datetime' | 'countdown'}
             onChange={selectDate}
             display="spinner"
             textColor="black"
+            {...maxAndMinDateProps}
           />
         </ModalViewBottom>
       </Modal>
@@ -429,8 +454,8 @@ const Component: DateTimePickerComponent = ({
   );
 };
 
-const DateTimePicker: DateTimePickerComponent = React.forwardRef((props: DateTimePickerProps, ref: Ref<InputRef>) => (
-  <Component outerRef={ref} {...props} />
-));
+const DateTimePicker: DateTimePickerComponent = React.forwardRef(
+  (props: DateTimePickerProps, ref: Ref<InputRef>) => <Component outerRef={ref} {...props} />,
+);
 
 export default DateTimePicker;

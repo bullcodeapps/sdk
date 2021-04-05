@@ -10,14 +10,14 @@ import React, {
   useMemo,
 } from 'react';
 
-import { Container, InputField, SearchIconTouchable, SearchIconsBox, SearchIcon, CloseSearchIcon } from './styles';
+import { Container, InputField, SearchIconTouchable, SearchIconsBox, SearchIcon, CloseSearchIcon, Content } from './styles';
 import {
   ViewProps,
   NativeSyntheticEvent,
   TextInputEndEditingEventData,
   ViewStyle,
   TextInputProps,
-  TextInput,
+  TextInput, TextStyle,
 } from 'react-native';
 import { useCombinedRefs, useDebouncedState } from '../../../core/hooks';
 
@@ -30,9 +30,10 @@ export interface SearchInputProps extends Readonly<{ children?: ReactNode }>, Te
   onLoadResult?: (res: any) => void;
   loadOptions?: (text: string) => Promise<any> | void | object;
   debouncingTime?: number; // in ms, default: 500ms
-  containerStyle?: ViewStyle;
+  style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
+  inputStyle?: TextStyle;
   containerProps?: ViewProps;
-  style?: any;
 }
 
 export type SearchInputComponent = FunctionComponent<SearchInputProps>;
@@ -45,7 +46,9 @@ const Component: SearchInputComponent = ({
   onLoadResult,
   loadOptions,
   debouncingTime = 500,
-  containerStyle,
+  style,
+  contentContainerStyle,
+  inputStyle,
   containerProps,
   defaultValue = '',
   ...rest
@@ -145,28 +148,31 @@ const Component: SearchInputComponent = ({
   const showsSearchIcon = useMemo(() => searchTerm?.length <= 0 && !isFocused, [isFocused, searchTerm]);
 
   return (
-    <Container style={containerStyle} {...containerProps}>
-      <InputField
-        ref={combinedRef}
-        {...rest}
-        value={searchTerm}
-        autoCapitalize={rest?.autoCapitalize || 'none'}
-        autoCompleteType={rest?.autoCompleteType || 'off'}
-        autoCorrect={rest?.autoCorrect || false}
-        onEndEditing={handleOnEndEditing}
-        onChangeText={handleOnChangeText}
-        onFocus={(e) => {
-          setIsFocused(true);
-          rest?.onFocus && rest?.onFocus(e);
-        }}
-        onBlur={(e) => {
-          setIsFocused(false);
-          rest?.onBlur && rest?.onBlur(e);
-        }}
-      />
-      <SearchIconTouchable onPress={handleOnPressMagnifier}>
-        <SearchIconsBox>{showsSearchIcon ? <SearchIcon /> : <CloseSearchIcon />}</SearchIconsBox>
-      </SearchIconTouchable>
+    <Container style={style} {...containerProps}>
+      <Content style={contentContainerStyle}>
+        <InputField
+          ref={combinedRef}
+          {...rest}
+          value={searchTerm}
+          autoCapitalize={rest?.autoCapitalize || 'none'}
+          autoCompleteType={rest?.autoCompleteType || 'off'}
+          autoCorrect={rest?.autoCorrect || false}
+          onEndEditing={handleOnEndEditing}
+          onChangeText={handleOnChangeText}
+          onFocus={(e) => {
+            setIsFocused(true);
+            rest?.onFocus && rest?.onFocus(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            rest?.onBlur && rest?.onBlur(e);
+          }}
+          style={inputStyle}
+        />
+        <SearchIconTouchable onPress={handleOnPressMagnifier}>
+          <SearchIconsBox>{showsSearchIcon ? <SearchIcon /> : <CloseSearchIcon />}</SearchIconsBox>
+        </SearchIconTouchable>
+      </Content>
     </Container>
   );
 };

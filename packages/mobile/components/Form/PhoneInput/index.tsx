@@ -6,12 +6,14 @@ import React, {
   useState,
   useMemo,
   useContext,
-  Ref,
 } from 'react';
-import { TextInput, GestureResponderEvent, ViewStyle } from 'react-native';
+import { TextInput, GestureResponderEvent, ViewStyle, TextStyle } from 'react-native';
 
 import Select, { SelectItem, NativeSelectStyle } from '../../../components/Form/Select';
-import { PhoneInputContainer, Input, PhoneInputStyles, PhoneInputStyle, DefaultColors } from './styles';
+import { Content } from './styles';
+import { PhoneInputContainer, Input } from './styles';
+import { PhoneInputStyle } from './types';
+import { DefaultStyles } from './context';
 
 import getUnicodeFlagIcon from 'country-flag-icons/unicode';
 import {
@@ -20,22 +22,15 @@ import {
   getCountryCallingCode,
   CountryCode as PNCountryCode,
   parsePhoneNumberFromString,
-  isValidNumber,
-} from 'libphonenumber-js';
+} from 'libphonenumber-js/max';
 import { useField } from '@unform/core';
 import { useCombinedRefs } from '../../../../core/hooks';
 import { InputRef, InputFieldType, InputProps } from '../Input';
 import ValidityMark from '@bullcode/mobile/components/Form/Input/ValidityMark';
 import { PickerStyle } from 'react-native-picker-select';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
-export type PhoneInputContextType = { colors: PhoneInputStyles };
-
-export const PhoneInputContext = React.createContext<PhoneInputContextType>({ colors: null });
-
-export const setPhoneInputColors = (colors: PhoneInputStyles) => {
-  const ctx = useContext<PhoneInputContextType>(PhoneInputContext);
-  ctx.colors = colors;
-};
+import { PhoneInputContextType, PhoneInputContext } from './context';
 
 export type CountryCode = PNCountryCode;
 
@@ -47,11 +42,13 @@ export type CustomProps = {
   placeholder?: string;
   useValidityMark?: boolean;
   defaultCountry?: CountryCode;
-  containerStyle?: ViewStyle;
-  selectStyle?: NativeSelectStyle & PickerStyle;
   onChange?: Dispatch<SetStateAction<string>>;
   onChangeCountry?: Dispatch<SetStateAction<CountryCode>>;
   onMarkPress?: (event?: GestureResponderEvent) => void;
+  style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
+  inputStyle?: TextStyle;
+  selectStyle?: NativeSelectStyle & PickerStyle;
 };
 
 export type PhoneInputProps = CustomProps & Omit<InputProps, 'name'>;
@@ -66,12 +63,14 @@ const PhoneInput: PhoneInputComponent = ({
   placeholder,
   useValidityMark,
   defaultCountry,
-  containerStyle,
-  selectStyle = {},
   onChange,
   onChangeCountry,
   onMarkPress,
   onFocus: propOnFocus,
+  style,
+  contentContainerStyle,
+  inputStyle,
+  selectStyle = {},
   ...rest
 }) => {
   const ctx = useContext<PhoneInputContextType>(PhoneInputContext);
@@ -92,13 +91,20 @@ const PhoneInput: PhoneInputComponent = ({
     const hasPhone = phone !== undefined && phone !== null;
     const hasLocalSelectedCountry = localSelectedCountry !== undefined && localSelectedCountry !== null;
 
-    return (
-      selectIsValid &&
-      inputIsValid &&
-      hasPhone &&
-      hasLocalSelectedCountry &&
-      isValidNumber(phone, localSelectedCountry)
-    );
+    if (phone) {
+      const asYouType = new AsYouType(localSelectedCountry);
+      asYouType.input(phone)
+
+      return (
+        selectIsValid &&
+        inputIsValid &&
+        hasPhone &&
+        hasLocalSelectedCountry &&
+        asYouType.getNumber().isValid()
+      );
+    }
+
+    return false;
   }, [selectIsValid, inputIsValid, phone, localSelectedCountry]);
 
   useEffect(() => {
@@ -205,42 +211,32 @@ const PhoneInput: PhoneInputComponent = ({
 
   const usingValidity = useMemo(() => ![undefined, null].includes(rest?.validity), [rest?.validity]);
 
-  const selectedColor: PhoneInputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === rest?.color);
-    if (!foundColor) {
+  const selectedStyle: PhoneInputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === rest?.theme);
+    if (!foundStyle) {
       console.log(
-        `The "${rest?.color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${rest?.theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [rest?.color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [rest?.theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (usingValidity) {
       if (rest?.validity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(rest?.validity);
+      return getStyleByValidity(rest?.validity, selectedStyle);
     }
 
     if (!isDirty) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
-    return getColorTypeByValidity(isValid);
-  }, [usingValidity, isValid, selectedColor.default, rest?.validity, getColorTypeByValidity, isDirty]);
+    return getStyleByValidity(isValid, selectedStyle);
+  }, [usingValidity, isValid, selectedStyle.default, rest?.validity, getStyleByValidity, isDirty]);
 
   const defaultSelectStyle: NativeSelectStyle = useMemo(
     () => ({
@@ -303,9 +299,9 @@ const PhoneInput: PhoneInputComponent = ({
 
   const selectIconStyle = useMemo(
     () => ({
-      color: currentValidationStyles?.select?.dropDownIcon || selectedColor?.default?.select?.dropDownIcon,
+      color: currentValidationStyles?.select?.dropDownIcon || selectedStyle?.default?.select?.dropDownIcon,
     }),
-    [currentValidationStyles?.select?.dropDownIcon, selectedColor?.default?.select?.dropDownIcon],
+    [currentValidationStyles?.select?.dropDownIcon, selectedStyle?.default?.select?.dropDownIcon],
   );
 
   useEffect(() => {
@@ -345,69 +341,75 @@ const PhoneInput: PhoneInputComponent = ({
 
   return (
     <PhoneInputContainer
-      color={rest?.color}
+      color={rest?.theme}
       style={[
         {
-          borderRadius: selectedColor?.default?.borderRadius,
+          borderRadius: selectedStyle?.default?.borderRadius,
           borderColor: currentValidationStyles?.input?.borderColor,
         },
-        containerStyle,
+        style,
       ]}>
-      <Select
-        items={countries}
-        name={`country-select-${name}`}
-        defaultValue={defaultCountry}
-        value={localSelectedCountry}
-        onValueChange={(value: string | number | Object) => handleChangeCountry(value as CountryCode)}
-        onChangeValidity={setSelectIsValid}
-        onOpen={handleOpenSelect}
-        style={{ ...defaultSelectStyle, ...selectStyle }}
-        iconStyle={selectIconStyle}
-      />
-      <Input
-        ref={combinedRef}
-        name={`formatted-number-input-${name}`}
-        validity={validity}
-        value={phone}
-        placeholder={placeholder}
-        maxLength={35}
-        onChangeText={handleChangePhone}
-        returnKeyType="next"
-        onSubmitEditing={() => {
-          nextInputRef && nextInputRef.current?.focus();
-        }}
-        onChangeValidity={setInputIsValid}
-        keyboardType={'phone-pad'}
-        {...rest}
-        selectionColor={currentValidationStyles?.input?.selectionColor}
-        style={[
-          {
-            backgroundColor: currentValidationStyles?.input?.backgroundColor || 'transparent',
-            borderColor: currentValidationStyles?.input?.borderColor,
-            color: currentValidationStyles?.input?.color,
-            borderRadius: selectedColor?.default?.borderRadius,
-            paddingRight: usingValidity && useValidityMark ? 45 : 0,
-          },
-          rest?.style,
-        ]}
-        iconComponent={(props) => {
-          if (selectedColor?.validityMarkComponent) {
-            const CustomValidityMark = selectedColor?.validityMarkComponent;
-            return <CustomValidityMark {...props} />;
-          }
-          return isDirty ? (
-            <ValidityMark
-              isValid={isValid}
-              colors={selectedColor?.validityMark}
-              onPress={(e) => {
-                !!onMarkPress && onMarkPress(e);
-              }}
-            />
-          ) : null;
-        }}
-        isDirty={isDirty}
-        onFocus={onFocus}
-      />
+      <Content>
+        <Select
+          items={countries}
+          name={`country-select-${name}`}
+          defaultValue={defaultCountry}
+          value={localSelectedCountry}
+          onValueChange={(value: string | number | Object) => handleChangeCountry(value as CountryCode)}
+          onChangeValidity={setSelectIsValid}
+          onOpen={handleOpenSelect}
+          style={{ ...defaultSelectStyle, ...selectStyle }}
+          iconStyle={selectIconStyle}
+        />
+        <Input
+          ref={combinedRef}
+          name={`formatted-number-input-${name}`}
+          validity={validity}
+          value={phone}
+          placeholder={placeholder}
+          maxLength={35}
+          onChangeText={handleChangePhone}
+          returnKeyType="next"
+          onSubmitEditing={() => {
+            nextInputRef && nextInputRef.current?.focus();
+          }}
+          onChangeValidity={setInputIsValid}
+          keyboardType={'phone-pad'}
+          {...rest}
+          selectionColor={currentValidationStyles?.input?.selectionColor}
+          style={[
+            {
+              backgroundColor: currentValidationStyles?.input?.backgroundColor || 'transparent',
+              borderColor: currentValidationStyles?.input?.borderColor,
+              borderRadius: selectedStyle?.default?.borderRadius,
+              paddingRight: usingValidity && useValidityMark ? 45 : 0,
+            },
+            rest?.style,
+          ]}
+          inputStyle={{
+            paddingLeft: 10,
+            borderWidth: 0,
+            color: currentValidationStyles?.input?.color
+          }}
+          iconComponent={(props) => {
+            if (selectedStyle?.validityMarkComponent) {
+              const CustomValidityMark = selectedStyle?.validityMarkComponent;
+              return <CustomValidityMark {...props} />;
+            }
+            return isDirty ? (
+              <ValidityMark
+                isValid={isValid}
+                colors={selectedStyle?.validityMark}
+                onPress={(e) => {
+                  !!onMarkPress && onMarkPress(e);
+                }}
+              />
+            ) : null;
+          }}
+          isDirty={isDirty}
+          onFocus={onFocus}
+        />
+      </Content>
     </PhoneInputContainer>
   );
 };

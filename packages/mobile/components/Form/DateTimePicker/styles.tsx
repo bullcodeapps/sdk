@@ -83,3 +83,7 @@ export const CalendarIcon = styled(CalendarSvg)`
   width: 20px;
   height: 20px;
 `;
+
+export const Content = styled.View`
+  flex-grow: 1;
+`;

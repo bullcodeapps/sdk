@@ -15,7 +15,7 @@ export const ChipsBox = styled.View`
   margin: 0 20px;
 `;
 
-export const ChipButton = styled(DefaultChipButton)<{ type: ChipsListTypes }>`
+export const ChipButton = styled(DefaultChipButton) <{ type: ChipsListTypes }>`
   margin-right: 10px;
   ${(props) => (props?.type === ChipsListTypes.SCATTERED ? 'margin-top: 10px;' : 'margin-top: 0;')}
 `;
@@ -28,4 +28,8 @@ export const List = styled(FlatList as new () => FlatList<ChipButtonData>).attrs
 })`
   flex-direction: row;
   flex-shrink: 1;
+`;
+
+export const Content = styled.View`
+  flex-grow: 1;
 `;

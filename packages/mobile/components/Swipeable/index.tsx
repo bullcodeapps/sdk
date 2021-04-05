@@ -20,7 +20,7 @@ import {
   PanGestureHandlerStateChangeEvent,
 } from 'react-native-gesture-handler';
 
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, ViewStyle } from 'react-native';
 import { useCombinedRefs } from '../../../core/hooks';
 import Touchable from '../Touchable';
 import { windowWidth } from '../../global-styles';
@@ -45,6 +45,8 @@ type SwipeableProps = {
   lockSwipeToLeft?: boolean;
   useActionsQuickDemo: boolean;
   onFastAction: (data: RowData) => void;
+  style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
 } & RowData;
 
 export const EditAction = (props) => {
@@ -79,6 +81,8 @@ const Component: SwipeableComponent = ({
   lockSwipeToLeft,
   useActionsQuickDemo,
   onFastAction,
+  style,
+  contentContainerStyle,
 }) => {
   // Pre-processors
   const visibleActionsContainerWidthArray = rightActions?.map(() => {
@@ -391,7 +395,7 @@ const Component: SwipeableComponent = ({
   );
 
   return (
-    <Container>
+    <Container style={style}>
       <PanGestureHandler
         minDist={10}
         failOffsetY={[-10, 10]}
@@ -401,9 +405,12 @@ const Component: SwipeableComponent = ({
         onGestureEvent={handleLineSwipeEvent}>
         <Row>
           <Content
-            style={{
-              transform: [{ translateX: rightSwipeTransition }],
-            }}>
+            style={[
+              {
+                transform: [{ translateX: rightSwipeTransition }],
+              },
+              contentContainerStyle
+            ]}>
             {children}
             {leftActions && <Actions actions={leftActions} />}
             {rightActions && <Actions actions={rightActions} />}

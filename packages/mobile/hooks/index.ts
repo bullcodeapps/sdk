@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useState, useRef } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 import { Position } from '../utils';
 import { Platform, Keyboard } from 'react-native';
@@ -7,14 +7,19 @@ import { request, requestMultiple, PERMISSIONS, RESULTS } from 'react-native-per
 
 type PersistedStateResponse<T> = [T, Dispatch<SetStateAction<T>>, boolean];
 
-export const usePosition = (): Position & { permissionGranted: boolean; error: string } => {
-  const [position, setPosition] = usePersistedState<Position>('@levi:usePosition:position', {
+export const usePosition = (disable?: boolean): Position & { permissionGranted: boolean; error: string } => {
+  // Refs
+  const interval = useRef<NodeJS.Timeout>();
+
+  // State
+  const [position, setPosition] = usePersistedState<Position>('@Position:usePosition:position', {
     latitude: null,
     longitude: null,
   });
-  const [error, setError] = usePersistedState<string>('@levi:usePosition:error', null);
+
+  const [error, setError] = usePersistedState<string>('@Position:usePosition:error', null);
   const [permissionGranted, setPermissionGranted] = usePersistedState<boolean>(
-    '@levi:usePosition:permissionGranted',
+    '@Position:usePosition:permissionGranted',
     false,
   );
 
@@ -59,7 +64,7 @@ export const usePosition = (): Position & { permissionGranted: boolean; error: s
   }, [setPermissionGranted]);
 
   useEffect(() => {
-    if (!permissionGranted) {
+    if (!permissionGranted || disable) {
       return;
     }
 
@@ -68,14 +73,19 @@ export const usePosition = (): Position & { permissionGranted: boolean; error: s
       setError('Geolocation is not supported');
       return;
     }
-    const interval = setInterval(() => {
+    
+    interval.current = setInterval(() => {
       geo.getCurrentPosition(onChange, onError, {
         timeout: 1000 * 30,
         // enableHighAccuracy: true,
       });
     }, 1000 * 10);
+
     return () => {
-      clearInterval(interval);
+      if (!interval?.current) {
+        return;
+      }
+      clearInterval(interval.current);
     };
   }, [onChange, onError, permissionGranted, setError]);
 

@@ -1,53 +1,49 @@
+import { getStyleByValidity } from '@bullcode/mobile/utils';
+import { useField } from '@unform/core';
 import React, {
+  ComponentType,
+  FunctionComponent,
   ReactNode,
   Ref,
-  FunctionComponent,
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
   useCallback,
-  memo,
-  ComponentType,
   useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
-
 import {
-  Text,
-  TextInputProps,
-  ViewProps,
-  GestureResponderEvent,
   Animated,
-  TextInput,
-  TimerMixin,
+  GestureResponderEvent,
+  LayoutChangeEvent,
+  LayoutRectangle,
   NativeMethods,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  TimerMixin,
+  ViewProps,
+  ViewStyle,
 } from 'react-native';
 
+import { useCombinedRefs } from '../../../../core/hooks';
+import { FormFieldType } from '..';
+import { DefaultStyles, InputContext, InputContextType } from './context';
 import {
   Container,
-  LabelBox,
-  InputField,
-  IconContainer,
+  Content,
+  COUNTER_BOX_BOTTOM,
   CounterBox,
   CounterText,
-  DefaultColors,
-  InputStyles,
-  InputStyle,
-  ValidityMarkComponentType,
+  IconContainer,
+  InputField,
+  LabelBox,
 } from './styles';
-import { useField } from '@unform/core';
-import { useCombinedRefs } from '../../../../core/hooks';
+import { InputStyle, ValidityMarkComponentType } from './types';
 import ValidityMark from './ValidityMark';
-import { FormFieldType } from '..';
-
-export type InputContextType = { colors: InputStyles };
-
-export const InputContext = React.createContext<InputContextType>({ colors: null });
-
-export const setInputColors = (colors: InputStyles) => {
-  const ctx = useContext<InputContextType>(InputContext);
-  ctx.colors = colors;
-};
 
 export type InputRef<T = any> = T & (Animated.AnimatedComponent<ComponentType<TextInput>> | TextInput);
 export type InputFieldType<T = any> = FormFieldType<InputRef<T>>;
@@ -61,34 +57,36 @@ export interface InputProps<T = any>
   outerRef?: Ref<InputRef<T>>;
   name?: any;
   iconComponent?: ValidityMarkComponentType;
-  containerStyle?: any;
   label?: string;
   containerProps?: ViewProps;
   useValidityMark?: boolean;
   validity?: boolean | 'keepDefault';
-  color?: string;
+  theme?: string;
   isDirty?: boolean;
   onChangeValidity?: (isValid: boolean) => void;
   onMarkPress?: (event: GestureResponderEvent) => void;
+  contentContainerStyle?: ViewStyle;
+  inputStyle?: TextStyle;
 }
 
 export type InputComponent<T = any> = FunctionComponent<InputProps<T>>;
 
 const Component: InputComponent = ({
-  color = 'primary',
+  theme = 'primary',
   name,
   iconComponent,
   outerRef,
   label,
-  containerStyle,
   containerProps,
   useValidityMark = false,
-  style,
   validity: propValidity,
   isDirty: propIsDirty = false,
   onChangeValidity,
   onMarkPress,
   onChangeText,
+  style,
+  contentContainerStyle,
+  inputStyle,
   ...rest
 }) => {
   const ctx = useContext<InputContextType>(InputContext);
@@ -97,6 +95,7 @@ const Component: InputComponent = ({
   const [value, setValue] = useState<string>('');
   const [isDirty, setIsDirty] = useState(propIsDirty);
   const { fieldName, registerField, error } = useField(name);
+  const [counterBoxLayout, setCounterBoxLayout] = useState<LayoutRectangle>();
 
   // Refs
   const inputRef = useRef<InputFieldType>(null);
@@ -105,13 +104,13 @@ const Component: InputComponent = ({
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
   const handleOnChangeText = useCallback(
-    (text: string) => {
+    (text: string, ignoreDebounce: boolean = true) => {
       if (value === text) {
         return;
       }
       const newText = text || '';
       setValue(newText);
-      !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText);
+      !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText, ignoreDebounce);
       onChangeText && onChangeText(newText);
     },
     [inputRef, onChangeText, usingValidity, value],
@@ -129,7 +128,7 @@ const Component: InputComponent = ({
 
   useEffect(() => {
     if (rest?.value !== undefined && !isDirty) {
-      handleOnChangeText(rest?.value);
+      handleOnChangeText(rest?.value || '');
     }
   }, [handleOnChangeText, isDirty, rest.value]);
 
@@ -143,7 +142,7 @@ const Component: InputComponent = ({
       setValue: (ref: TextInput, val: string) => {
         // Avoid from form auto-fill and mark as dirty
         if (val !== undefined && !isDirty) {
-          handleOnChangeText(val);
+          handleOnChangeText(val || '', false);
         }
       },
       getValue: () => {
@@ -152,70 +151,51 @@ const Component: InputComponent = ({
     });
   }, [combinedRef, fieldName, handleOnChangeText, isDirty, registerField, value]);
 
-  const selectedColor: InputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: InputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(propValidity);
+      return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(propValidity, selectedStyle)]);
     }
 
     if (!isDirty) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
-    return getColorTypeByValidity(!error);
-  }, [
-    error,
-    getColorTypeByValidity,
-    propValidity,
-    selectedColor?.default,
-    selectedColor?.invalid,
-    usingValidity,
-    value,
-    isDirty,
-  ]);
+    return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(!error, selectedStyle)]);
+  }, [usingValidity, isDirty, error, selectedStyle, propValidity]);
 
   useEffect(() => {
     onChangeValidity && onChangeValidity(!error);
   }, [error, onChangeValidity]);
 
   const ValidityMarkComponent: ValidityMarkComponentType = useMemo(() => {
-    if (!selectedColor?.validityMarkComponent) {
+    if (!selectedStyle?.validityMarkComponent) {
       return ValidityMark;
     }
-    return selectedColor?.validityMarkComponent;
-  }, [selectedColor.validityMarkComponent]);
+    return selectedStyle?.validityMarkComponent;
+  }, [selectedStyle.validityMarkComponent]);
 
   const IconComponent = useMemo(() => iconComponent, [iconComponent]);
 
   const onFocus = useCallback(
     (e) => {
       if (!isDirty) {
-        !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(value || '');
         setIsDirty(true);
+        !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(value || '', true);
       }
 
       rest?.onFocus && rest?.onFocus(e);
@@ -233,61 +213,71 @@ const Component: InputComponent = ({
     return isDirty;
   }, [isDirty, propValidity, useValidityMark, usingValidity]);
 
+  const handleOnLayoutCounterBox = (e: LayoutChangeEvent) => {
+    setCounterBoxLayout(e?.nativeEvent?.layout);
+  };
+
   return (
-    <Container style={containerStyle} {...containerProps}>
+    <Container style={style} {...containerProps}>
       {label && (
         <LabelBox>
           <Text>{label}</Text>
         </LabelBox>
       )}
-      <InputField
-        ref={combinedRef}
-        value={value}
-        textAlignVertical={rest.multiline ? 'top' : 'center'}
-        selectionColor={currentValidationStyles?.selectionColor}
-        placeholderTextColor={currentValidationStyles?.placeholder}
-        {...rest}
-        style={[
-          {
-            backgroundColor: currentValidationStyles?.backgroundColor || 'transparent',
-            borderColor: currentValidationStyles?.borderColor,
-            color: currentValidationStyles?.color,
-            borderRadius: selectedColor?.default?.borderRadius,
-            paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
-          },
-          style,
-        ]}
-        onChangeText={handleOnChangeText}
-        onFocus={onFocus}
-      />
-      <IconContainer
-        isMultiline={rest.multiline}
-        hasIconComponent={!!iconComponent}
-        canShowValidityMark={canShowValidityMark}>
-        {canShowValidityMark && (
-          <ValidityMarkComponent
-            isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
-            colorName={selectedColor.name}
-            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
-            onPress={(e) => !!onMarkPress && onMarkPress(e)}
-          />
+      <Content style={contentContainerStyle}>
+        <InputField
+          ref={combinedRef}
+          value={value}
+          textAlignVertical={rest.multiline ? 'top' : 'center'}
+          selectionColor={currentValidationStyles?.selectionColor}
+          placeholderTextColor={currentValidationStyles?.placeholder}
+          {...rest}
+          style={[
+            {
+              flexGrow: 1,
+              backgroundColor: currentValidationStyles?.backgroundColor || 'transparent',
+              borderColor: currentValidationStyles?.borderColor,
+              color: currentValidationStyles?.color,
+              borderRadius: selectedStyle?.default?.borderRadius,
+              paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
+              paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 'auto',
+            },
+            inputStyle,
+          ]}
+          onChangeText={handleOnChangeText}
+          onFocus={onFocus}
+        />
+        {(!!useValidityMark || !!iconComponent) && (
+          <IconContainer
+            isMultiline={rest.multiline}
+            usingIconComponent={!!iconComponent}
+            usingValidityMark={canShowValidityMark}>
+            {canShowValidityMark && (
+              <ValidityMarkComponent
+                isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
+                colorName={selectedStyle.name}
+                {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
+                onPress={(e) => !!onMarkPress && onMarkPress(e)}
+              />
+            )}
+            {!!iconComponent && (
+              <IconComponent
+                isValid={!error}
+                colorName={selectedStyle.name}
+                {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
+                onPress={(e) => !!onMarkPress && onMarkPress(e)}
+              />
+            )}
+          </IconContainer>
         )}
-        {!!iconComponent && (
-          <IconComponent
-            isValid={!error}
-            colorName={selectedColor.name}
-            {...(selectedColor?.validityMarkComponent ? {} : { colors: selectedColor?.validityMark })}
-            onPress={(e) => !!onMarkPress && onMarkPress(e)}
-          />
+        {rest?.multiline && (
+          <CounterBox onLayout={handleOnLayoutCounterBox}>
+            <CounterText maxLength={rest?.maxLength} length={value?.length}>
+              {`${value ? value?.length : 0}/${rest?.maxLength}`}
+            </CounterText>
+          </CounterBox>
         )}
-      </IconContainer>
-      {rest?.multiline && (
-        <CounterBox>
-          <CounterText maxLength={rest?.maxLength} length={value?.length}>
-            {`${value ? value?.length : 0}/${rest?.maxLength}`}
-          </CounterText>
-        </CounterBox>
-      )}
+      </Content>
     </Container>
   );
 };
@@ -296,4 +286,4 @@ const Input: InputComponent = React.forwardRef((props: InputProps, ref: Ref<Inpu
   <Component outerRef={ref} {...props} />
 ));
 
-export default memo(Input);
+export default Input;

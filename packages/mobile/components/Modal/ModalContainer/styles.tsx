@@ -1,11 +1,10 @@
-import styled from 'styled-components/native';
-import { Animated, Platform, TouchableOpacityProperties } from 'react-native';
+import { Animated, Platform, TouchableOpacity, TouchableOpacityProperties } from 'react-native';
 import { initialWindowSafeAreaInsets } from 'react-native-safe-area-context';
-import { ContainedTouchableProperties, TouchableOpacity } from 'react-native-gesture-handler';
+import styled from 'styled-components/native';
 
 const { top: insetTop, bottom: insetBottom } = initialWindowSafeAreaInsets;
 
-interface BackdropProps extends TouchableOpacityProperties, ContainedTouchableProperties {
+interface BackdropProps extends TouchableOpacityProperties {
   color?: string;
 }
 
@@ -29,24 +28,22 @@ export const Content = styled.View`
   left: 0;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  z-index: 5;
   elevation: 2;
 `;
 
-export const Backdrop = styled(TouchableOpacity).attrs(({ color }: { color?: string }) => ({
-  disallowInterruption: Platform.OS !== 'ios',
-  containerStyle: {
-    flex: 1,
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    zIndex: 1,
-    elevation: 1,
-    backgroundColor: ![null, undefined].includes(color) ? color : 'rgba(0, 0, 0, 0.5)',
-  },
-})) <BackdropProps>``;
+export const Backdrop = styled(TouchableOpacity)<BackdropProps>`
+  flex: 1;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  elevation: 1;
+  ${({ color }) =>
+    ![null, undefined].includes(color) ? `background-color: ${color};` : 'background-color: rgba(0, 0, 0, 0.5);'};
+`;
 
 export const AnimatedModalWindow = styled(Animated.View)`
   flex-shrink: 1;

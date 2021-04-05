@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, forwardRef, useMemo, Ref } from 'react';
+import React, { useRef, useEffect, useCallback, forwardRef, useMemo, Ref, useState } from 'react';
 import { SubmitHandler, FormProps as DefaultFormProps, FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 
@@ -35,6 +35,8 @@ const Component: FormComponent = ({
 }) => {
   const formRef = useRef<FormType>(null);
   const combinedRef = useCombinedRefs<FormType>(outerRef, formRef);
+  const [debouncedValue, setDebouncedValue] = useState(false);
+  const debounceHandlerRef = useRef<NodeJS.Timeout>();
 
   const requiredFields = useMemo(() => {
     let fields = [];
@@ -156,18 +158,37 @@ const Component: FormComponent = ({
   const addAutoValidationToFields = useCallback(
     () =>
       applyRuleToAllFields((fieldRef, fieldName) => {
-        fieldRef.validate = (value: any) => {
-          const formData = combinedRef?.current?.getData();
-          // replaces in the formData object the value of this field with what comes by parameter
-          dot.set(fieldName, value, formData, true);
-
-          try {
-            validate(formData);
-          } catch (e) {
-            /*
-             * Errors are not dealt with here because they are the responsibility of inputs
-             */
+        fieldRef.validate = (value: any, ignoreDebounce?: boolean) => {
+          if (debounceHandlerRef?.current) {
+            clearTimeout(debounceHandlerRef.current);
           }
+          // Avoid multiple and unnecessary validations
+          debounceHandlerRef.current = setTimeout(
+            () => {
+              const formData = combinedRef?.current?.getData();
+              // replaces in the formData object the value of this field with what comes by parameter
+              if (
+                ![null, undefined].includes(value) &&
+                ![null, undefined].includes(fieldName) &&
+                ![null, undefined].includes(formData) &&
+                typeof formData === 'object'
+              ) {
+                dot?.set(fieldName, value, formData, true);
+              }
+
+              try {
+                validate(formData);
+              } catch (e) {
+                /*
+                 * Errors are not dealt with here because they are the responsibility of inputs
+                 */
+              }
+              if (debounceHandlerRef?.current) {
+                clearTimeout(debounceHandlerRef.current);
+              }
+            },
+            ignoreDebounce ? 0 : 350,
+          );
         };
       }),
     [applyRuleToAllFields, combinedRef, validate],
@@ -203,7 +224,7 @@ const Component: FormComponent = ({
         onSubmitError(Object.keys(validationErrors).length > 0 ? validationErrors : err, formData);
       }
     },
-    [combinedRef, onSubmitError, setChildrenAsDirty, validate],
+    [combinedRef, onSubmit, onSubmitError, setChildrenAsDirty, validate],
   );
 
   return (

@@ -1,26 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback, memo, useContext, useMemo } from 'react';
 
-import { Container, SwitchLine, SwitchLabel, SwitchButton, SwitchColors } from './styles';
-import { ViewProps, Switch, SwitchProps } from 'react-native';
+import { Container, SwitchLine, SwitchLabel, SwitchButton, Content } from './styles';
+import { Switch, SwitchProps, TextStyle, ViewStyle } from 'react-native';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
 
-export type SwitchContextType = { colors: SwitchColors };
-
-export const SwitchContext = React.createContext<SwitchContextType>({ colors: null });
-
-export const setSwitchColors = (colors: SwitchColors) => {
-  const ctx = useContext<SwitchContextType>(SwitchContext);
-  ctx.colors = colors;
-};
+import { SwitchContextType, SwitchContext } from './context';
 
 type FormSwitchProps = {
   name?: string;
-  color?: string;
+  theme?: string;
   label?: string | React.ReactNode;
   defaultValue?: boolean;
   value?: boolean;
-  contentContainerStyle?: ViewProps;
+  style?: ViewStyle;
+  contentContainerStyle?: ViewStyle;
+  switchButtonStyle?: TextStyle;
   onChange?: (value?: boolean) => void;
   clear?: () => void;
 } & Omit<SwitchProps, 'trackColor' | 'thumbColor' | 'ios_backgroundColor'>;
@@ -29,13 +24,15 @@ type FieldType = FormFieldType<Switch>;
 
 const FormSwitch = ({
   name,
-  color,
+  theme,
   label,
   onChange,
   value: propValue,
   defaultValue = false,
   clear: propClear,
+  style,
   contentContainerStyle,
+  switchButtonStyle,
   ...rest
 }: FormSwitchProps) => {
   const ctx = useContext<SwitchContextType>(SwitchContext);
@@ -84,83 +81,61 @@ const FormSwitch = ({
     });
   }, [clear, fieldName, handleChange, registerField, value]);
 
-  const trueColor = useMemo(() => {
-    const colors = ctx?.colors;
-    if (!color) {
+  const selectedStyle = useCallback(() => {
+    const colors = ctx?.styles;
+    if (!theme) {
       const foundColor = colors?.find((_color) => _color.name === 'default');
       if (foundColor) {
-        return foundColor?.default?.trueStyle?.backgroundColor;
+        return foundColor?.default;
       }
       return;
     }
-    const foundColor = colors?.find((_color) => _color.name === color);
+    const foundColor = colors?.find((_color) => _color.name === theme);
     if (!foundColor) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return;
     }
 
-    return foundColor?.default?.trueStyle?.backgroundColor;
-  }, [color, ctx.colors]);
+    return foundColor?.default;
+  }, [theme, ctx.styles])
+
+  const trueColor = useMemo(() => {
+    const style = selectedStyle();
+
+    return style?.trueStyle?.backgroundColor;
+  }, [theme, ctx.styles]);
 
   const falseColor = useMemo(() => {
-    const colors = ctx?.colors;
-    if (!color) {
-      const foundColor = colors?.find((_color) => _color.name === 'default');
-      if (foundColor) {
-        return foundColor?.default?.falseStyle?.backgroundColor;
-      }
-      return;
-    }
-    const foundColor = colors?.find((_color) => _color.name === color);
-    if (!foundColor) {
-      console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
-      );
-      return;
-    }
+    const style = selectedStyle();
 
-    return foundColor?.default?.falseStyle?.backgroundColor;
-  }, [color, ctx.colors]);
+    return style?.falseStyle?.backgroundColor;
+  }, [theme, ctx.styles]);
 
   const thumbColor = useMemo(() => {
-    const colors = ctx?.colors;
-    if (!color) {
-      const foundColor = colors?.find((_color) => _color.name === 'default');
-      if (foundColor) {
-        return value ? foundColor?.default?.trueStyle?.thumbColor : foundColor?.default?.falseStyle?.thumbColor;
-      }
-      return;
-    }
-    const foundColor = colors?.find((_color) => _color.name === color);
-    if (!foundColor) {
-      console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
-      );
-      return;
-    }
+    const style = selectedStyle();
 
-    if (value) {
-      return foundColor?.default?.trueStyle?.thumbColor;
-    }
-    return foundColor?.default?.falseStyle?.thumbColor;
-  }, [color, ctx.colors, value]);
+    return value ? style?.trueStyle?.thumbColor : style?.falseStyle?.thumbColor;
+  }, [theme, ctx.styles, value]);
 
   return (
-    <Container style={contentContainerStyle}>
-      <SwitchLine>
-        {typeof label === 'string' ? <SwitchLabel>{label}</SwitchLabel> : label}
-        <SwitchButton
-          ref={switchRef}
-          value={value}
-          onValueChange={handleChange}
-          trackColor={falseColor && trueColor ? { false: falseColor, true: trueColor } : null}
-          thumbColor={thumbColor}
-          ios_backgroundColor={falseColor}
-          {...rest}
-        />
-      </SwitchLine>
+    <Container style={style}>
+      <Content style={contentContainerStyle}>
+        <SwitchLine>
+          {typeof label === 'string' ? <SwitchLabel>{label}</SwitchLabel> : label}
+          <SwitchButton
+            ref={switchRef}
+            value={value}
+            onValueChange={handleChange}
+            trackColor={falseColor && trueColor ? { false: falseColor, true: trueColor } : null}
+            thumbColor={thumbColor}
+            ios_backgroundColor={falseColor}
+            style={switchButtonStyle}
+            {...rest}
+          />
+        </SwitchLine>
+      </Content>
     </Container>
   );
 };

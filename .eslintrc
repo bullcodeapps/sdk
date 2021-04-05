@@ -1,19 +1,27 @@
 {
   "root": true,
-  "extends": [
-    "@react-native-community"
-  ],
+  "extends": ["@react-native-community"],
   "parserOptions": {
-    "parser": "babel-eslint"
+    "parser": "@babel/eslint-parser"
   },
-  "plugins": [ 
-    "react-hooks"
-  ],
+  "plugins": ["react-hooks"],
   "rules": {
     "no-console": ["error", { "allow": ["tron", "log"] }],
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    "radix": "off"
+    "radix": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react-native-gesture-handler",
+            "importNames": ["TouchableOpacity"],
+            "message": "Please do not use the TouchableOpacity of this dependency, it has more bugs than solutions, so it should not be used!"
+          }
+        ]
+      }
+    ]
   },
   "settings": {
     "import/resolver": "babel-plugin-root-import"

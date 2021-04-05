@@ -1,25 +1,8 @@
 import styled from 'styled-components/native';
 import { Switch } from 'react-native';
 
-export type SwitchStyles = {
-  backgroundColor: string;
-  thumbColor: string;
-};
-
-export type SwitchColorTypes = {
-  falseStyle: SwitchStyles;
-  trueStyle?: SwitchStyles;
-};
-
-export type SwitchColor = {
-  name: string;
-  default: SwitchColorTypes;
-};
-
-export type SwitchColors = Array<SwitchColor>;
-
 export const Container = styled.View`
-  flex-grow: 1;
+  flex: 1;
   margin-top: 10px;
 `;
 
@@ -40,4 +23,8 @@ export const SwitchLabel = styled.Text`
 
 export const SwitchButton = styled(Switch)`
   flex-shrink: 1;
+`;
+
+export const Content = styled.View`
+  flex-grow: 1;
 `;

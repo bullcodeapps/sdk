@@ -9,30 +9,16 @@ import React, {
   useCallback,
 } from 'react';
 
-import {
-  Container,
-  IconContainer,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  Loading,
-  SelectStyles,
-  DefaultColors,
-  SelectStyle,
-} from './styles';
+import { Container, IconContainer, ChevronDownIcon, Loading } from './styles';
 import RNPickerSelect, { PickerSelectProps, PickerStyle } from 'react-native-picker-select';
 import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps, Animated } from 'react-native';
 import { useCombinedRefs } from '../../../../core/hooks';
 import { useField } from '@unform/core';
 import { FormFieldType } from '..';
 
-export type SelectContextType = { colors: SelectStyles };
-
-export const SelectContext = React.createContext<SelectContextType>({ colors: null });
-
-export const setSelectColors = (colors: SelectStyles) => {
-  const ctx = useContext<SelectContextType>(SelectContext);
-  ctx.colors = colors;
-};
+import { SelectContextType, SelectContext, DefaultStyles } from './context';
+import { SelectStyle, SelectStateStyles } from './types';
+import { getStyleByValidity } from '../../../utils';
 
 export interface SelectItem {
   label: string;
@@ -48,7 +34,7 @@ type FieldType = FormFieldType<TextInput>;
 export type SelectProps = {
   outerRef?: Ref<FieldType>;
   name?: string;
-  color?: string;
+  theme?: string;
   placeholder?: string;
   items: SelectItem[];
   style?: NativeSelectStyle;
@@ -67,7 +53,7 @@ export type SelectComponent = FunctionComponent<SelectProps>;
 const Component: SelectComponent = ({
   outerRef,
   name,
-  color = 'primary',
+  theme = 'primary',
   items,
   placeholder = 'select an item...',
   hideIcon,
@@ -87,7 +73,7 @@ const Component: SelectComponent = ({
   const [value, setValue] = useState<any>(null);
   const [opened, setOpened] = useState<boolean>(false);
   const [isDirty, setIsDirty] = useState(false);
-  const { fieldName, registerField, error, defaultValue: unformDefaultValue } = useField(name);
+  const { fieldName, registerField, error } = useField(name);
 
   // Refs
   const pickerRef = useRef<FieldType>(null);
@@ -98,12 +84,6 @@ const Component: SelectComponent = ({
   const iconRotateAnimation = useRef(new Animated.Value(0)).current;
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
-
-  useEffect(() => {
-    if (unformDefaultValue) {
-      setValue(unformDefaultValue);
-    }
-  }, [unformDefaultValue]);
 
   useEffect(() => {
     if (defaultValue !== undefined) {
@@ -117,42 +97,32 @@ const Component: SelectComponent = ({
     }
   }, [propValue]);
 
-  const selectedColor: SelectStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: SelectStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
-
-  const currentValidationStyles = useMemo(() => {
+  const currentValidationStyles = useMemo((): SelectStateStyles => {
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(propValidity);
+      return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(propValidity, selectedStyle)]);
     }
 
     if (!isDirty) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
-    return getColorTypeByValidity(!error);
-  }, [error, getColorTypeByValidity, propValidity, selectedColor?.default, usingValidity, isDirty]);
+    return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(!error, selectedStyle)]);
+  }, [usingValidity, isDirty, error, selectedStyle, propValidity]);
 
   const defaultPickerSelectStyles = StyleSheet.create({
     placeholder: {
@@ -167,10 +137,6 @@ const Component: SelectComponent = ({
       borderWidth: 1,
       fontSize: 16,
       fontWeight: 'bold',
-      borderRadius: currentValidationStyles?.borderRadius,
-      backgroundColor: currentValidationStyles?.backgroundColor,
-      borderColor: currentValidationStyles?.borderColor,
-      color: currentValidationStyles?.color,
       opacity: loading ? 0.3 : 1,
     },
     inputAndroid: {
@@ -182,10 +148,6 @@ const Component: SelectComponent = ({
       borderWidth: 1,
       fontSize: 16,
       fontWeight: 'bold',
-      borderRadius: currentValidationStyles?.borderRadius,
-      backgroundColor: currentValidationStyles?.backgroundColor,
-      borderColor: currentValidationStyles?.borderColor,
-      color: currentValidationStyles?.color,
       opacity: loading ? 0.3 : 1,
     },
     iconContainer: {
@@ -196,7 +158,7 @@ const Component: SelectComponent = ({
       alignItems: 'center',
       justifyContent: 'center',
     },
-  });
+  } as NativeSelectStyle);
 
   useEffect(() => {
     combinedRef.current.markAsDirty = () => {
@@ -229,9 +191,9 @@ const Component: SelectComponent = ({
       return iconStyle;
     }
     return {
-      color: currentValidationStyles?.dropdownIconColor || selectedColor?.default?.dropdownIconColor,
+      color: currentValidationStyles?.dropdownIconColor || selectedStyle?.default?.dropdownIconColor,
     };
-  }, [currentValidationStyles?.dropdownIconColor, iconStyle, selectedColor?.default?.dropdownIconColor]);
+  }, [currentValidationStyles?.dropdownIconColor, iconStyle, selectedStyle?.default?.dropdownIconColor]);
 
   useEffect(() => {
     if (Platform.OS !== 'ios') {
@@ -292,26 +254,8 @@ const Component: SelectComponent = ({
     rest?.onClose && rest?.onClose();
   }, [combinedRef, rest, value]);
 
-  const inputStyles = useMemo(
-    () => ({
-      borderRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
-      backgroundColor: currentValidationStyles?.backgroundColor || selectedColor?.default?.backgroundColor,
-      borderColor: currentValidationStyles?.borderColor || selectedColor?.default?.borderColor,
-      color: currentValidationStyles?.color || selectedColor?.default?.color,
-    }),
-    [
-      currentValidationStyles?.backgroundColor,
-      currentValidationStyles?.borderColor,
-      currentValidationStyles?.borderRadius,
-      currentValidationStyles?.color,
-      selectedColor?.default?.backgroundColor,
-      selectedColor?.default?.borderColor,
-      selectedColor?.default?.borderRadius,
-      selectedColor?.default?.color,
-    ],
-  );
-
   const styles: NativeSelectStyle = useMemo(() => {
+    const { selectionColor, placeholder, dropdownIconColor, ...inputStyles } = currentValidationStyles;
     return {
       ...defaultPickerSelectStyles,
       inputIOS: {
@@ -323,18 +267,15 @@ const Component: SelectComponent = ({
         ...inputStyles,
       },
       selectContainer: {
-        color: currentValidationStyles?.selectionColor || selectedColor?.default?.selectionColor,
+        color: selectionColor,
         ...rest?.style?.selectContainer,
+      },
+      placeholder: {
+        color: placeholder,
       },
       ...rest?.style,
     };
-  }, [
-    currentValidationStyles?.selectionColor,
-    defaultPickerSelectStyles,
-    inputStyles,
-    rest?.style,
-    selectedColor?.default?.selectionColor,
-  ]);
+  }, [currentValidationStyles, defaultPickerSelectStyles, rest.style]);
 
   useEffect(() => {
     onChangeValidity && onChangeValidity(!error);
@@ -346,8 +287,27 @@ const Component: SelectComponent = ({
       combinedRef?.current?.validate && combinedRef.current.validate(val);
       onValueChange && onValueChange(val);
     },
-    [combinedRef, isDirty, onValueChange],
+    [combinedRef, onValueChange],
   );
+
+  const newItems = useMemo(() => {
+    if (!Array.isArray(items)) {
+      return items;
+    }
+
+    return items?.map((_item, _itemIndex) => {
+      if (typeof _item?.value !== 'object' || _item?.value?.hasOwnProperty('key')) {
+        return _item;
+      }
+      return {
+        ..._item,
+        value: {
+          ..._item?.value,
+          key: _item?.value?.hasOwnProperty('id') ? (_item?.value as any)?.id : _itemIndex,
+        },
+      };
+    });
+  }, [items]);
 
   return (
     <Container style={styles?.selectContainer}>
@@ -360,11 +320,12 @@ const Component: SelectComponent = ({
         Icon={!hideIcon ? Icon : null}
         onValueChange={handleValueChange}
         value={value}
-        placeholder={{ label: placeholder, value: undefined }}
-        items={items}
+        placeholder={{ key: '@@placeholder', label: placeholder, value: undefined }}
+        items={newItems}
         onOpen={handleOpen}
         onClose={handleClose}
         onDonePress={handleDone}
+        itemKey={rest?.itemKey || typeof value === 'object' ? value?.id : null}
       />
       {loading && <Loading />}
     </Container>

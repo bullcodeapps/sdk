@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Container, Title, Description, ActionButtons, CancelButton, ConfirmButton } from './styles';
 import { GestureResponderEvent } from 'react-native';
-import { useModal } from '../Modal';
+import { useModal } from '@bullcode/mobile';
 import { DefaultContainer } from '../../global-styles';
 
 export type ConfirmModalProps = {

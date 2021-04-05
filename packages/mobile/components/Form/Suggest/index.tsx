@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
-import { TextInput, ActivityIndicator, TextInputKeyPressEventData, NativeSyntheticEvent } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import {
+  TextInput,
+  ActivityIndicator,
+  TextInputKeyPressEventData,
+  NativeSyntheticEvent,
+  ScrollView,
+} from 'react-native';
 
 import { useField } from '@unform/core';
 import { useDebouncedState } from '../../../../core/hooks';
@@ -8,12 +13,13 @@ import { useDebouncedState } from '../../../../core/hooks';
 import { FormFieldType } from '..';
 
 import { Autocomplete, Row, Text, Input } from './styles';
-import { InputContextType, InputContext } from '@bullcode/mobile/components/Form/Input';
-import { DefaultColors, InputStyle } from '@bullcode/mobile/components/Form/Input/styles';
+import { InputContextType, InputContext, DefaultStyles } from '@bullcode/mobile/components/Form/Input/context';
+import { InputStyle } from '@bullcode/mobile/components/Form/Input/types';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
 type Props = {
   name: string;
-  color?: string;
+  theme?: string;
   data: Array<Object>;
   onChange?: (text?: string) => void;
   onFocus?: (text?: string) => void;
@@ -33,7 +39,7 @@ type Props = {
 
 const Suggest: React.FC<Props> = ({
   name,
-  color,
+  theme,
   data,
   onChange,
   onFocus,
@@ -140,55 +146,36 @@ const Suggest: React.FC<Props> = ({
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
-  const selectedColor: InputStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: InputStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_style) => _style.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
     if (!isDirty) {
-      return selectedColor?.default;
+      return selectedStyle?.default;
     }
 
     if (usingValidity) {
-      return getColorTypeByValidity(propValidity);
+      return getStyleByValidity(propValidity, selectedStyle);
     }
     if (selectedItem && Object.keys(selectedItem)?.length > 0) {
-      return getColorTypeByValidity(!error);
+      return getStyleByValidity(!error, selectedStyle);
     }
 
-    if (!!error) {
-      return selectedColor?.invalid || selectedColor?.default;
+    if (error) {
+      return selectedStyle?.invalid || selectedStyle?.default;
     }
 
-    return selectedColor?.default;
-  }, [
-    usingValidity,
-    selectedItem,
-    error,
-    selectedColor.default,
-    selectedColor.invalid,
-    getColorTypeByValidity,
-    propValidity,
-    isDirty,
-  ]);
+    return selectedStyle?.default;
+  }, [isDirty, usingValidity, selectedItem, error, selectedStyle, propValidity]);
 
   const handleInpuOnKeyPress = useCallback(
     (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
@@ -231,7 +218,7 @@ const Suggest: React.FC<Props> = ({
         <Input
           ref={props.ref}
           name={`inner-text-input-${fieldName}`}
-          color={color}
+          theme={theme}
           useValidityMark={!inputIcon && useValidityMark}
           selectTextOnFocus
           placeholder={placeholder}
@@ -245,14 +232,14 @@ const Suggest: React.FC<Props> = ({
             props?.onKeyPress && props.onKeyPress(e);
           }}
           validity={validity}
-          value={value}
+          value={`${value}`}
           style={
             hideResults
               ? {}
               : {
-                borderBottomLeftRadius: 0,
-                borderBottomRightRadius: 0,
-              }
+                  borderBottomLeftRadius: 0,
+                  borderBottomRightRadius: 0,
+                }
           }
           isDirty={isDirty}
         />
@@ -260,20 +247,19 @@ const Suggest: React.FC<Props> = ({
     },
     [
       cleanOnPress,
-      color,
-      error,
-      fieldName,
-      handleInpuOnKeyPress,
-      handleInputBlur,
-      handleInputFocus,
-      hideResults,
-      inputIcon,
-      loading,
-      placeholder,
-      selectedItem,
       term,
+      fieldName,
+      theme,
+      inputIcon,
       useValidityMark,
-      validity
+      placeholder,
+      handleInputFocus,
+      handleInputBlur,
+      loading,
+      validity,
+      hideResults,
+      isDirty,
+      handleInpuOnKeyPress,
     ],
   );
 
@@ -290,7 +276,7 @@ const Suggest: React.FC<Props> = ({
       keyExtractor={(item, index) => index.toString()}
       hideResults={hideResults}
       renderTextInput={renderInput}
-      value={!!selectedItem && selectedItem[listItemKey]}
+      value={`${selectedItem ? selectedItem[listItemKey] : ''}`}
       containerStyle={{
         flexGrow: 1,
         flexBasis: 'auto',

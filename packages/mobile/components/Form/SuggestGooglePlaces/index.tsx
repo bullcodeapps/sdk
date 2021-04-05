@@ -7,6 +7,7 @@ import React, {
   Ref,
   useContext,
   useMemo,
+  useImperativeHandle,
 } from 'react';
 
 import {
@@ -14,9 +15,6 @@ import {
   MapLocationColoredIcon,
   MapLocationFilterIconContainer,
   CloseSearchIcon,
-  SuggestGooglePlacesStyles,
-  SuggestGooglePlacesStyle,
-  DefaultColors,
   ListEmptyContainer,
   ListEmptyText,
 } from './styles';
@@ -28,7 +26,7 @@ import {
 import Geolocation from 'react-native-geolocation-service';
 import Input from '../Input';
 import { differenceInMinutes } from 'date-fns';
-import { useModal } from '../../Modal';
+import { useModal } from '@bullcode/mobile';
 import ConfirmModal from '../../ConfirmModal';
 import {
   NativeSyntheticEvent,
@@ -41,20 +39,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useField } from '@unform/core';
-import { useCombinedRefs } from '../../../../core/hooks';
 import { usePosition } from '../../../hooks';
 import Config from 'react-native-config';
 import { FormFieldType } from '..';
 import * as Yup from 'yup';
 
-export type SuggestGooglePlacesContextType = { colors: SuggestGooglePlacesStyles };
-
-export const SuggestGooglePlacesContext = React.createContext<SuggestGooglePlacesContextType>({ colors: null });
-
-export const setSuggestGooglePlacesColors = (colors: SuggestGooglePlacesStyles) => {
-  const ctx = useContext<SuggestGooglePlacesContextType>(SuggestGooglePlacesContext);
-  ctx.colors = colors;
-};
+import { SuggestGooglePlacesContextType, SuggestGooglePlacesContext, DefaultStyles } from './context';
+import { SuggestGooglePlacesStyle } from './types';
+import { getStyleByValidity } from '@bullcode/mobile/utils';
 
 export interface GooglePlace {
   placeId?: string;
@@ -69,7 +61,7 @@ export interface GooglePlace {
 interface CustomProps {
   outerRef?: Ref<TextInput>;
   name?: string;
-  color?: string;
+  theme?: string;
   placeholder?: string;
   language?: string;
   value?: GooglePlace;
@@ -101,7 +93,7 @@ const SEARCH_MIN_LENGTH = 2;
 const Component: SuggestGooglePlacesComponent = ({
   outerRef,
   name,
-  color,
+  theme,
   language = 'en',
   placeholder = 'Enter location...',
   currentLocationLabel = 'Current location',
@@ -120,6 +112,9 @@ const Component: SuggestGooglePlacesComponent = ({
   const modal = useModal();
   const { latitude, longitude } = usePosition();
 
+  // Ref
+  const googlePlacesAutocompleteRef = useRef<FieldType>();
+
   // States
   const [selected, setSelected] = useState<GooglePlace>();
   const [text, setText] = useState<string>();
@@ -130,54 +125,53 @@ const Component: SuggestGooglePlacesComponent = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDirty, setIsDirty] = useState(false);
 
-  // Refs
-  const autocompleteRef = useRef<FieldType>();
-  const combinedRef = useCombinedRefs<FieldType>(autocompleteRef, outerRef);
+  useImperativeHandle(outerRef, () => googlePlacesAutocompleteRef.current, [googlePlacesAutocompleteRef]);
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
 
   useEffect(() => {
     registerField<GooglePlace>({
       name: fieldName,
-      ref: combinedRef.current,
+      ref: googlePlacesAutocompleteRef.current,
       clearValue: clear,
       setValue: (ref: TextInput, val: GooglePlace) => {
         if (val?.placeId && val?.placeId === selected?.placeId) {
           return;
         }
-        setText(val?.description);
+        setText(val?.description || '');
         setSelected(val);
       },
       getValue: () => selected,
     });
-  }, [combinedRef, fieldName, registerField, selected]);
+  }, [googlePlacesAutocompleteRef, fieldName, registerField, selected]);
 
   useEffect(() => {
-    combinedRef?.current?.validate && combinedRef.current.validate(selected);
-  }, [combinedRef, selected]);
+    googlePlacesAutocompleteRef?.current?.validate && googlePlacesAutocompleteRef.current.validate(selected);
+  }, [googlePlacesAutocompleteRef, selected]);
 
   useEffect(() => {
-    combinedRef.current.markAsDirty = () => {
+    googlePlacesAutocompleteRef.current.markAsDirty = () => {
       if (isDirty) {
         return;
       }
 
       setIsDirty(true);
     };
-  }, [isDirty]);
+  }, [googlePlacesAutocompleteRef, isDirty]);
 
   const handlePressIcon = () => {
+    setIsDirty(true);
     if (!selected) {
       promptCurrentLocation();
       return;
     }
     clear();
-    combinedRef?.current && combinedRef?.current?.clear();
+    googlePlacesAutocompleteRef?.current && googlePlacesAutocompleteRef?.current?.clear();
   };
 
   const MapLocationFilterIcon = useCallback(
     () => (
-      <MapLocationFilterIconContainer onPress={handlePressIcon}>
+      <MapLocationFilterIconContainer disabled={!selected && !canUseCurrentLocation} onPress={handlePressIcon}>
         {selected ? <CloseSearchIcon /> : canUseCurrentLocation ? <MapLocationColoredIcon /> : <MapLocationIcon />}
       </MapLocationFilterIconContainer>
     ),
@@ -201,26 +195,29 @@ const Component: SuggestGooglePlacesComponent = ({
     );
   };
 
-  const handleSelect = useCallback((rowData, details?) => {
-    if (rowData?.isPredefinedPlace) {
-      const description = rowData.description;
-      details = rowData.details;
-      rowData = rowData.data;
-      rowData.description = description;
-    }
-    const googlePlace: GooglePlace = {
-      placeId: rowData.place_id,
-      description: rowData.description,
-      mainText: rowData.structured_formatting?.main_text,
-      mainTextMatchedSubstrings: rowData.structured_formatting?.main_text_matched_substrings,
-      secondaryText: rowData.structured_formatting?.secondary_text,
-      latitude: details?.geometry?.location?.lat,
-      longitude: details?.geometry?.location?.lng,
-    };
-    setSelected(googlePlace);
+  const handleSelect = useCallback(
+    (rowData, details?) => {
+      if (rowData?.isPredefinedPlace) {
+        const description = rowData.description;
+        details = rowData.details;
+        rowData = rowData.data;
+        rowData.description = description;
+      }
+      const googlePlace: GooglePlace = {
+        placeId: rowData.place_id,
+        description: rowData.description,
+        mainText: rowData.structured_formatting?.main_text,
+        mainTextMatchedSubstrings: rowData.structured_formatting?.main_text_matched_substrings,
+        secondaryText: rowData.structured_formatting?.secondary_text,
+        latitude: details?.geometry?.location?.lat,
+        longitude: details?.geometry?.location?.lng,
+      };
+      setSelected(googlePlace);
 
-    combinedRef?.current?.validate && combinedRef.current.validate(selected);
-  }, []);
+      googlePlacesAutocompleteRef?.current?.validate && googlePlacesAutocompleteRef.current.validate(selected);
+    },
+    [googlePlacesAutocompleteRef, selected],
+  );
 
   const loadCurrentLocation = useCallback(
     async (select: boolean = false) => {
@@ -245,11 +242,11 @@ const Component: SuggestGooglePlacesComponent = ({
 
         const response = await fetch(
           'https://maps.googleapis.com/maps/api/geocode/json?address=' +
-          coords.latitude +
-          ',' +
-          coords.longitude +
-          '&key=' +
-          API_KEY,
+            coords.latitude +
+            ',' +
+            coords.longitude +
+            '&key=' +
+            API_KEY,
         );
         const json = await response.json();
         setCurrentLocation({
@@ -275,50 +272,40 @@ const Component: SuggestGooglePlacesComponent = ({
     setSelected(null);
   };
 
-  const selectedColor: SuggestGooglePlacesStyle = useMemo(() => {
-    const colors = ctx?.colors || DefaultColors;
-    const foundColor = colors.find((_color) => _color.name === color);
-    if (!foundColor) {
+  const selectedStyle: SuggestGooglePlacesStyle = useMemo(() => {
+    const styles = ctx?.styles || DefaultStyles;
+    const foundStyle = styles.find((_color) => _color.name === theme);
+    if (!foundStyle) {
       console.log(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
-      return DefaultColors[0];
+      return DefaultStyles[0];
     }
-    return foundColor;
-  }, [color, ctx?.colors]);
-
-  const getColorTypeByValidity = useCallback(
-    (validity?: boolean) => {
-      if (validity) {
-        return selectedColor?.valid || selectedColor?.default;
-      }
-      return selectedColor?.invalid || selectedColor?.default;
-    },
-    [selectedColor?.invalid, selectedColor?.valid, selectedColor?.default],
-  );
+    return foundStyle;
+  }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
-    if (!isDirty && !selected) {
-      return selectedColor?.default;
+    if (!isDirty) {
+      return selectedStyle?.default;
     }
 
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
-        return selectedColor?.default;
+        return selectedStyle?.default;
       }
-      return getColorTypeByValidity(propValidity);
+      return getStyleByValidity(propValidity, selectedStyle);
     }
 
     if (selected || (text && !isFocused)) {
-      return getColorTypeByValidity(!!selected && !!text);
+      return getStyleByValidity(!!selected && !!text, selectedStyle);
     }
 
     if (error) {
-      return selectedColor?.invalid || selectedColor?.default;
+      return selectedStyle?.invalid || selectedStyle?.default;
     }
 
-    return selectedColor?.default;
-  }, [getColorTypeByValidity, isFocused, propValidity, selected, selectedColor?.default, text, usingValidity, isDirty, error, name]);
+    return selectedStyle?.default;
+  }, [isDirty, selected, usingValidity, text, isFocused, error, selectedStyle, propValidity]);
 
   useEffect(() => {
     if (!canUseCurrentLocation) {
@@ -347,7 +334,6 @@ const Component: SuggestGooglePlacesComponent = ({
   };
 
   const handleOnLoad = () => {
-    console.log('handleOnLoad!');
     setIsLoading(false);
   };
 
@@ -375,12 +361,12 @@ const Component: SuggestGooglePlacesComponent = ({
     setIsFocused(false);
   };
 
-  const listViewDisplayed = useMemo(
-    () =>
-      (text?.length >= SEARCH_MIN_LENGTH && !selected && isFocused) ||
-      ![undefined, null].includes(currentLocation),
-    [currentLocation, isFocused, selected, text],
-  );
+  const listViewDisplayed = useMemo(() => {
+    const isWriting = text?.length >= SEARCH_MIN_LENGTH && !selected && isFocused;
+    const isCurrentLocation = ![undefined, null].includes(currentLocation);
+
+    return !!isWriting || !!isCurrentLocation;
+  }, [currentLocation, isFocused, selected, text]);
 
   const ListEmptyComponent = useCallback(
     () => (
@@ -388,8 +374,8 @@ const Component: SuggestGooglePlacesComponent = ({
         {isLoading ? (
           <ActivityIndicator size="small" color="#9ca7ad" />
         ) : (
-            <ListEmptyText>{emptyListText || 'Nenhum endereço foi encontrado!'}</ListEmptyText>
-          )}
+          <ListEmptyText>{emptyListText || 'Nenhum endereço foi encontrado!'}</ListEmptyText>
+        )}
       </ListEmptyContainer>
     ),
     [emptyListText, isLoading],
@@ -397,7 +383,7 @@ const Component: SuggestGooglePlacesComponent = ({
 
   return (
     <GooglePlacesAutocomplete
-      ref={combinedRef}
+      ref={googlePlacesAutocompleteRef}
       listEmptyComponent={ListEmptyComponent}
       {...rest}
       keyboardShouldPersistTaps="handled"
@@ -405,7 +391,7 @@ const Component: SuggestGooglePlacesComponent = ({
       minLength={SEARCH_MIN_LENGTH}
       fetchDetails
       renderDescription={(row) => row.description}
-      listViewDisplayed={listViewDisplayed}
+      listViewDisplayed={!!listViewDisplayed}
       styles={{
         textInputContainer: {
           backgroundColor: 'transparent',
@@ -421,9 +407,9 @@ const Component: SuggestGooglePlacesComponent = ({
           width: '100%',
           alignSelf: 'center',
           borderWidth: 1,
-          borderColor: selectedColor?.default?.borderColor,
-          borderBottomLeftRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
-          borderBottomRightRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
+          borderColor: selectedStyle?.default?.borderColor,
+          borderBottomLeftRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
+          borderBottomRightRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
           borderTopWidth: 0,
           paddingTop: 55 / 2,
           borderTopColor: 'transparent',
@@ -433,7 +419,7 @@ const Component: SuggestGooglePlacesComponent = ({
           zIndex: 1,
         },
         separator: {
-          backgroundColor: selectedColor?.default?.borderColor,
+          backgroundColor: selectedStyle?.default?.borderColor,
         },
         row: {
           height: 50,
@@ -467,7 +453,7 @@ const Component: SuggestGooglePlacesComponent = ({
         {
           InputComp: Input,
           name: `descriptionSuggestGooglePlaces${name ? `-${name}` : ''}`,
-          color,
+          theme,
           clearButtonMode: 'never',
           clearTextOnFocus: false,
           autoCorrect: false,
@@ -475,22 +461,31 @@ const Component: SuggestGooglePlacesComponent = ({
           autoCapitalize: 'none',
           style: {
             height: 55,
-            paddingLeft: 20,
-            paddingBottom: 10,
-            borderRadius: currentValidationStyles?.borderRadius || selectedColor?.default?.borderRadius,
+            marginBottom: 0,
+            paddingTop: 0,
+            paddingVertical: 0,
+            paddingHorizontal: 0,
+          },
+          contentContainerStyle: {
             borderWidth: 1,
-            fontSize: 16,
-            fontWeight: '500',
+            borderColor: currentValidationStyles?.borderColor,
+            borderRadius: currentValidationStyles?.borderRadius || selectedStyle?.default?.borderRadius,
+            backgroundColor: currentValidationStyles?.backgroundColor,
+          },
+          inputStyle: {
+            borderWidth: 0,
             marginLeft: 0,
             marginRight: 0,
-            backgroundColor: currentValidationStyles?.backgroundColor,
-            color: currentValidationStyles?.color,
-            borderColor: currentValidationStyles?.borderColor,
+            paddingLeft: 20,
+            paddingBottom: 10,
             paddingRight: 50,
+            fontSize: 16,
+            fontWeight: '500',
+            color: currentValidationStyles?.color,
             ...inputStyles,
           },
           selectionColor: currentValidationStyles?.selectionColor,
-          value: selected?.description || text,
+          value: `${selected?.description || text || ''}`,
           placeholderTextColor: currentValidationStyles?.placeholder,
           returnKeyType: Platform?.select<ReturnKeyTypeOptions>({
             ios: 'search',
@@ -500,8 +495,7 @@ const Component: SuggestGooglePlacesComponent = ({
           onBlur: handleOnBlur,
           onKeyPress: handleAutocompleteOnKeyPress,
           onChangeText: handleOnChangeText,
-          onSubmitEditing: () => {
-          },
+          onSubmitEditing: () => {},
         } as TextInputProps
       }
       onLoad={handleOnLoad}
