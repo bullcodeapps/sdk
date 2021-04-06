@@ -1,13 +1,7 @@
-import React, { Ref } from 'react';
+import React, { Ref, useCallback } from 'react';
+import { FlatList, FlatListProps, RefreshControl, ViewStyle } from 'react-native';
 
-import {
-  StyledFlatlist,
-  Loading,
-  EmptyListContainer,
-  EmptyListIconContainer,
-  NoDataText,
-} from './styles';
-import { FlatList, RefreshControl, ViewStyle, FlatListProps } from 'react-native';
+import { EmptyListContainer, EmptyListIconContainer, Loading, NoDataText, StyledFlatlist } from './styles';
 
 export type ListPropsType<itemT = any> = {
   ref?: Ref<FlatList<itemT>>;
@@ -46,13 +40,13 @@ const Component: ListComponentType = ({
   onLoadMore,
   ...rest
 }) => {
-  const handleRefreshList = () => {
+  const handleRefreshList = useCallback(() => {
     onRefresh && onRefresh();
-  };
+  }, [onRefresh]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     onLoadMore && onLoadMore();
-  };
+  }, [onLoadMore]);
 
   return (
     <StyledFlatlist
@@ -61,8 +55,10 @@ const Component: ListComponentType = ({
       onEndReached={handleLoadMore}
       onEndReachedThreshold={0.1}
       ListFooterComponent={isLoadingMore && <Loading />}
-      refreshControl={onRefresh && <RefreshControl refreshing={isRefreshing} onRefresh={handleRefreshList} />}
-      keyExtractor={(item, index) => index.toString()}
+      refreshControl={
+        <RefreshControl enabled={!!onRefresh} refreshing={isRefreshing} onRefresh={handleRefreshList} />
+      }
+      keyExtractor={(item, index) => index?.toString()}
       {...rest}
     />
   );
