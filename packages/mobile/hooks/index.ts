@@ -1,13 +1,29 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useState, useRef } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
-import { Position } from '../utils';
-import { Platform, Keyboard } from 'react-native';
+import {
+  createRef,
+  Dispatch,
+  MutableRefObject,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { Keyboard, Platform } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
-import { request, requestMultiple, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import { PERMISSIONS, request, requestMultiple, RESULTS } from 'react-native-permissions';
+
+import { Position } from '../utils';
 
 type PersistedStateResponse<T> = [T, Dispatch<SetStateAction<T>>, boolean];
+type PositionError = string;
+type PositionHookProps = Position & {
+  permissionGranted: boolean;
+  error: PositionError;
+  getCurrentPosition: () => Promise<Position & { error: PositionError }>;
+};
 
-export const usePosition = (disable?: boolean): Position & { permissionGranted: boolean; error: string } => {
+export const usePosition = (disableRealtimePosition?: boolean): PositionHookProps => {
   // Refs
   const interval = useRef<NodeJS.Timeout>();
 
@@ -64,7 +80,7 @@ export const usePosition = (disable?: boolean): Position & { permissionGranted: 
   }, [setPermissionGranted]);
 
   useEffect(() => {
-    if (!permissionGranted || disable) {
+    if (!permissionGranted || disableRealtimePosition) {
       return;
     }
 
@@ -73,7 +89,7 @@ export const usePosition = (disable?: boolean): Position & { permissionGranted: 
       setError('Geolocation is not supported');
       return;
     }
-    
+
     interval.current = setInterval(() => {
       geo.getCurrentPosition(onChange, onError, {
         timeout: 1000 * 30,
@@ -87,9 +103,39 @@ export const usePosition = (disable?: boolean): Position & { permissionGranted: 
       }
       clearInterval(interval.current);
     };
-  }, [onChange, onError, permissionGranted, setError]);
+  }, [disableRealtimePosition, onChange, onError, permissionGranted, setError]);
 
-  return { ...position, permissionGranted, error };
+  const getCurrentPosition = async (): Promise<Position & { error: PositionError }> => {
+    const geo = Geolocation;
+    if (!geo) {
+      setError('Geolocation is not supported');
+      return;
+    }
+    return new Promise((resolve, reject) => {
+      geo.getCurrentPosition(
+        ({ coords }) => {
+          resolve({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            error: undefined,
+          });
+        },
+        (e) => {
+          resolve({
+            latitude: undefined,
+            longitude: undefined,
+            error: e?.message,
+          });
+        },
+        {
+          timeout: 1000 * 30,
+          // enableHighAccuracy: true,
+        },
+      );
+    });
+  };
+
+  return { ...position, permissionGranted, error, getCurrentPosition };
 };
 
 export function usePersistedState<T>(key: string, initialState: T): PersistedStateResponse<T> {
