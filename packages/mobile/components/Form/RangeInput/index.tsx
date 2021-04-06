@@ -1,44 +1,14 @@
-import React, { useEffect, useState, useRef, useContext, useMemo, useCallback } from 'react';
-
-import {
-  Container,
-  CustomSlider,
-  PointLabelBox,
-  PointLabel,
-  TouchablePointArea,
-  PointCircle,
-  Content,
-} from './styles';
-import { ViewStyle, LayoutChangeEvent } from 'react-native';
+import { RangeInputProps, RangeInputResponse } from '@bullcode/mobile/components/Form/RangeInput/types';
+import MultiSlider, { LabelProps, MarkerProps } from '@ptomasroos/react-native-multi-slider';
 import { useField } from '@unform/core';
-import MultiSlider, { MarkerProps } from '@ptomasroos/react-native-multi-slider';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutChangeEvent } from 'react-native';
+
 import { useDebouncedState } from '../../../../core/hooks';
 import { FormFieldType } from '..';
-
-import { RangeInputContextType, RangeInputContext, DefaultStyles } from './context';
-
-export type RangeInputResponse = {
-  min: number;
-  max: number;
-};
-
-export type RangeInputProps = {
-  name?: string;
-  theme?: string;
-  labelPosition?: 'top' | 'bottom';
-  style?: ViewStyle;
-  contentContainerStyle?: ViewStyle;
-  initialPoint?: number;
-  endPoint?: number;
-  minValue: number;
-  maxValue: number;
-  enabledOne?: boolean;
-  enabledTwo?: boolean;
-  enableLabel?: boolean;
-  optionsArray?: number[];
-  labelFormatter?: (value: number) => void;
-  onValuesChange?: (values: RangeInputResponse) => void;
-};
+import { DefaultStyles, RangeInputContext, RangeInputContextType } from './context';
+import CustomLabel from './CustomLabel';
+import { Container, Content, CustomSlider, PointCircle, TouchablePointArea } from './styles';
 
 type FieldType = FormFieldType<MultiSlider>;
 
@@ -63,6 +33,9 @@ const RangeInput: RangeInputComponent = ({
 }) => {
   const ctx = useContext<RangeInputContextType>(RangeInputContext);
 
+  // Refs
+  const sliderRef = useRef<FieldType>(null);
+
   // States
   const [values, setValues] = useState<RangeInputResponse>({ min: initialPoint, max: endPoint });
   const { fieldName, registerField } = useField(name);
@@ -70,9 +43,6 @@ const RangeInput: RangeInputComponent = ({
 
   // Debounce
   const debouncedValues = useDebouncedState(values);
-
-  // Refs
-  const sliderRef = useRef<FieldType>(null);
 
   useEffect(() => {
     setValues({
@@ -145,42 +115,12 @@ const RangeInput: RangeInputComponent = ({
     [selectedColor?.marker?.defaultStyle, selectedColor?.marker?.disabledStyle],
   );
 
-  const CustomLabel = useCallback(
-    ({ oneMarkerValue, oneMarkerLeftPosition, twoMarkerValue, twoMarkerLeftPosition }) => {
-      const firstLabel = labelFormatter ? labelFormatter(oneMarkerValue) : oneMarkerValue;
-      const secondLabel = labelFormatter ? labelFormatter(twoMarkerValue) : twoMarkerValue;
-      return (
-        <>
-          {(enabledOne || initialPoint) && (
-            <PointLabelBox
-              style={{
-                left: oneMarkerLeftPosition,
-                ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }),
-              }}>
-              <PointLabel>{firstLabel}</PointLabel>
-            </PointLabelBox>
-          )}
-          {(enabledTwo || endPoint) && (
-            <PointLabelBox
-              style={{
-                left: twoMarkerLeftPosition,
-                ...(labelPosition === 'bottom' ? { bottom: 5 } : { top: 10 }),
-              }}>
-              <PointLabel>{secondLabel}</PointLabel>
-            </PointLabelBox>
-          )}
-        </>
-      );
-    },
-    [enabledOne, enabledTwo, endPoint, initialPoint, labelFormatter, labelPosition],
-  );
-
   const handleOnLayoutContainer = (event: LayoutChangeEvent) => {
     setSliderWidth(event?.nativeEvent?.layout?.width);
   };
 
   const rangeValues = useMemo(() => {
-    let arrayOfValues = [];
+    const arrayOfValues = [];
     if (!isNaN(values?.min)) {
       arrayOfValues?.push(values?.min);
     }
@@ -190,13 +130,29 @@ const RangeInput: RangeInputComponent = ({
     return arrayOfValues;
   }, [values.max, values.min]);
 
+  const customLabel = useCallback(
+    (props: LabelProps) => (
+      <CustomLabel
+        {...props}
+        enabledOne={enabledOne}
+        enabledTwo={enabledTwo}
+        initialPoint={initialPoint}
+        endPoint={endPoint}
+        labelPosition={labelPosition}
+        labelFormatter={labelFormatter}
+        sliderWidth={sliderWidth}
+      />
+    ),
+    [enabledOne, enabledTwo, endPoint, initialPoint, labelFormatter, labelPosition, sliderWidth],
+  );
+
   return (
     <Container style={style} onLayout={handleOnLayoutContainer}>
       <Content style={contentContainerStyle}>
         <CustomSlider
           ref={sliderRef}
           sliderLength={sliderWidth}
-          customLabel={CustomLabel}
+          customLabel={customLabel}
           containerStyle={labelPosition === 'bottom' ? { paddingBottom: 15 } : { paddingTop: 15 }}
           onValuesChange={handleValuesChange}
           customMarker={CustomMarker}

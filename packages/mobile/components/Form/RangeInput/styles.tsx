@@ -1,6 +1,6 @@
-import styled from 'styled-components/native';
-import { Animated } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
+import { Animated } from 'react-native';
+import styled from 'styled-components/native';
 
 export const Container = styled.View`
   flex-grow: 1;
@@ -9,18 +9,6 @@ export const Container = styled.View`
 
 export const CustomSlider = styled(MultiSlider)`
   position: relative;
-`;
-
-export const PointLabelBox = styled(Animated.View)`
-  position: absolute;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  elevation: 1;
-`;
-
-export const PointLabel = styled(Animated.Text)`
-  position: absolute;
 `;
 
 export const TouchablePointArea = styled.TouchableOpacity`
