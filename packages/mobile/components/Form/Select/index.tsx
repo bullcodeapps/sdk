@@ -212,15 +212,15 @@ const Component: SelectComponent = ({
         style={
           Platform.OS === 'ios'
             ? {
-                transform: [
-                  {
-                    rotateZ: iconRotateAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0rad', `${Math.PI}rad`],
-                    }),
-                  },
-                ],
-              }
+              transform: [
+                {
+                  rotateZ: iconRotateAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0rad', `${Math.PI}rad`],
+                  }),
+                },
+              ],
+            }
             : null
         }>
         {/* Unfortunately, we can't get the onClose event on Android devices, so we made it static */}
@@ -286,6 +286,10 @@ const Component: SelectComponent = ({
       setValue(val);
       combinedRef?.current?.validate && combinedRef.current.validate(val);
       onValueChange && onValueChange(val);
+
+      if (!isDirty && Platform.OS === 'android' && val) {
+        setIsDirty(true);
+      }
     },
     [combinedRef, onValueChange],
   );
