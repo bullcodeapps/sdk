@@ -2,6 +2,7 @@ import { Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 
 export const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
+export const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 export type CircleProps = { color?: string; size: number };
 
