@@ -1,11 +1,11 @@
-import React, { useRef, useEffect, useCallback, forwardRef, useMemo, Ref, useState } from 'react';
-import { SubmitHandler, FormProps as DefaultFormProps, FormHandles } from '@unform/core';
+import { FormHandles, FormProps as DefaultFormProps, SubmitHandler } from '@unform/core';
+import dot from 'dot-object';
+import React, { forwardRef, Ref, useCallback, useEffect, useMemo, useRef } from 'react';
+import { Keyboard } from 'react-native';
 import * as Yup from 'yup';
 
-import { Container, Form as StyledForm } from './styles';
 import { useCombinedRefs } from '../../../core/hooks';
-import { Keyboard } from 'react-native';
-import dot from 'dot-object';
+import { Container, Form as StyledForm } from './styles';
 
 export type FormType = DefaultFormProps & FormHandles;
 export type FormFieldType<T> = T & { validate: (val: any) => void; markAsDirty: () => void };
@@ -35,11 +35,10 @@ const Component: FormComponent = ({
 }) => {
   const formRef = useRef<FormType>(null);
   const combinedRef = useCombinedRefs<FormType>(outerRef, formRef);
-  const [debouncedValue, setDebouncedValue] = useState(false);
   const debounceHandlerRef = useRef<NodeJS.Timeout>();
 
   const requiredFields = useMemo(() => {
-    let fields = [];
+    const fields = [];
     Object.keys(schema.fields).forEach((fieldName: string) => {
       const value: any = schema.fields[fieldName];
       if (value?._exclusive?.required) {
@@ -93,16 +92,12 @@ const Component: FormComponent = ({
         const validationErrors: any = {};
         if (err instanceof Yup.ValidationError) {
           err.inner.forEach((error) => {
-            validationErrors[error.path] = error.message;
-            const dotIndex = error.path.lastIndexOf('.');
-            if (dotIndex > -1) {
-              validationErrors[error.path.substr(0, dotIndex)] = error.message;
-            }
+            dot?.set(error?.path, error.message, validationErrors);
           });
           combinedRef.current.setErrors(validationErrors);
 
           if (onProgressChange) {
-            let matchFields = [];
+            const matchFields = [];
             Object.keys(validationErrors).forEach((fieldName) => {
               if (requiredFields.includes(fieldName)) {
                 matchFields.push(fieldName);
@@ -122,10 +117,12 @@ const Component: FormComponent = ({
   );
 
   const applyRuleToAllFields = useCallback(
-    (fieldAction?: (fieldRef?: any, fieldName?: any) => void, _fields?: object, _lastName: string = '') => {
+    (fieldAction?: (fieldRef?: any, fieldName?: any) => void, _fields?: object, _lastName = '') => {
       if (!schema?.fields && !_fields) {
         return;
       }
+
+      const formData = combinedRef?.current?.getData();
 
       // if there are no fields coming from the recursion then we use the fields
       // from the first level of the schema.
@@ -135,12 +132,26 @@ const Component: FormComponent = ({
         // to get the correct name in dot notation to get the field reference,
         // we will use the previous name of the recursion
         const newFieldName = _lastName?.length ? _lastName + `.${fieldName}` : fieldName;
+        const field = fields[fieldName];
         const fieldRef = combinedRef?.current?.getFieldRef(newFieldName);
-        const fieldChildren = fields[fieldName]?.fields;
+        const fieldChildren = [null, undefined].includes(field?.fields) ? field?._subType?.fields : field?.fields;
 
+        const fieldValue: Array<unknown> = dot?.pick(newFieldName, formData);
         // if there are fields at a lower level then let's go into recursion
-        if (typeof fieldChildren === 'object' && fieldChildren !== null && Object.keys(fieldChildren)?.length) {
-          return applyRuleToAllFields(fieldAction, fields[fieldName].fields, newFieldName);
+        if (
+          typeof fieldChildren === 'object' &&
+          fieldValue?.length &&
+          fieldChildren !== null &&
+          Object.keys(fieldChildren)?.length
+        ) {
+          if (field?.type === 'array') {
+            fieldValue?.forEach((item, _index) => {
+              applyRuleToAllFields(fieldAction, fieldChildren, `${newFieldName}[${_index}]`);
+            });
+          } else if (fieldChildren?.type === 'children') {
+            applyRuleToAllFields(fieldAction, fieldChildren, newFieldName);
+          }
+          return;
         }
 
         // if the field reference does not exist, then that field does not exist.
@@ -173,7 +184,9 @@ const Component: FormComponent = ({
                 ![null, undefined].includes(formData) &&
                 typeof formData === 'object'
               ) {
-                dot?.set(fieldName, value, formData, true);
+                if (!Object.isFrozen(dot?.pick(fieldName, formData))) {
+                  dot?.set(fieldName, value, formData, true);
+                }
               }
 
               try {
@@ -212,19 +225,10 @@ const Component: FormComponent = ({
         const res = validate(formData);
         onSubmit(res);
       } catch (err) {
-        const validationErrors = {};
-
-        if (err instanceof Yup.ValidationError) {
-          err.inner.forEach((error) => {
-            validationErrors[error.path] = error.message;
-          });
-          combinedRef.current.setErrors(validationErrors);
-        }
-
-        onSubmitError(Object.keys(validationErrors).length > 0 ? validationErrors : err, formData);
+        onSubmitError(err, formData);
       }
     },
-    [combinedRef, onSubmit, onSubmitError, setChildrenAsDirty, validate],
+    [onSubmit, onSubmitError, setChildrenAsDirty, validate],
   );
 
   return (
