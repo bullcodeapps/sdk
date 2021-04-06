@@ -92,7 +92,14 @@ const Component: FormComponent = ({
         const validationErrors: any = {};
         if (err instanceof Yup.ValidationError) {
           err.inner.forEach((error) => {
-            dot?.set(error?.path, error.message, validationErrors);
+            let lastPath = '';
+            error?.path?.split('.').forEach((_path) => {
+              const currentPath = lastPath?.length ? lastPath + `.${_path}` : _path;
+              if (!!combinedRef.current.getFieldRef(currentPath)) {
+                dot?.set(currentPath, error?.message, validationErrors);
+                lastPath = currentPath;
+              }
+            });
           });
           combinedRef.current.setErrors(validationErrors);
 
