@@ -74,7 +74,7 @@ const Component: ButtonComponent = ({
   const buttonStyles: Partial<ButtonStyle> = useMemo(() => {
     if (!foundStyle) {
       console.log(
-        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[Button] The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return {};
     }

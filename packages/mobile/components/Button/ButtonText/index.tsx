@@ -41,7 +41,7 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   const buttonTextActiveType = useMemo(() => {
     if (!foundStyle) {
       console.log(
-        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[ButtonText-Active] The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return {};
     }
@@ -56,7 +56,7 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   const buttonTextDefaultType = useMemo(() => {
     if (!foundStyle) {
       console.log(
-        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[ButtonText-Default] The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return {};
     }

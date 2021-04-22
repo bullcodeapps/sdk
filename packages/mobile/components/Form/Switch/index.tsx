@@ -93,7 +93,7 @@ const FormSwitch = ({
     const foundColor = colors?.find((_color) => _color.name === theme);
     if (!foundColor) {
       console.log(
-        `The "${theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[Switch] The "${theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return;
     }

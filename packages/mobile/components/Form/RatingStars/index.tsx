@@ -131,7 +131,7 @@ const RatingStars: React.FC<RatingStarsProps> = ({
     const foundColor = styles.find((_color) => _color.name === theme);
     if (!foundColor) {
       console.warn(
-        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[RatingStars] The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultStyles[0];
     }

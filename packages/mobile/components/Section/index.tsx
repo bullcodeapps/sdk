@@ -35,7 +35,7 @@ const Component: SectionComponent = ({
     const foundColor = styles?.find((_style) => _style.name === theme);
     if (!foundColor) {
       console.log(
-        `The "${theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[Section] The "${theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DEFAULT_SECTION_STYLES[0];
     }

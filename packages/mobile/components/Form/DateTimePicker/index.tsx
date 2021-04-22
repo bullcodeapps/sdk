@@ -331,7 +331,7 @@ const Component: DateTimePickerComponent = ({
     const foundStyle = styles.find((_color) => _color.name === theme);
     if (!foundStyle) {
       console.log(
-        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[DateTimePicker] The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultStyles[0];
     }

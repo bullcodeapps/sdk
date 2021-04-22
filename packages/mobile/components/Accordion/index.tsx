@@ -147,7 +147,7 @@ const Accordion: React.FC<AccordionProps> = ({
     const foundColor = colors.find((_color) => _color.name === color);
     if (!foundColor) {
       console.warn(
-        `The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[Accordion] The "${color}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultColors[0];
     }

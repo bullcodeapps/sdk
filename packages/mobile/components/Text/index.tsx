@@ -33,7 +33,7 @@ const Component: InternalTextComponent = ({ children, type, style, outerRef, ...
     const foundColor = types.find((_type) => _type.name === type);
     if (!foundColor) {
       console.log(
-        `The "${type}" type does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[Text] The "${type}" type does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return {};
     }

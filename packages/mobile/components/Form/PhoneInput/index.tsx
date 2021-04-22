@@ -216,7 +216,7 @@ const PhoneInput: PhoneInputComponent = ({
     const foundStyle = styles.find((_style) => _style.name === rest?.theme);
     if (!foundStyle) {
       console.log(
-        `The "${rest?.theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[PhoneInput] The "${rest?.theme}" color does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultStyles[0];
     }

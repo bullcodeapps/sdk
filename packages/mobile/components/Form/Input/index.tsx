@@ -156,7 +156,7 @@ const Component: InputComponent = ({
     const foundStyle = styles.find((_style) => _style.name === theme);
     if (!foundStyle) {
       console.log(
-        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[Input] The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultStyles[0];
     }

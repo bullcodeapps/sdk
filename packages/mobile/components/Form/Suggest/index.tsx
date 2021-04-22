@@ -151,7 +151,7 @@ const Suggest: React.FC<Props> = ({
     const foundStyle = styles.find((_style) => _style.name === theme);
     if (!foundStyle) {
       console.log(
-        `The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
+        `[Suggest] The "${theme}" theme does not exist, check if you wrote it correctly or if it was declared previously`,
       );
       return DefaultStyles[0];
     }
