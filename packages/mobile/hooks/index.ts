@@ -1,8 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import {
-  createRef,
   Dispatch,
-  MutableRefObject,
   SetStateAction,
   useCallback,
   useEffect,
@@ -89,7 +87,6 @@ export const usePosition = (disableRealtimePosition?: boolean): PositionHookProp
       setError('Geolocation is not supported');
       return;
     }
-
     interval.current = setInterval(() => {
       geo.getCurrentPosition(onChange, onError, {
         timeout: 1000 * 30,

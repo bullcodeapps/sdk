@@ -1,6 +1,6 @@
-import React, { useState, Ref, useRef, useCallback } from 'react';
+import React, { useState, Ref, useRef, useCallback, useEffect } from 'react';
 import { StyleSheet, Animated, StyleProp, ImageStyle, ViewStyle } from 'react-native';
-import FastImage, { FastImageProps } from 'react-native-fast-image';
+import FastImage, { FastImageProps, Source } from 'react-native-fast-image';
 import { useCombinedRefs } from '@bullcode/core/hooks';
 
 import { Content } from './styles';
@@ -39,6 +39,14 @@ const Component: ImageComponent = ({
   // States
   const [isLoading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if ([null, undefined].includes((source as Source)?.uri)) {
+      setHasError(true);
+    } else {
+      setHasError(false);
+    }
+  }, [source])
 
   const CachedImageMemoized = useCallback(
     () => (
