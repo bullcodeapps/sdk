@@ -3,6 +3,16 @@
 A set of components, tools, utils and hooks to easy development of applications with Bullcode's patterns.
 
 
+## How to publish
+
+### Creating new version
+
+- `npx lerna version`
+
+### Publishing new generated versions
+
+- `npx lerna publish from-package`
+
 ## React Native
 
 ### Use custom font-family
