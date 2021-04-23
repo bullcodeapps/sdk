@@ -30,9 +30,14 @@ export const Content = styled.View`
   justify-content: center;
   z-index: 5;
   elevation: 2;
+
+  ${(props) => props.fullScreen && `
+    bottom: 0;
+    top: 0;
+  `}
 `;
 
-export const Backdrop = styled(TouchableOpacity)<BackdropProps>`
+export const Backdrop = styled(TouchableOpacity) <BackdropProps>`
   flex: 1;
   position: absolute;
   top: 0;
@@ -56,6 +61,11 @@ export const AnimatedModalWindow = styled(Animated.View)`
   min-height: 0;
   z-index: 2;
   elevation: 2;
+
+  ${(props) => props.fullScreen && `
+    right: 0;
+    left: 0;
+  `}
 `;
 
 export const WindowContent = styled.View`

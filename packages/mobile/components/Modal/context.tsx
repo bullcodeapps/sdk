@@ -16,6 +16,7 @@ const DEFAULT_CONFIG = {
   animation: ModalAnimationEnum.EASE,
   backdropColor: null,
   exitOnBackdrop: null,
+  fullScreen: false,
 };
 
 const INITIAL_STATE: ModalState = {
