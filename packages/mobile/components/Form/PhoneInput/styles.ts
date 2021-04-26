@@ -6,7 +6,7 @@ interface PhoneInputContainerProps {
 }
 
 export const PhoneInputContainer = styled.View<PhoneInputContainerProps>`
-  flex: 1;
+  flex-grow: 1;
   height: 55px;
   align-items: center;
   border: 1px solid;
