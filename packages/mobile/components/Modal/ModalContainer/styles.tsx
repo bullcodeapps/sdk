@@ -19,7 +19,7 @@ export const Container = styled.View`
   left: 0;
 `;
 
-export const Content = styled.View`
+export const Content = styled.View<{ fullScreen: boolean }>`
   flex: 1;
   position: absolute;
   top: ${insetTop}px;
@@ -50,7 +50,7 @@ export const Backdrop = styled(TouchableOpacity) <BackdropProps>`
     ![null, undefined].includes(color) ? `background-color: ${color};` : 'background-color: rgba(0, 0, 0, 0.5);'};
 `;
 
-export const AnimatedModalWindow = styled(Animated.View)`
+export const AnimatedModalWindow = styled(Animated.View) <{ fullScreen: boolean }>`
   flex-shrink: 1;
   position: absolute;
   top: 0;
