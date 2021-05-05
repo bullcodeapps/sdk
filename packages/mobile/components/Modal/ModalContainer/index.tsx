@@ -89,17 +89,18 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({ visible, config,
           }
         }}
       />
-      <Content>
+      <Content fullScreen={config?.fullScreen}>
         <AnimatedModalWindow
+          fullScreen={config?.fullScreen}
           style={
             config?.animation !== ModalAnimationEnum.NONE
               ? {
-                  transform: [
-                    {
-                      scale: getAnimationInterpolation(),
-                    },
-                  ],
-                }
+                transform: [
+                  {
+                    scale: getAnimationInterpolation(),
+                  },
+                ],
+              }
               : null
           }>
           <Backdrop

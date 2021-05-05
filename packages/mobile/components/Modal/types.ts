@@ -9,6 +9,7 @@ export type ModalConfig = {
   animation?: ModalAnimationEnum;
   backdropColor?: string;
   exitOnBackdrop?: boolean;
+  fullScreen?: boolean;
 };
 
 export type ModalState = {

@@ -19,7 +19,7 @@ export const Container = styled.View`
   left: 0;
 `;
 
-export const Content = styled.View`
+export const Content = styled.View<{ fullScreen: boolean }>`
   flex: 1;
   position: absolute;
   top: ${insetTop}px;
@@ -30,9 +30,14 @@ export const Content = styled.View`
   justify-content: center;
   z-index: 5;
   elevation: 2;
+
+  ${(props) => props.fullScreen && `
+    bottom: 0;
+    top: 0;
+  `}
 `;
 
-export const Backdrop = styled(TouchableOpacity)<BackdropProps>`
+export const Backdrop = styled(TouchableOpacity) <BackdropProps>`
   flex: 1;
   position: absolute;
   top: 0;
@@ -45,7 +50,7 @@ export const Backdrop = styled(TouchableOpacity)<BackdropProps>`
     ![null, undefined].includes(color) ? `background-color: ${color};` : 'background-color: rgba(0, 0, 0, 0.5);'};
 `;
 
-export const AnimatedModalWindow = styled(Animated.View)`
+export const AnimatedModalWindow = styled(Animated.View) <{ fullScreen: boolean }>`
   flex-shrink: 1;
   position: absolute;
   top: 0;
@@ -56,6 +61,11 @@ export const AnimatedModalWindow = styled(Animated.View)`
   min-height: 0;
   z-index: 2;
   elevation: 2;
+
+  ${(props) => props.fullScreen && `
+    right: 0;
+    left: 0;
+  `}
 `;
 
 export const WindowContent = styled.View`
