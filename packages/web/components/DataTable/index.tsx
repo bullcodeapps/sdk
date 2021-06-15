@@ -63,6 +63,7 @@ export interface DataTableAction {
   icon: React.ReactElement;
   handler: (...args: any[]) => void;
   visible?: boolean;
+  visibleCondition?: (...args: any[]) => boolean;
 }
 
 export interface DataTableColumn {
@@ -207,7 +208,7 @@ export default function DataTable({
         open={Boolean(anchorEl[tableMeta.rowIndex])}
         onClose={handleCloseMenu}
       >
-        {actions.filter((action) => action.visible !== false).map((action: any) => (
+        {actions.filter((action) => action.visible !== false && (!action.visibleCondition || action.visibleCondition && action.visibleCondition(data[tableMeta.rowIndex]) !== false)).map((action: any) => (
           <MenuItem
             key={action.name}
             style={{ justifyContent: 'space-between', minWidth: 150 }}
