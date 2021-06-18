@@ -10,8 +10,6 @@ import { useDebouncedState } from '../../../core/hooks';
 
 import { Container } from './styles';
 
-const isMobile = window.innerWidth < 500;
-
 export interface DataTableProps {
   title: string;
   options: MUIDataTableOptions;
@@ -62,8 +60,7 @@ export interface DataTableAction {
   name: string;
   icon: React.ReactElement;
   handler: (...args: any[]) => void;
-  visible?: boolean;
-  visibleCondition?: (...args: any[]) => boolean;
+  visible?: boolean | ((row: any) => boolean);
 }
 
 export interface DataTableColumn {
@@ -208,7 +205,14 @@ export default function DataTable({
         open={Boolean(anchorEl[tableMeta.rowIndex])}
         onClose={handleCloseMenu}
       >
-        {actions.filter((action) => action.visible !== false && (!action.visibleCondition || action.visibleCondition && action.visibleCondition(data[tableMeta.rowIndex]) !== false)).map((action: any) => (
+        {actions.filter((action) => {
+          // if visible was not defined we can always show the action
+          return [null, undefined].includes(action.visible) ||
+            // if visible is a boolean we shall validate it as boolean
+            (typeof action.visible === 'boolean' && action.visible !== false) ||
+            // if it is a function we must apply and check its return
+            (typeof action.visible === 'function' && action.visible(data[tableMeta.rowIndex]) !== false);
+        }).map((action: any) => (
           <MenuItem
             key={action.name}
             style={{ justifyContent: 'space-between', minWidth: 150 }}
