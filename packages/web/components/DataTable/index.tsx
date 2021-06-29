@@ -3,7 +3,7 @@ import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import MUIDataTable, { MUIDataTableOptions, MUIDataTableColumnDef, MUIDataTableMeta } from 'mui-datatables';
 import { useConfirm } from 'material-ui-confirm';
 import {
-  Typography, CircularProgress, Box, IconButton, Menu, MenuItem,
+  Typography, CircularProgress, Box, IconButton, Menu, MenuItem, ThemeOptions,
 } from '@material-ui/core';
 import { MoreVert } from '@material-ui/icons';
 import { useDebouncedState } from '../../../core/hooks';
@@ -376,7 +376,7 @@ export default function DataTable({
     responsive: 'stacked',
   };
 
-  const getMuiTheme = createMuiTheme({
+  const muiTheme: ThemeOptions = {
     overrides: {
       MuiTableCell: {
         root: {
@@ -413,11 +413,14 @@ export default function DataTable({
         },
       },
     },
-  });
+  };
 
   return (
     <Container>
-      <MuiThemeProvider theme={getMuiTheme}>
+      <MuiThemeProvider theme={(parentTheme) => createMuiTheme({
+        ...parentTheme,
+        ...muiTheme,
+      })}>
         <MUIDataTable
           title={(
             <Typography variant="h6">
