@@ -9,7 +9,7 @@ import { useField } from '@unform/core';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
 import { IconButton, LinearProgress, FormHelperText } from '@material-ui/core';
-import { Delete } from '@material-ui/icons';
+import { Delete, PlayArrow } from '@material-ui/icons';
 import { FormControl } from './styles';
 
 const getColor = (props: DropzoneRootProps) => {
@@ -174,6 +174,15 @@ export default function ImageDrop({
     return compressedFile;
   })), [maxSizeMB, maxWidthOrHeight, selectImageText]);
 
+  function getFileType(url: string) {
+    // Tipo Vídeo
+    if (url.indexOf('.mp4') > -1 || url.indexOf('.m4v') > -1 || url.indexOf('.avi') > -1 || url.indexOf('.mpg') > -1 || url.indexOf('.mpeg') > -1 || url.indexOf('.wmv') > -1) {
+      return true;
+    }
+    //Tipo Imagem
+    return false;
+  }
+
   // component
   const {
     isDragActive,
@@ -199,7 +208,7 @@ export default function ImageDrop({
         let compressedFiles = acceptedFiles;
 
         if (maxSizeMB || maxWidthOrHeight) {
-          compressedFiles = await compressFiles(acceptedFiles);
+          // compressedFiles = await compressFiles(acceptedFiles);
         }
 
         if (compressedFiles[0] === undefined) {
@@ -225,10 +234,11 @@ export default function ImageDrop({
         <Delete />
       </ThumbRemove>
       <ThumbInner>
-        <ThumbImage
+        {!getFileType(file.url) && <ThumbImage
           alt={file.name}
           src={file.url}
-        />
+        />}
+        {getFileType(file.url) && <PlayArrow style={{display: 'block', width: '120px', 'height': '120px',  objectFit: 'cover'}} />}
         {onAddFiles && !file.id && <Progress />}
       </ThumbInner>
     </Thumb>
