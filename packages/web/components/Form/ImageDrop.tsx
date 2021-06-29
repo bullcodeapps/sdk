@@ -152,12 +152,25 @@ export default function ImageDrop({
     });
   }, [fieldName, files, multiple, registerField]);
 
+  function getFileType(url: string) {
+    // Tipo Vídeo
+    if (url.indexOf('.mp4') > -1 || url.indexOf('.m4v') > -1 || url.indexOf('.avi') > -1 || url.indexOf('.mpg') > -1 || url.indexOf('.mpeg') > -1 || url.indexOf('.wmv') > -1) {
+      return true;
+    }
+    //Tipo Imagem
+    return false;
+  }
+
   const compressFiles = useCallback(async (currentFiles: any[]) => Promise.all(currentFiles.map(async (file) => {
     const options = {
       maxSizeMB,
       maxWidthOrHeight,
       useWebWorker: true,
     };
+
+    if (getFileType(file.url)) {
+      return file;
+    }
 
     const compressedBlob = await imageCompression(file, options);
     const compressedFile = new File([compressedBlob], file.name, {
@@ -173,15 +186,6 @@ export default function ImageDrop({
 
     return compressedFile;
   })), [maxSizeMB, maxWidthOrHeight, selectImageText]);
-
-  function getFileType(url: string) {
-    // Tipo Vídeo
-    if (url.indexOf('.mp4') > -1 || url.indexOf('.m4v') > -1 || url.indexOf('.avi') > -1 || url.indexOf('.mpg') > -1 || url.indexOf('.mpeg') > -1 || url.indexOf('.wmv') > -1) {
-      return true;
-    }
-    //Tipo Imagem
-    return false;
-  }
 
   // component
   const {
@@ -208,7 +212,7 @@ export default function ImageDrop({
         let compressedFiles = acceptedFiles;
 
         if (maxSizeMB || maxWidthOrHeight) {
-          // compressedFiles = await compressFiles(acceptedFiles);
+          compressedFiles = await compressFiles(acceptedFiles);
         }
 
         if (compressedFiles[0] === undefined) {
