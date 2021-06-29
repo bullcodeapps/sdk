@@ -7,6 +7,7 @@ import InputMask from './InputMask';
 import Check from './Check';
 import Suggest from './Suggest';
 import ImageInput from './ImageInput';
+import FileDrop from './FileDrop';
 import ImageDrop from './ImageDrop';
 import TimePicker from './TimePicker';
 import SuggestGooglePlace from './SuggestGooglePlace';
@@ -23,6 +24,7 @@ export {
   Check,
   Suggest,
   ImageInput,
+  FileDrop,
   ImageDrop,
   TimePicker,
   SuggestGooglePlace,
