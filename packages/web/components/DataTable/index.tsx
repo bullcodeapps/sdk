@@ -398,8 +398,8 @@ export default function DataTable({
       },
       MuiButton: {
         root: {
-          backgroundColor: '#00F2D5 !important',
-          color: '#000000 !important',
+          backgroundColor: '#00F2D5',
+          color: '#000000',
         },
       },
       MuiGridList: {
