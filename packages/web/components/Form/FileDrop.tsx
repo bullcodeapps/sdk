@@ -257,7 +257,8 @@ export default function FileDrop({
           acceptedFiles.map((file) => removeFile(file));
         }
 
-        const newFiles = await onAddFiles(compressedFiles);
+        let newFiles = await onAddFiles(compressedFiles);
+        newFiles = newFiles.filter((file) => file.id).map((file) => file);
         setFiles((oldFiles) => (multiple ? [...oldFiles.filter((f) => !acceptedFiles.map((a) => a.url).includes(f.url)), ...newFiles] : newFiles));
       }
     },
@@ -290,7 +291,7 @@ export default function FileDrop({
     }
   }
 
-  const thumbs = files.map((file) => (
+  const thumbs = files.filter((file) => ![null, undefined].includes(file.id)).map((file) => (
     <Thumb key={file.name}>
       <ThumbRemove size="small" color="secondary" onClick={() => removeFile(file)}>
         <Delete />
