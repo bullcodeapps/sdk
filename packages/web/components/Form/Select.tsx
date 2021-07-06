@@ -18,6 +18,7 @@ interface SelectProps extends MUISelectProps {
   name: string;
   label?: string;
   helperText?: string;
+  setEmptyAfterSelection?: Boolean;
   options: SelectOption[];
   value?: any;
   onChange?: (value?: any) => any;
@@ -34,6 +35,7 @@ export default function Select({
   fullWidth = true,
   onChange,
   value: originalValue,
+  setEmptyAfterSelection,
   ...other
 }: SelectProps) {
   function getDefaultValue(value: string | string[]) {
@@ -83,6 +85,9 @@ export default function Select({
         setValue(elmValue);
         if (onChange) {
           onChange(elmValue);
+        }
+        if (setEmptyAfterSelection) {
+          setValue(null);
         }
       }
     }
