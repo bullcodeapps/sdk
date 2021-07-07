@@ -184,7 +184,7 @@ export default function FileDrop({
       ref: inputRef.current,
       path: 'value',
       setValue(ref: any, value: MediaFile | MediaFile[]) {
-        if (value) {
+        if (![null,undefined].includes(value)) {
           if (Array.isArray(value)) {
             setFiles(value);
           } else {
@@ -236,7 +236,6 @@ export default function FileDrop({
     ...other,
     accept: acceptedTypes,
     onDrop: async (acceptedFiles: any[]) => {
-      console.log(acceptedFiles)
       acceptedFiles = acceptedFiles.map((file: any) => Object.assign(file, {
         url: URL.createObjectURL(file),
       }));
@@ -258,8 +257,7 @@ export default function FileDrop({
         }
 
         let newFiles = await onAddFiles(compressedFiles);
-        newFiles = newFiles.filter((file) => file.id).map((file) => file);
-        setFiles((oldFiles) => (multiple ? [...oldFiles.filter((f) => !acceptedFiles.map((a) => a.url).includes(f.url)), ...newFiles] : newFiles));
+        setFiles((oldFiles) => (multiple ? [...oldFiles.filter((f) => !acceptedFiles.map((a) => a.url).includes(f.url)), ...newFiles.filter((f) => ![null, undefined].includes(f))] : newFiles));
       }
     },
   });
@@ -277,12 +275,11 @@ export default function FileDrop({
   }
 
   const FileThumb = ({ file }: { file: MediaFile }) => {
-    console.log('each file', file);
-    switch (file.type?.substr(0,5)) {
+    switch (file?.type?.substr(0,5)) {
       case 'image':
         return <ThumbImage
-          alt={file.name}
-          src={file.url}
+          alt={file?.name}
+          src={file?.url}
         />;
       case 'video':
         return <VideoThumb onClick={() => handleClickVideo(file)} />;
@@ -291,21 +288,21 @@ export default function FileDrop({
     }
   }
 
-  const thumbs = files.filter((file) => ![null, undefined].includes(file.id)).map((file) => (
-    <Thumb key={file.name}>
+  const thumbs = files.filter((file) => ![null, undefined].includes(file?.id)).map((file) => (
+    <Thumb key={file?.name}>
       <ThumbRemove size="small" color="secondary" onClick={() => removeFile(file)}>
         <Delete />
       </ThumbRemove>
       <ThumbInner>
         <FileThumb file={file} />
-        {onAddFiles && !file.id && <Progress />}
+        {onAddFiles && !file?.id && <Progress />}
       </ThumbInner>
     </Thumb>
   ));
 
   useEffect(() => () => {
     // Make sure to revoke the data uris to avoid memory leaks
-    files.forEach((file) => !file.id && URL.revokeObjectURL(file.url));
+    files.forEach((file) => !file?.id && URL.revokeObjectURL(file?.url));
   }, [files]);
 
 
