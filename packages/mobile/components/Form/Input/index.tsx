@@ -41,6 +41,7 @@ import {
   IconContainer,
   InputField,
   LabelBox,
+  StartIconContainer,
 } from './styles';
 import { InputStyle, ValidityMarkComponentType } from './types';
 import ValidityMark from './ValidityMark';
@@ -60,6 +61,8 @@ export interface InputProps<T = any>
   label?: string;
   containerProps?: ViewProps;
   useValidityMark?: boolean;
+  useInputIcon?: boolean;
+  InputIconComponent?: any;
   validity?: boolean | 'keepDefault';
   theme?: string;
   isDirty?: boolean;
@@ -79,6 +82,7 @@ const Component: InputComponent = ({
   label,
   containerProps,
   useValidityMark = false,
+  useInputIcon = false,
   validity: propValidity,
   isDirty: propIsDirty = false,
   onChangeValidity,
@@ -87,6 +91,7 @@ const Component: InputComponent = ({
   style,
   contentContainerStyle,
   inputStyle,
+  InputIconComponent,
   ...rest
 }) => {
   const ctx = useContext<InputContextType>(InputContext);
@@ -226,6 +231,11 @@ const Component: InputComponent = ({
         </LabelBox>
       )}
       <Content style={contentContainerStyle}>
+        {(!!useInputIcon || !!InputIconComponent && !rest.multiline) && (
+          <StartIconContainer>
+            <InputIconComponent />
+          </StartIconContainer>
+        )}
         <InputField
           ref={combinedRef}
           value={value}
@@ -241,6 +251,7 @@ const Component: InputComponent = ({
               color: currentValidationStyles?.color,
               borderRadius: selectedStyle?.default?.borderRadius,
               paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
+              paddingLeft: (!!useInputIcon || !!InputIconComponent && !rest.multiline) ? 45 : 20,
               paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 'auto',
             },
             inputStyle,

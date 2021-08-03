@@ -42,6 +42,17 @@ min-width: 50px;
 max-height: 55px;
 `;
 
+export const StartIconContainer = styled.View`
+position: absolute;
+top: 0;
+bottom: 0;
+margin-right: 15px;
+align-items: center;
+justify-content: center;
+min-width: 50px;
+max-height: 55px;
+`;
+
 export const COUNTER_BOX_BOTTOM = 10;
 
 export const CounterBox = styled.View`
