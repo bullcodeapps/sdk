@@ -42,7 +42,7 @@ min-width: 50px;
 max-height: 55px;
 `;
 
-export const StartIconContainer = styled.View`
+export const StartAdornmentContainer = styled.View`
 position: absolute;
 top: 0;
 bottom: 0;

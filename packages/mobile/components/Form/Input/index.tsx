@@ -41,7 +41,7 @@ import {
   IconContainer,
   InputField,
   LabelBox,
-  StartIconContainer,
+  StartAdornmentContainer,
 } from './styles';
 import { InputStyle, ValidityMarkComponentType } from './types';
 import ValidityMark from './ValidityMark';
@@ -57,12 +57,11 @@ export interface InputProps<T = any>
   ref?: Ref<InputRef<T>>;
   outerRef?: Ref<InputRef<T>>;
   name?: any;
-  iconComponent?: ValidityMarkComponentType;
+  startAdornment?: ValidityMarkComponentType;
+  endAdornment?: ValidityMarkComponentType;
   label?: string;
   containerProps?: ViewProps;
   useValidityMark?: boolean;
-  useInputIcon?: boolean;
-  InputIconComponent?: any;
   validity?: boolean | 'keepDefault';
   theme?: string;
   isDirty?: boolean;
@@ -70,6 +69,7 @@ export interface InputProps<T = any>
   onMarkPress?: (event: GestureResponderEvent) => void;
   contentContainerStyle?: ViewStyle;
   inputStyle?: TextStyle;
+  startAdornmentContainerStyle?: ViewStyle;
 }
 
 export type InputComponent<T = any> = FunctionComponent<InputProps<T>>;
@@ -77,12 +77,12 @@ export type InputComponent<T = any> = FunctionComponent<InputProps<T>>;
 const Component: InputComponent = ({
   theme = 'primary',
   name,
-  iconComponent,
+  startAdornment,
+  endAdornment,
   outerRef,
   label,
   containerProps,
   useValidityMark = false,
-  useInputIcon = false,
   validity: propValidity,
   isDirty: propIsDirty = false,
   onChangeValidity,
@@ -91,7 +91,7 @@ const Component: InputComponent = ({
   style,
   contentContainerStyle,
   inputStyle,
-  InputIconComponent,
+  startAdornmentContainerStyle,
   ...rest
 }) => {
   const ctx = useContext<InputContextType>(InputContext);
@@ -194,7 +194,8 @@ const Component: InputComponent = ({
     return selectedStyle?.validityMarkComponent;
   }, [selectedStyle.validityMarkComponent]);
 
-  const IconComponent = useMemo(() => iconComponent, [iconComponent]);
+  const EndAdornmentComponent = useMemo(() => endAdornment, [endAdornment]);
+  const StartAdornmentComponent = useMemo(() => startAdornment, [startAdornment]);
 
   const onFocus = useCallback(
     (e) => {
@@ -231,10 +232,13 @@ const Component: InputComponent = ({
         </LabelBox>
       )}
       <Content style={contentContainerStyle}>
-        {(!!useInputIcon || !!InputIconComponent && !rest.multiline) && (
-          <StartIconContainer>
-            <InputIconComponent />
-          </StartIconContainer>
+        {(!!startAdornment && !rest.multiline) && (
+          <StartAdornmentContainer style={startAdornmentContainerStyle}>
+            <StartAdornmentComponent isValid={!error}
+              colorName={selectedStyle.name}
+              {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
+            />
+          </StartAdornmentContainer>
         )}
         <InputField
           ref={combinedRef}
@@ -251,7 +255,7 @@ const Component: InputComponent = ({
               color: currentValidationStyles?.color,
               borderRadius: selectedStyle?.default?.borderRadius,
               paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
-              paddingLeft: (!!useInputIcon || !!InputIconComponent && !rest.multiline) ? 45 : 20,
+              paddingLeft: (!!startAdornment && !rest.multiline) ? 45 : 20,
               paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 'auto',
             },
             inputStyle,
@@ -259,10 +263,10 @@ const Component: InputComponent = ({
           onChangeText={handleOnChangeText}
           onFocus={onFocus}
         />
-        {(!!useValidityMark || !!iconComponent) && (
+        {(!!useValidityMark || !!endAdornment) && (
           <IconContainer
             isMultiline={rest.multiline}
-            usingIconComponent={!!iconComponent}
+            usingIconComponent={!!endAdornment}
             usingValidityMark={canShowValidityMark}>
             {canShowValidityMark && (
               <ValidityMarkComponent
@@ -272,8 +276,8 @@ const Component: InputComponent = ({
                 onPress={(e) => !!onMarkPress && onMarkPress(e)}
               />
             )}
-            {!!iconComponent && (
-              <IconComponent
+            {!!endAdornment && (
+              <EndAdornmentComponent
                 isValid={!error}
                 colorName={selectedStyle.name}
                 {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
