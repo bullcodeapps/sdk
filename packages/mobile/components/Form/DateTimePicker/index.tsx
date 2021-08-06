@@ -43,6 +43,7 @@ export type DateTimePickerProps = {
   contentContainerStyle?: ViewStyle;
   pickerStyle?: any;
   isDirty?: boolean;
+  iconStart?: boolean;
   onFocus?: () => void;
   onChange?: (value: Date) => void;
 };
@@ -68,6 +69,7 @@ const Component: DateTimePickerComponent = ({
   pickerStyle,
   icon: Icon,
   isDirty: propIsDirty,
+  iconStart,
   onFocus,
   onChange,
   ...rest
@@ -396,24 +398,44 @@ const Component: DateTimePickerComponent = ({
     <ViewContainer style={style}>
       <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
         <View pointerEvents="none">
-          <Input
+          {!iconStart && <Input
             ref={inputRef}
             name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
             editable={false}
             validity={isValidField}
             placeholder={placeholder}
             value={dateFormatted}
-            iconComponent={() => {
-              if (Icon) {
-                return <Icon color={currentValidationStyles?.borderColor} />;
-              }
-              return <DefaultIcon color={currentValidationStyles?.borderColor} />;
+            endAdornment={() => {
+                if (Icon) {
+                  return <Icon color={currentValidationStyles?.borderColor} />;
+                }
+                return <DefaultIcon color={currentValidationStyles?.borderColor} />;
             }}
             theme={theme}
             isDirty={isDirty}
             onFocus={handleOnFocusInput}
             {...inputProps}
-          />
+          />}
+
+          {!!iconStart && <Input
+            ref={inputRef}
+            name={`textDateTimePicker-${mode}${name ? `-${name}` : ''}`}
+            editable={false}
+            validity={isValidField}
+            placeholder={placeholder}
+            value={dateFormatted}
+            startAdornment={() => {
+                if (Icon) {
+                  return <Icon color={currentValidationStyles?.borderColor} />;
+                }
+                return <DefaultIcon color={currentValidationStyles?.borderColor} />;
+            }}
+            theme={theme}
+            isDirty={isDirty}
+            onFocus={handleOnFocusInput}
+            {...inputProps}
+          />}
+
         </View>
       </TouchableOpacity>
       <Modal
