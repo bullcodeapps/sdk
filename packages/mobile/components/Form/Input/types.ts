@@ -3,13 +3,13 @@ import { TextStyle } from 'react-native';
 
 import { GlobalStyle } from '../../../types';
 
-export type ValidityMarkComponentProps = {
+export type AdornmentComponentTypeProps = {
   isValid?: boolean;
   colorName?: string;
   onPress?: (data: any) => void;
 };
 
-export type ValidityMarkComponentType = FC<ValidityMarkComponentProps>;
+export type AdornmentComponentType = FC<AdornmentComponentTypeProps>;
 
 type CustomStyles = {
   selectionColor: string,
@@ -33,7 +33,7 @@ export interface InputStyle extends GlobalStyle {
   default: InputStateStyles;
   valid?: Partial<InputStateStyles>;
   invalid?: Partial<InputStateStyles>;
-  validityMarkComponent: ValidityMarkComponentType;
+  validityMarkComponent: AdornmentComponentType;
   validityMark: ValidityMarkTypes;
 };
 
