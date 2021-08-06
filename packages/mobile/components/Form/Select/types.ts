@@ -1,4 +1,5 @@
 import { TextStyle } from 'react-native';
+import { FC } from 'react';
 
 import { GlobalStyle } from '../../../types';
 
@@ -7,6 +8,14 @@ export type SelectCustomStyle = {
   placeholder: string;
   dropdownIconColor?: string;
 };
+
+export type AdornmentComponentTypeProps = {
+  isValid?: boolean;
+  colorName?: string;
+  onPress?: (data: any) => void;
+};
+
+export type AdornmentComponentType = FC<AdornmentComponentTypeProps>;
 
 export type SelectStateStyles = TextStyle & SelectCustomStyle;
 
