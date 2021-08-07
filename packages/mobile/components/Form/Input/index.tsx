@@ -117,7 +117,12 @@ const Component: InputComponent = ({
       }
       const newText = text || '';
       setValue(newText);
-      !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText, ignoreDebounce);
+      if (!isDirty) {
+        setIsDirty(true);
+        !usingValidity && combinedRef?.current?.validate && combinedRef.current.validate(newText || '', ignoreDebounce);
+      }
+      combinedRef?.current?.validate && combinedRef.current.validate(newText || '', ignoreDebounce);
+      // !usingValidity && inputRef?.current?.validate && inputRef.current.validate(newText, ignoreDebounce);
       onChangeText && onChangeText(newText);
     },
     [inputRef, onChangeText, usingValidity, value],
@@ -134,10 +139,8 @@ const Component: InputComponent = ({
   }, [fieldName, isDirty]);
 
   useEffect(() => {
-    if (rest?.value !== undefined && !isDirty) {
-      handleOnChangeText(rest?.value || '');
-    }
-  }, [handleOnChangeText, isDirty, rest.value]);
+    combinedRef?.current?.validate && combinedRef.current.validate(value || '', true);
+  }, [value]);
 
   useEffect(() => {
     registerField<string>({
@@ -183,7 +186,7 @@ const Component: InputComponent = ({
     }
 
     return StyleSheet.flatten([selectedStyle?.default, getStyleByValidity(!error, selectedStyle)]);
-  }, [usingValidity, isDirty, error, selectedStyle, propValidity]);
+  }, [usingValidity, isDirty, error, selectedStyle, propValidity, value]);
 
   useEffect(() => {
     onChangeValidity && onChangeValidity(!error);
@@ -194,7 +197,7 @@ const Component: InputComponent = ({
       return ValidityMark;
     }
     return selectedStyle?.validityMarkComponent;
-  }, [selectedStyle.validityMarkComponent]);
+  }, [selectedStyle.validityMarkComponent, value]);
 
   const EndAdornmentComponent = useMemo(() => endAdornment, [endAdornment]);
   const StartAdornmentComponent = useMemo(() => startAdornment, [startAdornment]);

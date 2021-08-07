@@ -204,10 +204,17 @@ const Component: DateTimePickerComponent = ({
    * When the values are changed via prop we must do some things
    */
   useEffect(() => {
-    const newDate = parseStrToDate(value);
-    setDate(newDate);
-    combinedRef?.current?.validate && combinedRef.current.validate(newDate);
-    onChange && onChange(newDate);
+    if (!isDirty) {
+      setIsDirty(true);
+    }
+
+    if (value) {
+      const newDate = parseStrToDate(value);
+      setDate(newDate);
+      combinedRef?.current?.validate && combinedRef.current.validate(newDate);
+      onChange && onChange(newDate);
+    }
+
   }, [combinedRef, isDirty, onChange, parseStrToDate, value]);
 
   /*
