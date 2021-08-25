@@ -136,7 +136,7 @@ const Component: SelectComponent = ({
     },
     inputIOS: {
       height: 55,
-      paddingLeft: (!!startAdornment) ? 45 : 20,
+      paddingLeft: (!!startAdornment) ? 55 : 20,
       paddingRight: 25 + 20, // IconContainer size + left space
       paddingTop: 10,
       paddingBottom: 10,
@@ -147,7 +147,7 @@ const Component: SelectComponent = ({
     },
     inputAndroid: {
       height: 55,
-      paddingLeft: (!!startAdornment) ? 45 : 20,
+      paddingLeft: (!!startAdornment) ? 55 : 20,
       paddingRight: 25 + 20, // IconContainer size + left space
       paddingTop: 10,
       paddingBottom: 10,

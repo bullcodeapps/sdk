@@ -70,6 +70,7 @@ const PhoneInput: PhoneInputComponent = ({
   style,
   contentContainerStyle,
   inputStyle,
+  startAdornment,
   selectStyle = {},
   ...rest
 }) => {
@@ -89,12 +90,15 @@ const PhoneInput: PhoneInputComponent = ({
 
   const isValid = useMemo(() => {
     const hasPhone = phone !== undefined && phone !== null;
+
+    if (!localSelectedCountry) {
+      setLocalSelectedCountry(defaultCountry);
+    }
     const hasLocalSelectedCountry = localSelectedCountry !== undefined && localSelectedCountry !== null;
 
     if (phone) {
       const asYouType = new AsYouType(localSelectedCountry);
       asYouType.input(phone)
-
       return (
         selectIsValid &&
         inputIsValid &&
@@ -361,6 +365,7 @@ const PhoneInput: PhoneInputComponent = ({
           style={{ ...defaultSelectStyle, ...selectStyle }}
           iconStyle={selectIconStyle}
         />
+
         <Input
           ref={combinedRef}
           name={`formatted-number-input-${name}`}
@@ -370,6 +375,7 @@ const PhoneInput: PhoneInputComponent = ({
           maxLength={35}
           onChangeText={handleChangePhone}
           returnKeyType="next"
+          startAdornment={startAdornment}
           onSubmitEditing={() => {
             nextInputRef && nextInputRef.current?.focus();
           }}
@@ -387,11 +393,11 @@ const PhoneInput: PhoneInputComponent = ({
             rest?.style,
           ]}
           inputStyle={{
-            paddingLeft: 10,
+            paddingLeft: (![null, undefined].includes(startAdornment) && !rest.multiline) ? 55 : 10,
             borderWidth: 0,
             color: currentValidationStyles?.input?.color
           }}
-          iconComponent={(props) => {
+          endAdornment={(props) => {
             if (selectedStyle?.validityMarkComponent) {
               const CustomValidityMark = selectedStyle?.validityMarkComponent;
               return <CustomValidityMark {...props} />;

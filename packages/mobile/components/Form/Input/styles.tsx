@@ -46,7 +46,7 @@ export const StartAdornmentContainer = styled.View`
 position: absolute;
 top: 0;
 bottom: 0;
-margin-right: 15px;
+margin-left: 5px;
 align-items: center;
 justify-content: center;
 min-width: 50px;
