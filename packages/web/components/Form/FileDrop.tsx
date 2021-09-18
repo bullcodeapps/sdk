@@ -58,6 +58,7 @@ const Thumb = styled.div`
   margin-right: 8px;
   width: 150px;
   height: 150px;
+  align-items: center;
   padding: 4px;
   box-sizing: border-box;
 `;
