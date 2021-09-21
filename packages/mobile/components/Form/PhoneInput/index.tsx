@@ -388,12 +388,12 @@ const PhoneInput: PhoneInputComponent = ({
               backgroundColor: currentValidationStyles?.input?.backgroundColor || 'transparent',
               borderColor: currentValidationStyles?.input?.borderColor,
               borderRadius: selectedStyle?.default?.borderRadius,
-              paddingRight: usingValidity && useValidityMark ? 45 : 0,
+              paddingRight: usingValidity && useValidityMark ? 55 : 0,
             },
             rest?.style,
           ]}
           inputStyle={{
-            paddingLeft: (![null, undefined].includes(startAdornment) && !rest.multiline) ? 55 : 10,
+            paddingLeft: (![null, undefined].includes(startAdornment) && !rest.multiline) ? 55 : 20,
             borderWidth: 0,
             color: currentValidationStyles?.input?.color
           }}

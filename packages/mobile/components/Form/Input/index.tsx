@@ -42,6 +42,7 @@ import {
   InputField,
   LabelBox,
   StartAdornmentContainer,
+  LabelText,
 } from './styles';
 import { InputStyle, AdornmentComponentType } from './types';
 import ValidityMark from './ValidityMark';
@@ -62,6 +63,7 @@ export interface InputProps<T = any>
   label?: string;
   containerProps?: ViewProps;
   useValidityMark?: boolean;
+  floatingLabel?: boolean;
   validity?: boolean | 'keepDefault';
   theme?: string;
   isDirty?: boolean;
@@ -86,6 +88,7 @@ const Component: InputComponent = ({
   useValidityMark = false,
   validity: propValidity,
   isDirty: propIsDirty = false,
+  floatingLabel = false,
   onChangeValidity,
   onMarkPress,
   onChangeText,
@@ -231,9 +234,9 @@ const Component: InputComponent = ({
 
   return (
     <Container style={style} {...containerProps}>
-      {label && (
-        <LabelBox>
-          <Text>{label}</Text>
+      {(label && !floatingLabel || (label && floatingLabel && value.length > 0)) && (
+        <LabelBox floating={floatingLabel} paddingLeft={(![null, undefined].includes(startAdornment) && !rest.multiline && floatingLabel) ? 55 : 20}>
+          <LabelText>{label}</LabelText>
         </LabelBox>
       )}
       <Content style={contentContainerStyle}>
@@ -260,6 +263,7 @@ const Component: InputComponent = ({
               color: currentValidationStyles?.color,
               borderRadius: selectedStyle?.default?.borderRadius,
               paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
+              paddingTop: (floatingLabel && value.length > 0) ? 20 : 10,
               paddingLeft: (![null, undefined].includes(startAdornment) && !rest.multiline) ? 55 : 20,
               paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 'auto',
             },

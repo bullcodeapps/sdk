@@ -9,9 +9,17 @@ export const Container = styled(Animated.View)`
   margin-top: 10px;
 `;
 
-export const LabelBox = styled.View`
+export const LabelBox = styled.View<{ floating?: boolean; paddingLeft?: number;  }>`
   height: 20px;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  ${(props) => {
+    if (props.floating) {
+      return 'position: absolute; z-index: 10; padding-top: 5px;';
+    }
+    if (!!props.paddingLeft) {
+      return `padding-left: ${props.paddingLeft};`;
+    }
+  }};
 `;
 
 export const InputField = styled(AnimatedTextInput)`
@@ -21,7 +29,7 @@ export const InputField = styled(AnimatedTextInput)`
   padding-bottom: 10px;
   border-width: 1px;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
 `;
 
 export const IconContainer = styled.View<{
@@ -85,6 +93,11 @@ export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
       return 'color: #bbc8cf';
     }
   }};
+`;
+
+export const LabelText = styled(Text)`
+  font-weight: 300;
+  color: #BCED09;
 `;
 
 export const Content = styled.View`
