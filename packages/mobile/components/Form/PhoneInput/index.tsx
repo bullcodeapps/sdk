@@ -70,6 +70,9 @@ const PhoneInput: PhoneInputComponent = ({
   style,
   contentContainerStyle,
   inputStyle,
+  startAdornment,
+  invalidValidityMarkIcon,
+  validValidityMarkIcon,
   selectStyle = {},
   ...rest
 }) => {
@@ -89,12 +92,15 @@ const PhoneInput: PhoneInputComponent = ({
 
   const isValid = useMemo(() => {
     const hasPhone = phone !== undefined && phone !== null;
+
+    if (!localSelectedCountry) {
+      setLocalSelectedCountry(defaultCountry);
+    }
     const hasLocalSelectedCountry = localSelectedCountry !== undefined && localSelectedCountry !== null;
 
     if (phone) {
       const asYouType = new AsYouType(localSelectedCountry);
       asYouType.input(phone)
-
       return (
         selectIsValid &&
         inputIsValid &&
@@ -361,6 +367,7 @@ const PhoneInput: PhoneInputComponent = ({
           style={{ ...defaultSelectStyle, ...selectStyle }}
           iconStyle={selectIconStyle}
         />
+
         <Input
           ref={combinedRef}
           name={`formatted-number-input-${name}`}
@@ -370,6 +377,7 @@ const PhoneInput: PhoneInputComponent = ({
           maxLength={35}
           onChangeText={handleChangePhone}
           returnKeyType="next"
+          startAdornment={startAdornment}
           onSubmitEditing={() => {
             nextInputRef && nextInputRef.current?.focus();
           }}
@@ -382,22 +390,24 @@ const PhoneInput: PhoneInputComponent = ({
               backgroundColor: currentValidationStyles?.input?.backgroundColor || 'transparent',
               borderColor: currentValidationStyles?.input?.borderColor,
               borderRadius: selectedStyle?.default?.borderRadius,
-              paddingRight: usingValidity && useValidityMark ? 45 : 0,
+              paddingRight: usingValidity && useValidityMark ? 55 : 0,
             },
             rest?.style,
           ]}
           inputStyle={{
-            paddingLeft: 10,
+            paddingLeft: (![null, undefined].includes(startAdornment) && !rest.multiline) ? 55 : 20,
             borderWidth: 0,
             color: currentValidationStyles?.input?.color
           }}
-          iconComponent={(props) => {
+          endAdornment={(props) => {
             if (selectedStyle?.validityMarkComponent) {
               const CustomValidityMark = selectedStyle?.validityMarkComponent;
               return <CustomValidityMark {...props} />;
             }
             return isDirty ? (
               <ValidityMark
+                invalidValidityMarkIcon={invalidValidityMarkIcon}
+                validValidityMarkIcon={validValidityMarkIcon}
                 isValid={isValid}
                 colors={selectedStyle?.validityMark}
                 onPress={(e) => {
