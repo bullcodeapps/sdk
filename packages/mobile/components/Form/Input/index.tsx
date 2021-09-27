@@ -20,7 +20,6 @@ import {
   NativeMethods,
   Platform,
   StyleSheet,
-  Text,
   TextInput,
   TextInputProps,
   TextStyle,
@@ -44,7 +43,7 @@ import {
   StartAdornmentContainer,
   LabelText,
 } from './styles';
-import { InputStyle, AdornmentComponentType } from './types';
+import { InputStyle, AdornmentComponentType, CustomAdornmentComponentType } from './types';
 import ValidityMark from './ValidityMark';
 
 export type InputRef<T = any> = T & (Animated.AnimatedComponent<ComponentType<TextInput>> | TextInput);
@@ -60,6 +59,8 @@ export interface InputProps<T = any>
   name?: any;
   startAdornment?: AdornmentComponentType;
   endAdornment?: AdornmentComponentType;
+  validValidityMarkIcon?: AdornmentComponentType;
+  invalidValidityMarkIcon?: AdornmentComponentType;
   label?: string;
   containerProps?: ViewProps;
   useValidityMark?: boolean;
@@ -82,6 +83,8 @@ const Component: InputComponent = ({
   name,
   startAdornment,
   endAdornment,
+  validValidityMarkIcon,
+  invalidValidityMarkIcon,
   outerRef,
   label,
   containerProps,
@@ -112,6 +115,10 @@ const Component: InputComponent = ({
   const combinedRef = useCombinedRefs<InputFieldType>(outerRef, inputRef);
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
+  const defaultPaddingLeft = useMemo(() => (![null, undefined].includes(startAdornment) && !rest.multiline && floatingLabel) ? 55 : 20, [startAdornment, rest, floatingLabel]);
+  const shouldShowLabel = useMemo(() => !!((label && !floatingLabel || (label && floatingLabel && value.length > 0))), [label, value, floatingLabel]);
+  const shouldShowStartAdornment = useMemo(() => !!(![null, undefined].includes(startAdornment) && !rest.multiline) ,[startAdornment, rest])
+  const shouldShowEndAdornment = useMemo(() => !!(!!useValidityMark || ![null, undefined].includes(endAdornment)) ,[endAdornment, useValidityMark])
 
   const handleOnChangeText = useCallback(
     (text: string, ignoreDebounce: boolean = true) => {
@@ -195,7 +202,7 @@ const Component: InputComponent = ({
     onChangeValidity && onChangeValidity(!error);
   }, [error, onChangeValidity]);
 
-  const ValidityMarkComponent: AdornmentComponentType = useMemo(() => {
+  const ValidityMarkComponent: CustomAdornmentComponentType = useMemo(() => {
     if (!selectedStyle?.validityMarkComponent) {
       return ValidityMark;
     }
@@ -234,13 +241,13 @@ const Component: InputComponent = ({
 
   return (
     <Container style={style} {...containerProps}>
-      {(label && !floatingLabel || (label && floatingLabel && value.length > 0)) && (
-        <LabelBox floating={floatingLabel} paddingLeft={(![null, undefined].includes(startAdornment) && !rest.multiline && floatingLabel) ? 55 : 20}>
+      {shouldShowLabel && (
+        <LabelBox floating={floatingLabel} paddingLeft={defaultPaddingLeft}>
           <LabelText>{label}</LabelText>
         </LabelBox>
       )}
       <Content style={contentContainerStyle}>
-        {(![null, undefined].includes(startAdornment) && !rest.multiline) && (
+        {shouldShowStartAdornment && (
           <StartAdornmentContainer style={startAdornmentContainerStyle}>
             <StartAdornmentComponent isValid={!error}
               colorName={selectedStyle.name}
@@ -272,7 +279,7 @@ const Component: InputComponent = ({
           onChangeText={handleOnChangeText}
           onFocus={onFocus}
         />
-        {(!!useValidityMark || ![null, undefined].includes(endAdornment)) && (
+        {shouldShowEndAdornment && (
           <IconContainer
             isMultiline={rest.multiline}
             usingIconComponent={![null, undefined].includes(endAdornment)}
@@ -280,6 +287,8 @@ const Component: InputComponent = ({
             style={endAdornmentContainerStyle}>
             {canShowValidityMark && (
               <ValidityMarkComponent
+                invalidValidityMarkIcon={invalidValidityMarkIcon}
+                validValidityMarkIcon={validValidityMarkIcon}
                 isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
                 colorName={selectedStyle.name}
                 {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
