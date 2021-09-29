@@ -113,12 +113,15 @@ const Component: InputComponent = ({
   // Refs
   const inputRef = useRef<InputFieldType>(null);
   const combinedRef = useCombinedRefs<InputFieldType>(outerRef, inputRef);
+  const EndAdornmentComponent = useMemo(() => endAdornment, [endAdornment]);
+  const StartAdornmentComponent = useMemo(() => startAdornment, [startAdornment]);
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
-  const defaultPaddingLeft = useMemo(() => (![null, undefined].includes(startAdornment) && !rest.multiline && floatingLabel) ? 55 : 20, [startAdornment, rest, floatingLabel]);
   const shouldShowLabel = useMemo(() => !!((label && !floatingLabel || (label && floatingLabel && value.length > 0))), [label, value, floatingLabel]);
-  const shouldShowStartAdornment = useMemo(() => !!(![null, undefined].includes(startAdornment) && !rest.multiline) ,[startAdornment, rest])
-  const shouldShowEndAdornment = useMemo(() => !!(!!useValidityMark || ![null, undefined].includes(endAdornment)) ,[endAdornment, useValidityMark])
+  const shouldShowStartAdornment = useMemo(() => ![null, undefined].includes(startAdornment) && !rest.multiline ,[startAdornment, rest])
+  const shouldShowEndAdornment = useMemo(() => useValidityMark || ![null, undefined].includes(endAdornment) ,[endAdornment, useValidityMark])
+  const defaultPaddingLeft = useMemo(() => shouldShowStartAdornment ? 55 : 20, [shouldShowStartAdornment]);
+
 
   const handleOnChangeText = useCallback(
     (text: string, ignoreDebounce: boolean = true) => {
@@ -143,7 +146,6 @@ const Component: InputComponent = ({
       if (isDirty) {
         return;
       }
-
       setIsDirty(true);
     };
   }, [fieldName, isDirty]);
@@ -162,7 +164,8 @@ const Component: InputComponent = ({
       setValue: (ref: TextInput, val: string) => {
         // Avoid from form auto-fill and mark as dirty
         if (val !== undefined && !isDirty) {
-          handleOnChangeText(val || '', false);
+          setValue(val);
+          // handleOnChangeText(val || '', false);
         }
       },
       getValue: () => {
@@ -208,9 +211,6 @@ const Component: InputComponent = ({
     }
     return selectedStyle?.validityMarkComponent;
   }, [selectedStyle.validityMarkComponent, value]);
-
-  const EndAdornmentComponent = useMemo(() => endAdornment, [endAdornment]);
-  const StartAdornmentComponent = useMemo(() => startAdornment, [startAdornment]);
 
   const onFocus = useCallback(
     (e) => {
@@ -271,7 +271,7 @@ const Component: InputComponent = ({
               borderRadius: selectedStyle?.default?.borderRadius,
               paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
               paddingTop: (floatingLabel && value.length > 0) ? 20 : 10,
-              paddingLeft: (![null, undefined].includes(startAdornment) && !rest.multiline) ? 55 : 20,
+              paddingLeft: shouldShowStartAdornment ? 55 : 20,
               paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 'auto',
             },
             inputStyle,
@@ -285,24 +285,21 @@ const Component: InputComponent = ({
             usingIconComponent={![null, undefined].includes(endAdornment)}
             usingValidityMark={canShowValidityMark}
             style={endAdornmentContainerStyle}>
-            {canShowValidityMark && (
-              <ValidityMarkComponent
-                invalidValidityMarkIcon={invalidValidityMarkIcon}
-                validValidityMarkIcon={validValidityMarkIcon}
-                isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
-                colorName={selectedStyle.name}
-                {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
-                onPress={(e) => !!onMarkPress && onMarkPress(e)}
-              />
-            )}
-            {![null, undefined].includes(endAdornment) && (
-              <EndAdornmentComponent
-                isValid={!error}
-                colorName={selectedStyle.name}
-                {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
-                onPress={(e) => !!onMarkPress && onMarkPress(e)}
-              />
-            )}
+            {canShowValidityMark && <ValidityMarkComponent
+              invalidValidityMarkIcon={invalidValidityMarkIcon}
+              validValidityMarkIcon={validValidityMarkIcon}
+              isValid={isDirty && (usingValidity && propValidity !== 'keepDefault' ? propValidity : !error)}
+              colorName={selectedStyle.name}
+              {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
+              onPress={(e) => !!onMarkPress && onMarkPress(e)}
+            />}
+
+            {![null, undefined].includes(endAdornment) && !useValidityMark && <EndAdornmentComponent
+              isValid={!error}
+              colorName={selectedStyle.name}
+              {...(selectedStyle?.validityMarkComponent ? {} : { colors: selectedStyle?.validityMark })}
+              onPress={(e) => !!onMarkPress && onMarkPress(e)}
+            />}
           </IconContainer>
         )}
         {rest?.multiline && (

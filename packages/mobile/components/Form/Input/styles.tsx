@@ -39,12 +39,8 @@ export const IconContainer = styled.View<{
   usingIconComponent?: boolean;
 }>`
 position: absolute;
+right: 5px;
 top: 0;
-${({usingValidityMark, usingIconComponent}) => (usingValidityMark && !!usingIconComponent ? css`
-    right: 55px;
-` : css`
-    right: 5px;
-`)}
 
 ${({isMultiline, usingValidityMark}) => (isMultiline ?
   (usingValidityMark ? css`

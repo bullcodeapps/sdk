@@ -11,6 +11,16 @@ export type AdornmentComponentTypeProps = {
 
 export type AdornmentComponentType = FC<AdornmentComponentTypeProps>;
 
+export type CustomAdornmentComponentTypeProps = {
+  isValid?: boolean;
+  colorName?: string;
+  onPress?: (data: any) => void;
+  validValidityMarkIcon?: AdornmentComponentType;
+  invalidValidityMarkIcon?: AdornmentComponentType;
+};
+
+export type CustomAdornmentComponentType = FC<CustomAdornmentComponentTypeProps>;
+
 type CustomStyles = {
   selectionColor: string,
   placeholder: string,

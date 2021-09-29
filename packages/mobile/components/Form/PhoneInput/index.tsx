@@ -71,6 +71,8 @@ const PhoneInput: PhoneInputComponent = ({
   contentContainerStyle,
   inputStyle,
   startAdornment,
+  invalidValidityMarkIcon,
+  validValidityMarkIcon,
   selectStyle = {},
   ...rest
 }) => {
@@ -404,6 +406,8 @@ const PhoneInput: PhoneInputComponent = ({
             }
             return isDirty ? (
               <ValidityMark
+                invalidValidityMarkIcon={invalidValidityMarkIcon}
+                validValidityMarkIcon={validValidityMarkIcon}
                 isValid={isValid}
                 colors={selectedStyle?.validityMark}
                 onPress={(e) => {
