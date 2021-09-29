@@ -43,6 +43,7 @@ export type DateTimePickerProps = {
   contentContainerStyle?: ViewStyle;
   pickerStyle?: any;
   isDirty?: boolean;
+  iconStart?: boolean;
   onFocus?: () => void;
   onChange?: (value: Date) => void;
 };
@@ -67,7 +68,8 @@ const Component: DateTimePickerComponent = ({
   contentContainerStyle,
   pickerStyle,
   icon: Icon,
-  isDirty: propIsDirty,
+  isDirty: propIsDirty = false,
+  iconStart,
   onFocus,
   onChange,
   ...rest
@@ -79,7 +81,7 @@ const Component: DateTimePickerComponent = ({
   // States
   const [date, setDate] = useState<Date | null>(null);
   const [show, setShow] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  const [isDirty, setIsDirty] = useState(propIsDirty);
   const { fieldName, registerField, error } = useField(name);
   const [initialDate, setInitialDate] = useState(new Date());
 
@@ -110,12 +112,6 @@ const Component: DateTimePickerComponent = ({
     () => ([undefined, null].includes(parseStrToDate(date)) ? initialDate : parseStrToDate(date)),
     [date, initialDate, parseStrToDate],
   );
-
-  useEffect(() => {
-    if (![null, undefined].includes(propIsDirty)) {
-      setIsDirty(propIsDirty);
-    }
-  }, [propIsDirty]);
 
   /*
    * Will always bring the formatted date
@@ -202,10 +198,17 @@ const Component: DateTimePickerComponent = ({
    * When the values are changed via prop we must do some things
    */
   useEffect(() => {
-    const newDate = parseStrToDate(value);
-    setDate(newDate);
-    combinedRef?.current?.validate && combinedRef.current.validate(newDate);
-    onChange && onChange(newDate);
+    // if (!isDirty) {
+    //   setIsDirty(true);
+    // }
+
+    if (value) {
+      const newDate = parseStrToDate(value);
+      setDate(newDate);
+      combinedRef?.current?.validate && combinedRef.current.validate(newDate);
+      onChange && onChange(newDate);
+    }
+
   }, [combinedRef, isDirty, onChange, parseStrToDate, value]);
 
   /*
@@ -270,6 +273,7 @@ const Component: DateTimePickerComponent = ({
 
   useEffect(() => {
     if (!combinedRef?.current) {
+      // setIsDirty(true);
       return;
     }
     combinedRef.current.markAsDirty = () => {
@@ -277,16 +281,17 @@ const Component: DateTimePickerComponent = ({
         return;
       }
 
-      setIsDirty(true);
-      onFocus && onFocus();
+      // setIsDirty(true);
+      // onFocus && onFocus();
     };
-  }, [combinedRef, fieldName, isDirty, onFocus]);
+  }, [combinedRef, fieldName, isDirty, value]);
 
   const selectDate = useCallback(
     (event, newDate: Date) => {
       if (newDate === pickerValue || isEqual(pickerValue, newDate)) {
         return;
       }
+      setIsDirty(true)
       setShow(Platform.OS === 'ios');
       onChangeValue({ currentDate: newDate, validate: true });
     },
@@ -339,7 +344,7 @@ const Component: DateTimePickerComponent = ({
   }, [theme, ctx?.styles]);
 
   const currentValidationStyles = useMemo(() => {
-    if (!isDirty) {
+    if (!isDirty || !date) {
       return selectedStyle?.default;
     }
 
@@ -353,7 +358,7 @@ const Component: DateTimePickerComponent = ({
   }, [usingValidity, isDirty, error, selectedStyle, inputProps?.validity, date]);
 
   const isValidField = useMemo(() => {
-    if (!isDirty) {
+    if (!isDirty || !date) {
       return 'keepDefault';
     }
 
@@ -392,6 +397,16 @@ const Component: DateTimePickerComponent = ({
     return response;
   }, [maxDate, minDate]);
 
+  const IconComponent = useMemo(
+    () => {
+      if (!!Icon) {
+        return <Icon color={currentValidationStyles?.borderColor} />;
+      }
+      return <DefaultIcon color={currentValidationStyles?.borderColor} />;
+    },
+    [Icon, currentValidationStyles],
+  );
+
   return (
     <ViewContainer style={style}>
       <TouchableOpacity onPress={handleInputPress} activeOpacity={1}>
@@ -403,12 +418,12 @@ const Component: DateTimePickerComponent = ({
             validity={isValidField}
             placeholder={placeholder}
             value={dateFormatted}
-            iconComponent={() => {
-              if (Icon) {
-                return <Icon color={currentValidationStyles?.borderColor} />;
-              }
-              return <DefaultIcon color={currentValidationStyles?.borderColor} />;
-            }}
+            endAdornment={iconStart ? null : (() =>
+              IconComponent
+            )}
+            startAdornment={!iconStart ? null : (() =>
+               IconComponent
+            )}
             theme={theme}
             isDirty={isDirty}
             onFocus={handleOnFocusInput}

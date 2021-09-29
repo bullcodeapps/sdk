@@ -1,4 +1,4 @@
-import styled from 'styled-components/native';
+import styled, { css } from 'styled-components/native';
 import { Animated, TextInput } from 'react-native';
 import Text from '../../Text';
 
@@ -9,9 +9,19 @@ export const Container = styled(Animated.View)`
   margin-top: 10px;
 `;
 
-export const LabelBox = styled.View`
+export const LabelBox = styled.View<{ floating?: boolean; paddingLeft?: number;  }>`
   height: 20px;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+
+  ${({floating}) => floating ? css`
+    position: absolute;
+    z-index: 10;
+    padding-top: 5px;
+  ` : ''}
+
+  ${({paddingLeft}) => !!paddingLeft ? css`
+    padding-left: ${paddingLeft};
+  ` : ''}
 `;
 
 export const InputField = styled(AnimatedTextInput)`
@@ -21,7 +31,6 @@ export const InputField = styled(AnimatedTextInput)`
   padding-bottom: 10px;
   border-width: 1px;
   font-size: 16px;
-  font-weight: 500;
 `;
 
 export const IconContainer = styled.View<{
@@ -30,12 +39,35 @@ export const IconContainer = styled.View<{
   usingIconComponent?: boolean;
 }>`
 position: absolute;
+right: 5px;
 top: 0;
-${({ usingValidityMark, usingIconComponent }) =>
-  usingValidityMark && !!usingIconComponent ? 'right: 55px;' : 'right: 5px;'}
-${({ isMultiline, usingValidityMark }) =>
-  isMultiline ? (usingValidityMark ? 'top: 55px;' : 'top: 16px;') : 'top: 0;'}
-${({ isMultiline }) => (isMultiline ? 'bottom: auto;' : 'bottom: 0;')}
+
+${({isMultiline, usingValidityMark}) => (isMultiline ?
+  (usingValidityMark ? css`
+    top: 55px;
+  ` : css`
+    top: 16px;
+  `) : css`
+    top: 0;
+  `)}
+
+${({isMultiline}) => (isMultiline ? css`
+  bottom: auto;
+` : css`
+  bottom: 0;
+`)}
+
+align-items: center;
+justify-content: center;
+min-width: 50px;
+max-height: 55px;
+`;
+
+export const StartAdornmentContainer = styled.View`
+position: absolute;
+top: 0;
+bottom: 0;
+margin-left: 5px;
 align-items: center;
 justify-content: center;
 min-width: 50px;
@@ -65,15 +97,20 @@ export const CounterText = styled(Text)<{ maxLength: number; length: number }>`
   font-weight: 500;
   ${(props) => {
     if (props.length >= props.maxLength * 0.9) {
-      return 'color: #dc3446';
+      return css`color: #dc3446`;
     }
     if (props.length >= props.maxLength * 0.7) {
-      return 'color: #ffc962';
+      return css`color: #ffc962`;
     }
     if (props.length < props.maxLength * 0.7) {
-      return 'color: #bbc8cf';
+      return css`color: #bbc8cf`;
     }
   }};
+`;
+
+export const LabelText = styled(Text)`
+  font-weight: 300;
+  color: #BCED09;
 `;
 
 export const Content = styled.View`

@@ -8,6 +8,10 @@ export const Container = styled.View`
   margin-top: 10px;
 `;
 
+export const Content = styled.View`
+  flex-grow: 1;
+`;
+
 export const IconContainer = styled(Animated.View)`
   width: 25px;
   height: 25px;
@@ -42,4 +46,15 @@ export const Loading = styled.ActivityIndicator.attrs({
   right: 0;
   bottom: 0;
   left: 0;
+`;
+
+export const StartAdornmentContainer = styled.View`
+position: absolute;
+top: 0;
+bottom: 0;
+margin-right: 15px;
+align-items: center;
+justify-content: center;
+min-width: 50px;
+max-height: 55px;
 `;
