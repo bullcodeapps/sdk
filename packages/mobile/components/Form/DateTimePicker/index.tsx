@@ -284,7 +284,7 @@ const Component: DateTimePickerComponent = ({
       // setIsDirty(true);
       // onFocus && onFocus();
     };
-  }, [combinedRef, fieldName, isDirty, value]);
+  }, [combinedRef, fieldName, isDirty]);
 
   const selectDate = useCallback(
     (event, newDate: Date) => {
@@ -397,7 +397,7 @@ const Component: DateTimePickerComponent = ({
     return response;
   }, [maxDate, minDate]);
 
-  const IconComponent = useMemo(
+  const IconComponent = useCallback(
     () => {
       if (!!Icon) {
         return <Icon color={currentValidationStyles?.borderColor} />;
@@ -419,10 +419,10 @@ const Component: DateTimePickerComponent = ({
             placeholder={placeholder}
             value={dateFormatted}
             endAdornment={iconStart ? null : (() =>
-              IconComponent
+              <IconComponent />
             )}
             startAdornment={!iconStart ? null : (() =>
-               IconComponent
+              <IconComponent />
             )}
             theme={theme}
             isDirty={isDirty}
