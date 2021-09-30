@@ -20,7 +20,7 @@ export const LabelBox = styled.View<{ floating?: boolean; paddingLeft?: number; 
   ` : ''}
 
   ${({paddingLeft}) => !!paddingLeft ? css`
-    padding-left: ${paddingLeft};
+    padding-left: ${paddingLeft}px;
   ` : ''}
 `;
 
