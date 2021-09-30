@@ -117,7 +117,7 @@ const Component: InputComponent = ({
   const StartAdornmentComponent = useMemo(() => startAdornment, [startAdornment]);
 
   const usingValidity = useMemo(() => ![undefined, null].includes(propValidity), [propValidity]);
-  const shouldShowLabel = useMemo(() => !!((label && !floatingLabel || (label && floatingLabel && value.length > 0))), [label, value, floatingLabel]);
+  const shouldShowLabel = useMemo(() => !!((label && !floatingLabel || (label && floatingLabel && value?.length > 0))), [label, value, floatingLabel]);
   const shouldShowStartAdornment = useMemo(() => ![null, undefined].includes(startAdornment) && !rest.multiline ,[startAdornment, rest])
   const shouldShowEndAdornment = useMemo(() => useValidityMark || ![null, undefined].includes(endAdornment) ,[endAdornment, useValidityMark])
   const defaultPaddingLeft = useMemo(() => shouldShowStartAdornment ? 55 : 20, [shouldShowStartAdornment]);
@@ -270,7 +270,7 @@ const Component: InputComponent = ({
               color: currentValidationStyles?.color,
               borderRadius: selectedStyle?.default?.borderRadius,
               paddingRight: canShowValidityMark ? 45 : rest?.multiline ? 20 : 0,
-              paddingTop: (floatingLabel && value.length > 0) ? 20 : 10,
+              paddingTop: (floatingLabel && value?.length > 0) ? 20 : 10,
               paddingLeft: shouldShowStartAdornment ? 55 : 20,
               paddingBottom: Platform.OS === 'ios' ? (counterBoxLayout?.height || 0) + COUNTER_BOX_BOTTOM : 'auto',
             },
