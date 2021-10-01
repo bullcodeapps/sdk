@@ -41,7 +41,7 @@ const Component: ImageComponent = ({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if ([null, undefined].includes((source as Source)?.uri)) {
+    if (typeof source !== 'number' && [null, undefined].includes((source as Source)?.uri)) {
       setHasError(true);
     } else {
       setHasError(false);
