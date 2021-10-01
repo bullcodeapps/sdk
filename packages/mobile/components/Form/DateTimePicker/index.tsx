@@ -397,7 +397,7 @@ const Component: DateTimePickerComponent = ({
     return response;
   }, [maxDate, minDate]);
 
-  const IconComponent = useCallback(
+  const IconComponent = useMemo(
     () => {
       if (!!Icon) {
         return <Icon color={currentValidationStyles?.borderColor} />;
