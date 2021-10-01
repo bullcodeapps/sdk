@@ -9,7 +9,7 @@ import React, {
   useCallback,
 } from 'react';
 
-import { Container, IconContainer, ChevronDownIcon, Loading } from './styles';
+import { Container, IconContainer, ChevronDownIcon, Loading, Content, StartAdornmentContainer } from './styles';
 import RNPickerSelect, { PickerSelectProps, PickerStyle } from 'react-native-picker-select';
 import { StyleSheet, TextInput, ViewStyle, Platform, TextInputProps, Animated } from 'react-native';
 import { useCombinedRefs } from '../../../../core/hooks';
@@ -17,7 +17,7 @@ import { useField } from '@unform/core';
 import { FormFieldType } from '..';
 
 import { SelectContextType, SelectContext, DefaultStyles } from './context';
-import { SelectStyle, SelectStateStyles } from './types';
+import { SelectStyle, SelectStateStyles, AdornmentComponentType } from './types';
 import { getStyleByValidity } from '../../../utils';
 
 export interface SelectItem {
@@ -44,6 +44,8 @@ export type SelectProps = {
   value?: number | string | boolean | object;
   loading?: boolean;
   validity?: boolean | 'keepDefault';
+  startAdornment?: AdornmentComponentType;
+  startAdornmentContainerStyle?: ViewStyle;
   onChangeValidity?: (isValid: boolean) => void;
   onValueChange?: (value: string | number | Object) => void;
 } & Omit<PickerSelectProps, 'onValueChange' | 'ref' | 'items'>;
@@ -63,6 +65,8 @@ const Component: SelectComponent = ({
   disabled,
   value: propValue,
   validity: propValidity,
+  startAdornment,
+  startAdornmentContainerStyle,
   onChangeValidity,
   onValueChange,
   ...rest
@@ -109,6 +113,8 @@ const Component: SelectComponent = ({
     return foundStyle;
   }, [theme, ctx?.styles]);
 
+  const StartAdornmentComponent = useMemo(() => startAdornment, [startAdornment]);
+
   const currentValidationStyles = useMemo((): SelectStateStyles => {
     if (usingValidity) {
       if (propValidity === 'keepDefault') {
@@ -130,7 +136,7 @@ const Component: SelectComponent = ({
     },
     inputIOS: {
       height: 55,
-      paddingLeft: 20,
+      paddingLeft: (!!startAdornment) ? 55 : 20,
       paddingRight: 25 + 20, // IconContainer size + left space
       paddingTop: 10,
       paddingBottom: 10,
@@ -141,7 +147,7 @@ const Component: SelectComponent = ({
     },
     inputAndroid: {
       height: 55,
-      paddingLeft: 20,
+      paddingLeft: (!!startAdornment) ? 55 : 20,
       paddingRight: 25 + 20, // IconContainer size + left space
       paddingTop: 10,
       paddingBottom: 10,
@@ -230,6 +236,7 @@ const Component: SelectComponent = ({
           <ChevronDownIcon style={chevronIconsStyle} />
         )}
       </IconContainer>
+
     ),
     [chevronIconsStyle, iconRotateAnimation],
   );
@@ -315,23 +322,32 @@ const Component: SelectComponent = ({
 
   return (
     <Container style={styles?.selectContainer}>
-      <RNPickerSelect
-        {...rest}
-        textInputProps={textInputProps}
-        style={styles}
-        disabled={loading || disabled}
-        useNativeAndroidPickerStyle={false}
-        Icon={!hideIcon ? Icon : null}
-        onValueChange={handleValueChange}
-        value={value}
-        placeholder={{ key: '@@placeholder', label: placeholder, value: undefined }}
-        items={newItems}
-        onOpen={handleOpen}
-        onClose={handleClose}
-        onDonePress={handleDone}
-        itemKey={rest?.itemKey || typeof value === 'object' ? value?.id : null}
-      />
-      {loading && <Loading />}
+      <Content>
+        {(!!startAdornment) && (
+          <StartAdornmentContainer style={startAdornmentContainerStyle}>
+            <StartAdornmentComponent isValid={!error}
+              colorName={selectedStyle.name}
+            />
+          </StartAdornmentContainer>
+        )}
+        <RNPickerSelect
+          {...rest}
+          textInputProps={textInputProps}
+          style={styles}
+          disabled={loading || disabled}
+          useNativeAndroidPickerStyle={false}
+          Icon={!hideIcon ? Icon : null}
+          onValueChange={handleValueChange}
+          value={value}
+          placeholder={{ key: '@@placeholder', label: placeholder, value: undefined }}
+          items={newItems}
+          onOpen={handleOpen}
+          onClose={handleClose}
+          onDonePress={handleDone}
+          itemKey={rest?.itemKey || typeof value === 'object' ? value?.id : null}
+        />
+        {loading && <Loading />}
+      </Content>
     </Container>
   );
 };
