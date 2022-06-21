@@ -418,12 +418,8 @@ const Component: DateTimePickerComponent = ({
             validity={isValidField}
             placeholder={placeholder}
             value={dateFormatted}
-            endAdornment={iconStart ? null : (() =>
-              <IconComponent />
-            )}
-            startAdornment={!iconStart ? null : (() =>
-              <IconComponent />
-            )}
+            endAdornment={iconStart ? null : () => IconComponent}
+            startAdornment={!iconStart ? null : () => IconComponent}
             theme={theme}
             isDirty={isDirty}
             onFocus={handleOnFocusInput}
