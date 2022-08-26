@@ -14,6 +14,7 @@ interface Props {
   disabled?: boolean;
   disableFuture?: boolean;
   disablePast?: boolean;
+  defaultNull?: boolean;
   value?: any;
   maxDate?: Date;
   minDate?: Date;
@@ -29,6 +30,7 @@ export default function DateTimePicker({
   disabled = false,
   disableFuture = false,
   disablePast = false,
+  defaultNull = false,
   value,
   maxDate,
   minDate,
@@ -37,10 +39,12 @@ export default function DateTimePicker({
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { fieldName, registerField, defaultValue, error } = useField(name);
-  const [selected, setSelected] = useState<Date | null>(null);
+  const [selected, setSelected] = useState<Date | null>(
+    defaultNull ? null : new Date()
+  );
 
   useEffect(() => {
-    if (!defaultValue && !value) {
+    if (!defaultValue && !value && defaultNull) {
       return;
     }
 
