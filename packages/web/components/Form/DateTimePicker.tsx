@@ -1,9 +1,9 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { DateTimePicker as MUIDateTimePicker } from '@material-ui/pickers';
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import { DateTimePicker as MUIDateTimePicker } from "@material-ui/pickers";
 
-import { useField } from '@unform/core';
-import { parse, isWithinInterval, isBefore, isAfter } from 'date-fns';
-import { FormControl } from './styles';
+import { useField } from "@unform/core";
+import { parse, isWithinInterval, isBefore, isAfter } from "date-fns";
+import { FormControl } from "./styles";
 
 interface Props {
   name: string;
@@ -36,32 +36,42 @@ export default function DateTimePicker({
   ...other
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const {
-    fieldName, registerField, defaultValue, error,
-  } = useField(name);
-  const [selected, setSelected] = useState<Date | null>(new Date());
+  const { fieldName, registerField, defaultValue, error } = useField(name);
+  const [selected, setSelected] = useState<Date | null>(null);
 
   useEffect(() => {
-    setSelected(defaultValue || value as Date);
+    if (!defaultValue && !value) {
+      return;
+    }
+
+    setSelected(defaultValue || (value as Date));
   }, [defaultValue, value]);
 
   useEffect(() => {
     registerField({
       name: fieldName,
       ref: inputRef.current,
-      path: 'value',
-      getValue: (ref: any) => (ref.value ? parse(ref.value, 'dd/MM/yyyy HH:mm', new Date()) : null),
+      path: "value",
+      getValue: (ref: any) =>
+        ref.value ? parse(ref.value, "dd/MM/yyyy HH:mm", new Date()) : null,
       clearValue: () => setSelected(defaultValue || null),
-      setValue: (ref: any, val: Date | string) => (val ? setSelected(new Date(val)) : null),
+      setValue: (ref: any, val: Date | string) =>
+        val ? setSelected(new Date(val)) : null,
     });
   }, [inputRef.current, fieldName, defaultValue]); // eslint-disable-line
 
   const onChangeDateTime = (date: Date) => {
-    const newMinDate = typeof minDate === 'string' ? new Date(minDate) : minDate;
-    const newMaxDate = typeof maxDate === 'string' ? new Date(maxDate) : maxDate;
+    const newMinDate =
+      typeof minDate === "string" ? new Date(minDate) : minDate;
+    const newMaxDate =
+      typeof maxDate === "string" ? new Date(maxDate) : maxDate;
     const newDate = date as Date;
 
-    if (minDate && maxDate && isWithinInterval(newDate, { start: newMinDate, end: newMaxDate })) {
+    if (
+      minDate &&
+      maxDate &&
+      isWithinInterval(newDate, { start: newMinDate, end: newMaxDate })
+    ) {
       setSelected(newDate);
       onChange && onChange(newDate);
       return newDate;
