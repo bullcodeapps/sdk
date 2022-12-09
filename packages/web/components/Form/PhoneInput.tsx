@@ -1,13 +1,11 @@
-import React, {
-  useState, useEffect, useRef, forwardRef,
-} from 'react';
-import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
-import pt from 'react-phone-number-input/locale/pt.json';
+import React, { useState, useEffect, useRef, forwardRef } from "react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import pt from "react-phone-number-input/locale/pt.json";
 
-import { useField } from '@unform/core';
-import { TextField } from '@material-ui/core';
+import { useField } from "@unform/core";
+import { TextField } from "@material-ui/core";
 
-import { FormControl } from './styles';
+import { FormControl } from "./styles";
 
 const Input: React.ForwardRefExoticComponent<
   React.InputHTMLAttributes<HTMLInputElement> & React.RefAttributes<any>
@@ -37,23 +35,22 @@ interface Props {
 export default function InternationalPhoneMask({ name, label }: Props) {
   const inputRef: any = useRef(null);
 
-  const {
-    fieldName, registerField, defaultValue, error,
-  } = useField(name);
+  const { fieldName, registerField, defaultValue, error } = useField(name);
 
-  const [selected, setSelected] = useState(defaultValue || '');
+  const [selected, setSelected] = useState(defaultValue || "");
 
   useEffect(() => {
-    setSelected(defaultValue || '');
+    setSelected(defaultValue || "");
   }, [defaultValue]);
 
   useEffect(() => {
     registerField({
       name: fieldName,
       ref: inputRef.current,
-      path: 'value',
-      getValue: (ref: any) => (isValidPhoneNumber((ref.value as string).trim()) ? ref.value : null),
-      clearValue: (ref: any) => setSelected(''),
+      path: "value",
+      getValue: (ref: any) =>
+        isValidPhoneNumber((ref.value as string).trim()) ? ref.value : null,
+      clearValue: (ref: any) => setSelected(""),
       setValue: (ref: any, value: string) => setSelected(value),
     });
   }, [inputRef.current, fieldName]); // eslint-disable-line
@@ -64,6 +61,7 @@ export default function InternationalPhoneMask({ name, label }: Props) {
       <PhoneInput
         ref={inputRef}
         international
+        limitMaxLength
         defaultCountry="BR"
         value={selected}
         onChange={setSelected}
