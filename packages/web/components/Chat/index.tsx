@@ -131,7 +131,7 @@ export default function Chat({
 
       if (userExist) {
         bgColor = userExist.user.bgColor;
-      } else if (accumulator !== []) {
+      } else if (accumulator.length > 0) {
         const usedColors = accumulator.map((acc: any) => acc.user.bgColor);
         const newColors = colors.filter((c: any) => !usedColors.includes(c));
         bgColor = getColors[current.user.id === currentUser.id ? 'CURRENT' : 'RANDOM'](newColors);
