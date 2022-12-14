@@ -1,9 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { DatePicker as MUIDatePicker, DatePickerProps } from '@material-ui/pickers';
+import React, { useRef, useEffect, useState } from "react";
+import {
+  KeyboardDatePicker as MUIDatePicker,
+  DatePickerProps,
+} from "@material-ui/pickers";
 
-import { useField } from '@unform/core';
-import { parse } from 'date-fns';
-import { FormControl } from './styles';
+import { useField } from "@unform/core";
+import { parse } from "date-fns";
+import { FormControl } from "./styles";
 
 type Props = {
   name: string;
@@ -17,7 +20,7 @@ type Props = {
   disablePast?: boolean;
   value?: string | Date;
   onChange?: (value: Date) => void;
-} & Omit<DatePickerProps, 'value' | 'onChange'>;
+} & Omit<DatePickerProps, "value" | "onChange">;
 
 export default function DatePicker({
   name,
@@ -34,16 +37,17 @@ export default function DatePicker({
   ...other
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const {
-    fieldName, registerField, defaultValue, error,
-  } = useField(name);
+  const { fieldName, registerField, defaultValue, error } = useField(name);
   const [selected, setSelected] = useState<Date | null>(new Date());
 
   useEffect(() => {
     if (value && nullable === false) {
-      const newDate = typeof value === 'string' ? new Date(value) : value;
+      const newDate = typeof value === "string" ? new Date(value) : value;
       setSelected(newDate);
-    } else if (![null, undefined].includes(defaultValue) || ![null, undefined].includes(value)) {
+    } else if (
+      ![null, undefined].includes(defaultValue) ||
+      ![null, undefined].includes(value)
+    ) {
       setSelected(defaultValue || (value as Date));
     }
   }, [defaultValue, nullable, value]);
@@ -52,11 +56,12 @@ export default function DatePicker({
     registerField({
       name: fieldName,
       ref: inputRef.current,
-      path: 'value',
+      path: "value",
       clearValue: () => setSelected(defaultValue || null),
-      getValue: (ref: any) => (ref.value ? parse(ref.value, 'dd/MM/yyyy', new Date()) : null),
+      getValue: (ref: any) =>
+        ref.value ? parse(ref.value, "dd/MM/yyyy", new Date()) : null,
       setValue: (ref: any, val: Date | string) => {
-        const newDate = typeof val === 'string' ? new Date(val) : val;
+        const newDate = typeof val === "string" ? new Date(val) : val;
         setSelected(newDate);
       },
     });
