@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { DateTimePicker as MUIDateTimePicker } from "@material-ui/pickers";
+import { KeyboardDatePicker as MUIDateTimePicker } from "@material-ui/pickers";
 
 import { useField } from "@unform/core";
 import { parse, isWithinInterval, isBefore, isAfter } from "date-fns";
@@ -102,7 +102,6 @@ export default function DateTimePicker({
         disabled={disabled}
         disableFuture={disableFuture}
         disablePast={disablePast}
-        ampm={false}
         format="dd/MM/yyyy HH:mm"
         name={fieldName}
         value={value || selected}
