@@ -31,6 +31,7 @@ export default function Suggest({
   value: originalValue,
   loadOptions,
   onChange,
+  placeholder,
   ...other
 }: InputProps) {
   const [selected, setSelected] = useState<any[] | any>(multiple ? [] : null);
@@ -157,6 +158,7 @@ export default function Suggest({
             variant="outlined"
             margin="dense"
             error={!!error}
+            placeholder={placeholder}
             InputProps={{
               ...params.InputProps,
               endAdornment: (
