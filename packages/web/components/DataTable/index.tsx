@@ -17,8 +17,7 @@ export interface DataTableProps {
   loading: boolean;
   data: any[];
   count: number;
-  searchText: string;
-  setSearchText: Function;
+  setSearchText?: Function;
   page: number;
   setPage: Function;
   pageSize: number;
@@ -91,7 +90,6 @@ export default function DataTable({
   loading,
   data,
   count,
-  searchText,
   setSearchText,
   page,
   setPage,
@@ -99,7 +97,6 @@ export default function DataTable({
   setPageSize,
   order,
   setOrder,
-  filters,
   setFilters,
   storageKey,
   doDelete,
@@ -135,8 +132,8 @@ export default function DataTable({
   const debouncedSearchTerm = useDebouncedState(searchTerm, 500);
 
   useEffect(() => {
-    setSearchText(searchTerm);
-  }, [debouncedSearchTerm]); // eslint-disable-line
+    setSearchText && setSearchText(searchTerm);
+  }, [debouncedSearchTerm, setSearchText]);
 
   useEffect(() => {
     const pOptions = Object.assign(defaultOptions, options);
@@ -266,26 +263,26 @@ export default function DataTable({
   }, [actionsColumnRender, columns]); // eslint-disable-line
 
 
-  const onRowsDelete = (rowsDeleted: any) => {
+  const onRowsDelete = useCallback((rowsDeleted: any) => {
     confirm({ description: confirmDeleteMessage })
       .then(() => {
         rowsDeleted.data.map(({ dataIndex }: { dataIndex: number }) => doDelete && doDelete(data[dataIndex]));
       })
       .catch();
     return false;
-  };
+  }, [confirm, doDelete]);
 
-  const onChangePage = (newPage: number) => {
+  const onChangePage = useCallback((newPage: number) => {
     setPage(newPage);
-  };
+  }, [setPage]);
 
-  const onChangeRowsPerPage = (newPageSize: number) => {
+  const onChangeRowsPerPage = useCallback((newPageSize: number) => {
     localStorage.setItem(`${storageKey}-page-size`, newPageSize.toString());
     setPageSize(newPageSize);
     setPage(0);
-  };
+  }, [setPageSize, setPage]);
 
-  const onColumnSortChange = (property: string) => {
+  const onColumnSortChange = useCallback((property: string) => {
     let newOrder = property;
     if (order.replace('-', '') === property) {
       const isDesc = order[0] === '-';
@@ -293,19 +290,21 @@ export default function DataTable({
     }
     localStorage.setItem(`${storageKey}-order`, newOrder);
     setOrder(newOrder);
-  };
+  }, [setOrder]);
 
-  const onSearchChange = (text: string) => setSearchTerm(text);
+  const onSearchChange = useCallback((text: string) => {
+    setSearchTerm(text);
+  }, [setSearchTerm])
 
-  const handleClickMenu = (event: React.MouseEvent<HTMLButtonElement>, id: number) => {
+  const handleClickMenu = useCallback((event: React.MouseEvent<HTMLButtonElement>, id: number) => {
     const an: Array<HTMLElement> = [];
     an[id] = event.currentTarget;
     setAnchorEl(an);
-  };
+  }, []);
 
-  const handleCloseMenu = () => {
+  const handleCloseMenu = useCallback(() => {
     setAnchorEl([]);
-  };
+  }, []);
 
   const defaultOptions: MUIDataTableOptions = {
     filterType: 'dropdown',
@@ -321,7 +320,6 @@ export default function DataTable({
     onChangeRowsPerPage,
     onColumnSortChange,
     onRowsDelete,
-    searchText,
     onSearchChange,
     serverSideFilterList: filterList,
     onTableChange: (action, tableState) => {
