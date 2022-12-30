@@ -262,13 +262,16 @@ export default function DataTable({
     setPreparedColumns(pColumns);
   }, [actionsColumnRender, columns]); // eslint-disable-line
 
-
   const onRowsDelete = useCallback((rowsDeleted: any) => {
     confirm({ description: confirmDeleteMessage })
       .then(() => {
         rowsDeleted.data.map(({ dataIndex }: { dataIndex: number }) => doDelete && doDelete(data[dataIndex]));
       })
       .catch();
+
+    localStorage.setItem(`${storageKey}-filters`, JSON.stringify({}));
+    setFilters({});
+    
     return false;
   }, [confirm, doDelete]);
 
