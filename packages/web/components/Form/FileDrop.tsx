@@ -85,6 +85,9 @@ const ThumbImage = styled.img`
 `;
 
 const VideoThumb = styled(PlayArrow)`
+  position: absolute;
+  z-index: 2;
+  elevation: 2;
   width: 50%;
   height: 50%;
   cursor: pointer;
@@ -275,6 +278,10 @@ export default function FileDrop({
     setSelectedVideo(file);
   }
 
+  const getVideoThumbnailURL = useCallback((file: any) => {
+    return `${file?.url?.substr(0, file?.url?.lastIndexOf('.'))}-thumbnail-0.jpg` || file?.url;
+  }, []);
+
   const FileThumb = ({ file }: { file: MediaFile }) => {
     switch (file?.type?.substr(0,5)) {
       case 'image':
@@ -283,7 +290,12 @@ export default function FileDrop({
           src={file?.url}
         />;
       case 'video':
-        return <VideoThumb onClick={() => handleClickVideo(file)} />;
+        return <>
+          <ThumbImage
+            alt={file?.name}
+            src={getVideoThumbnailURL(file)} />
+          <VideoThumb onClick={() => handleClickVideo(file)} />
+        </>
       default:
         return <InsertDriveFile style={{ width: '50%', height: '50%' }} />;
     }
