@@ -130,6 +130,7 @@ export default function DataTable({
   const [searchTerm, setSearchTerm] = useState<string>();
   const [anchorEl, setAnchorEl] = useState<Array<HTMLElement>>([]);
   const debouncedSearchTerm = useDebouncedState(searchTerm, 500);
+  const columnView = localStorage.getItem(`${storageKey}-column-view`);
 
   useEffect(() => {
     setSearchText && setSearchText(searchTerm);
@@ -177,17 +178,22 @@ export default function DataTable({
 
   useEffect(() => {
     if (storageKey) {
-      if (localStorage.getItem(`${storageKey}-page-size`)) {
-        const storagePageSize = parseInt(localStorage.getItem(`${storageKey}-page-size`) || '', 0);
-        setPageSize(storagePageSize);
+      const storagePageSize = localStorage.getItem(`${storageKey}-page-size`);
+      if (storagePageSize) {
+        const parsedPageSize = parseInt(localStorage.getItem(`${storageKey}-page-size`) || '', 0);
+        setPageSize(parsedPageSize);
       }
-      if (localStorage.getItem(`${storageKey}-order`)) {
-        const storageOrder = localStorage.getItem(`${storageKey}-order`) || '';
-        setOrder(storageOrder);
+
+      const storageOrder = localStorage.getItem(`${storageKey}-order`);
+      if (storageOrder) {
+        const parsedOrder = localStorage.getItem(`${storageKey}-order`) || '';
+        setOrder(parsedOrder);
       }
-      if (localStorage.getItem(`${storageKey}-filters`)) {
-        const storageFilters = JSON.parse(localStorage.getItem(`${storageKey}-filters`) || '{}');
-        setFilters(storageFilters);
+
+      const storageFilters = localStorage.getItem(`${storageKey}-filters`);
+      if (storageFilters) {
+        const parsedFilters = JSON.parse(localStorage.getItem(`${storageKey}-filters`) || '{}');
+        setFilters(parsedFilters);
       }
     }
   }, [storageKey]); //  eslint-disable-line
@@ -230,6 +236,11 @@ export default function DataTable({
     if (!columns) {
       return;
     }
+
+    const viewColumns = JSON.parse(localStorage.getItem(`${storageKey}-column-view`) as string) || columns.map((column) => {
+      return column.name;
+    });
+
     const pColumns: MUIDataTableColumnDef[] = columns.map(({
       name,
       label,
@@ -246,6 +257,7 @@ export default function DataTable({
       label,
       options: {
         filter,
+        display: viewColumns?.find((find) => name === find)?.length > 0 ? 'true' : 'false',
         filterList: cFilterList,
         customFilterListOptions: {
           render: filterSelectionRender,
@@ -259,9 +271,9 @@ export default function DataTable({
         customBodyRender: actions ? actionsColumnRender(actions) : customColumnRender,
       },
     }));
-    setPreparedColumns(pColumns);
-  }, [actionsColumnRender, columns]); // eslint-disable-line
 
+    setPreparedColumns(pColumns);
+  }, [actionsColumnRender, columns, columnView]); // eslint-disable-line
 
   const onRowsDelete = useCallback((rowsDeleted: any) => {
     confirm({ description: confirmDeleteMessage })
@@ -269,6 +281,9 @@ export default function DataTable({
         rowsDeleted.data.map(({ dataIndex }: { dataIndex: number }) => doDelete && doDelete(data[dataIndex]));
       })
       .catch();
+
+    localStorage.setItem(`${storageKey}-filters`, JSON.stringify({}));
+    setFilters({});
     return false;
   }, [confirm, doDelete]);
 
@@ -291,6 +306,20 @@ export default function DataTable({
     localStorage.setItem(`${storageKey}-order`, newOrder);
     setOrder(newOrder);
   }, [setOrder]);
+
+  const onColumnViewChange = useCallback((changedColumn: string, action: string) => {
+    const viewColumns = JSON.parse(localStorage.getItem(`${storageKey}-column-view`) as string) || columns.map((column) => {
+      return column.name;
+    });
+
+    if (action === 'add') {
+      viewColumns.push(changedColumn);
+      localStorage.setItem(`${storageKey}-column-view`, JSON.stringify(viewColumns));
+    } else {
+      const newViewColumns = viewColumns.filter((column: string) => column !== changedColumn);
+      localStorage.setItem(`${storageKey}-column-view`, JSON.stringify(newViewColumns));
+    }
+  }, [columns, storageKey]);
 
   const onSearchChange = useCallback((text: string) => {
     setSearchTerm(text);
@@ -322,6 +351,7 @@ export default function DataTable({
     onRowsDelete,
     onSearchChange,
     serverSideFilterList: filterList,
+    onColumnViewChange,
     onTableChange: (action, tableState) => {
       if (action === 'filterChange' || action === 'resetFilters') {
         const newFilters: any = {};
