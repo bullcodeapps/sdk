@@ -66,7 +66,7 @@ export interface DataTableColumn {
   label: string;
   filter?: boolean;
   filterList?: any[];
-  display?: "true" | "false" | "excluded";
+  display?: boolean | "excluded";
   options?: MUIDataTableColumnOptions;
   filterOptions?: MUIDataTableFilterOptions;
   filterSelectionRender?: (v: any) => string;
@@ -236,7 +236,7 @@ export default function DataTable({
       name,
       label,
       filter = false,
-      display = 'true',
+      display = true,
       options: cOptions,
       filterOptions: cFilterOptions,
       filterList: cFilterList,
@@ -250,21 +250,21 @@ export default function DataTable({
       name,
       label,
       options: {
+        ...cOptions,
         filter,
-        display,
+        display: display.toString(), //hack to attend to lib types
         filterList: cFilterList,
         customFilterListOptions: {
           render: filterSelectionRender,
         },
         filterOptions: {
-          names: filterNames,
           ...cFilterOptions,
+          names: filterNames,          
         },
         sort,
         sortDirection: getSortDirection(order, name),
         searchable,
-        customBodyRender: actions ? actionsColumnRender(actions) : customColumnRender,
-        ...cOptions,
+        customBodyRender: actions ? actionsColumnRender(actions) : customColumnRender,        
       },
     }));
     setPreparedColumns(pColumns);
