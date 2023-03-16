@@ -252,7 +252,7 @@ export default function DataTable({
       options: {
         ...cOptions,
         filter,
-        display: display.toString(), //hack to attend to lib types
+        display: display.toString() as ('true' | 'false' | 'excluded'), //hack to attend to lib types
         filterList: cFilterList,
         customFilterListOptions: {
           render: filterSelectionRender,
