@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import MUIDataTable, { MUIDataTableOptions, MUIDataTableColumnDef, MUIDataTableMeta } from 'mui-datatables';
+import MUIDataTable, { MUIDataTableOptions, MUIDataTableColumnDef, MUIDataTableMeta, MUIDataTableColumnOptions, MUIDataTableFilterOptions } from 'mui-datatables';
 import { useConfirm } from 'material-ui-confirm';
 import {
   Typography, CircularProgress, Box, IconButton, Menu, MenuItem, ThemeOptions,
@@ -29,7 +29,6 @@ export interface DataTableProps {
   storageKey?: string;
   doDelete?: (...args: any[]) => void;
   onFilterChange?: (filterList: string[][]) => any;
-
   confirmDeleteMessage?: string;
   searchPlaceholder?: string;
   bodyNoMatchText?: string;
@@ -67,6 +66,9 @@ export interface DataTableColumn {
   label: string;
   filter?: boolean;
   filterList?: any[];
+  display?: boolean | "excluded";
+  options?: MUIDataTableColumnOptions;
+  filterOptions?: MUIDataTableFilterOptions;
   filterSelectionRender?: (v: any) => string;
   filterNames?: string[];
   sort?: boolean;
@@ -234,6 +236,9 @@ export default function DataTable({
       name,
       label,
       filter = false,
+      display = true,
+      options: cOptions,
+      filterOptions: cFilterOptions,
       filterList: cFilterList,
       filterNames,
       filterSelectionRender,
@@ -245,18 +250,21 @@ export default function DataTable({
       name,
       label,
       options: {
+        ...cOptions,
         filter,
+        display: display.toString() as ('true' | 'false' | 'excluded'), //hack to attend to lib types
         filterList: cFilterList,
         customFilterListOptions: {
           render: filterSelectionRender,
         },
         filterOptions: {
-          names: filterNames,
+          ...cFilterOptions,
+          names: filterNames,          
         },
         sort,
         sortDirection: getSortDirection(order, name),
         searchable,
-        customBodyRender: actions ? actionsColumnRender(actions) : customColumnRender,
+        customBodyRender: actions ? actionsColumnRender(actions) : customColumnRender,        
       },
     }));
     setPreparedColumns(pColumns);
