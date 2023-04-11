@@ -26,17 +26,16 @@ export function currencyFormat(amount: number, decimalCount = 2, decimal = ',', 
     let i = parseInt(Math.abs(Number(amount) || 0).toFixed(decimalCount)).toString();
     let j = i.length > 3 ? i.length % 3 : 0;
 
-    return `R$ ${
-      negativeSign +
+    return `R$ ${negativeSign +
       (j ? i.substr(0, j) + thousands : '') +
       i.substr(j).replace(/(\d{3})(?=\d)/g, '$1' + thousands) +
       (decimalCount
         ? decimal +
-          Math.abs(amount - Number(i))
-            .toFixed(decimalCount)
-            .slice(2)
+        Math.abs(amount - Number(i))
+          .toFixed(decimalCount)
+          .slice(2)
         : '')
-    }`;
+      }`;
   } catch (e) {
     console.log(e);
     return 'Valor inválido';
@@ -83,7 +82,7 @@ export enum ImperialUnitLevel {
 
 export type UnitLevels = MetricUnitLevel | ImperialUnitLevel;
 
-export function distanceFormat(value: number, level: UnitLevels = MetricUnitLevel.CENTIMETER, unitSystem: UnitSystemType = 'metric' ) {
+export function distanceFormat(value: number, level: UnitLevels = MetricUnitLevel.CENTIMETER, unitSystem: UnitSystemType = 'metric') {
   let unit;
   if (unitSystem === UnitSystem?.METRIC) {
     unit = Object.values(MetricUnitName)[level];
@@ -230,40 +229,36 @@ export const getEnumStringArray = (enumerator: Object) => {
   return Object.keys(enumerator).splice(enumSize, enumSize);
 };
 
-export interface CPFCNPJValidProps {
-  message?: string;
-}
-
-export function yupValidateCPF(this: StringSchema, yupValidateCPFProps: CPFCNPJValidProps) {
-  const message = yupValidateCPFProps?.message || 'CPF inválido';
-
-  return this.test('isValidCPF', '', function (value) {
-    const { path, createError, resolve } = this;
+export function yupValidateCPF(message = 'CPF Inválido') {
+  //@ts-ignore
+  return this.test('test-cpf', message, (value, context) => {
+    const { path, createError, resolve } = context;
 
     if (value) {
       if (!isValidCPF(value)) {
         return createError({ path, message });
       }
 
-      return resolve(value);
+      return resolve(true);
     }
+
     return resolve(true);
   });
 }
 
-export function yupValidateCNPJ(this: StringSchema, yupValidateCNPJProps: CPFCNPJValidProps) {
-  const message = yupValidateCNPJProps?.message || 'CNPJ inválido';
-
-  return this.test('isValidCNPJ', '', function (value) {
-    const { path, createError, resolve } = this;
+export function yupValidateCNPJ(message = 'CNPJ Inválido') {
+  //@ts-ignore
+  return this.test('test-cnpj', message, (value, context) => {
+    const { path, createError, resolve } = context;
 
     if (value) {
       if (!isValidCNPJ(value)) {
         return createError({ path, message });
       }
 
-      return resolve(value);
+      return resolve(true);
     }
+
     return resolve(true);
   });
 }
