@@ -10,7 +10,7 @@ interface Props {
   label?: string;
   maxLength?: number;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
   step?: string;
   startAdornment?: string | React.ReactNode;
   endAdornment?: string | React.ReactNode | JSX.Element;
@@ -29,7 +29,7 @@ export default function Input({
   size = 'small',
   margin = 'dense',
   fullWidth = true,
-  isRequiredField = false,
+  required = false,
   optionalText = 'opcional',
   startAdornment,
   endAdornment,
@@ -58,7 +58,7 @@ export default function Input({
     <FormControl error={!!error} fullWidth={fullWidth}>
         <InputContainer>
           {label && type !== 'hidden' && <label htmlFor={fieldName}>{label}</label>}
-          {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+          {!required && <CustomLabel>({optionalText})</CustomLabel>}
         </InputContainer>
 
         <TextField

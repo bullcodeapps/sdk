@@ -20,7 +20,7 @@ interface SelectProps extends MUISelectProps {
   helperText?: string;
   options: SelectOption[];
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
   value?: any;
   onChange?: (value?: any) => any;
 }
@@ -34,7 +34,7 @@ export default function Select({
   multiple,
   margin = 'dense',
   fullWidth = true,
-  isRequiredField = false,
+  required = false,
   optionalText = 'opcional',
   onChange,
   value: originalValue,
@@ -111,7 +111,7 @@ export default function Select({
     <FormControl error={!!error}>
       <InputContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
-        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
       <MUISelect
         {...props}

@@ -10,11 +10,11 @@ export interface MaskInputProps extends Props {
   mask: string;
   helperText?: string;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
 }
 
 export default function InputMask({
-  label, name, mask, helperText, isRequiredField = false, optionalText = 'opcional', ...other
+  label, name, mask, helperText, required = false, optionalText = 'opcional', ...other
 }: MaskInputProps) {
   const inputRef: any = useRef(null);
   const {
@@ -45,7 +45,7 @@ export default function InputMask({
     <FormControl error={!!error}>
       <InputContainer>
           {label && <label htmlFor={fieldName}>{label}</label>}
-          {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+          {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
 
       <MaskInput

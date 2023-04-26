@@ -31,10 +31,10 @@ interface Props {
   name: string;
   label?: string;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
 }
 
-export default function InternationalPhoneMask({ name, label, isRequiredField = false, optionalText = 'opcional', }: Props) {
+export default function InternationalPhoneMask({ name, label, required = false, optionalText = 'opcional', }: Props) {
   const inputRef: any = useRef(null);
 
   const { fieldName, registerField, defaultValue, error } = useField(name);
@@ -61,7 +61,7 @@ export default function InternationalPhoneMask({ name, label, isRequiredField = 
     <FormControl error={!!error}>
       <InputContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
-        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
       <PhoneInput
         ref={inputRef}

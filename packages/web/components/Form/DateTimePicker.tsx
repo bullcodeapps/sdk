@@ -15,7 +15,7 @@ interface Props {
   disableFuture?: boolean;
   disablePast?: boolean;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
   value?: any;
   maxDate?: Date;
   minDate?: Date;
@@ -31,7 +31,7 @@ export default function DateTimePicker({
   disabled = false,
   disableFuture = false,
   disablePast = false,
-  isRequiredField = false,
+  required = false,
   optionalText = 'opcional',
   value,
   maxDate,
@@ -100,7 +100,7 @@ export default function DateTimePicker({
     <FormControl error={!!error}>
       <InputContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
-        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
 
       <MUIDateTimePicker

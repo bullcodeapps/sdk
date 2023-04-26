@@ -20,7 +20,7 @@ type Props = {
   disablePast?: boolean;
   value?: string | Date;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
   onChange?: (value: Date) => void;
 } & Omit<DatePickerProps, "value" | "onChange">;
 
@@ -34,7 +34,7 @@ export default function DatePicker({
   disableFuture = false,
   disablePast = false,
   nullable = false,
-  isRequiredField = false,
+  required = false,
   optionalText = 'opcional',
   value,
   onChange,
@@ -83,7 +83,7 @@ export default function DatePicker({
     <FormControl error={!!error}>
       <InputContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
-        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
 
       <MUIDatePicker

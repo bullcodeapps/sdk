@@ -14,7 +14,7 @@ interface Props {
   optionLabel: string;
   multiple?: boolean;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
   loadOptions: (params?: any) => Promise<any[]>;
   onChange?: (value?: any) => any;
 }
@@ -31,7 +31,7 @@ export default function Suggest({
   margin = 'dense',
   fullWidth = true,
   value: originalValue,
-  isRequiredField = false,
+  required = false,
   optionalText = 'opcional',
   loadOptions,
   onChange,
@@ -132,7 +132,7 @@ export default function Suggest({
     <FormControl error={!!error}>
       <InputContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
-        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
 
       <Autocomplete

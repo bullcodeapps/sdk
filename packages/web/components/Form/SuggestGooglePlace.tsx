@@ -21,7 +21,7 @@ interface CustomProps {
   loadingText?: string;
   noOptionsText?: string;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
 }
 
 export interface GooglePlace {
@@ -45,7 +45,7 @@ export default function SuggestGooglePlace({
   loadingText,
   noOptionsText,
   fullWidth = true,
-  isRequiredField = false,
+  required = false,
   optionalText = 'opcional',
   ...other
 }: InputProps) {
@@ -173,7 +173,7 @@ export default function SuggestGooglePlace({
     <FormControl error={!!error}>
       <InputContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
-        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
 
       <Autocomplete

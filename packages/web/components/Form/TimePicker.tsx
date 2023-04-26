@@ -14,7 +14,7 @@ interface Props {
   disabled?: boolean;
   disablePast?: boolean;
   optionalText?: string;
-  isRequiredField?: boolean;
+  required?: boolean;
 }
 
 export default function Picker({
@@ -24,7 +24,7 @@ export default function Picker({
   autoOk = true,
   clearable = false,
   disabled = false,
-  isRequiredField = false,
+  required = false,
   optionalText = 'opcional',
   ...other
 }: Props) {
@@ -63,7 +63,7 @@ export default function Picker({
     <FormControl error={!!error}>
       <InputContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
-        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
       </InputContainer>
 
       <MUITimePicker
