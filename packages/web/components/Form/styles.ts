@@ -51,3 +51,20 @@ export const Chip = styled(MUIChip)`
     color: #fff;
   }
 `;
+
+export const InputContainer = styled.div`
+  position: relative;
+  height: auto;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: row;
+  gap: 4px;
+`;
+
+export const CustomLabel = styled.label`
+  display: block;
+  font-size: 10px !important;
+  font-weight: normal !important;
+`;

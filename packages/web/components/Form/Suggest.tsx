@@ -5,7 +5,7 @@ import {
 } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { TextFieldProps } from '@material-ui/core/TextField';
-import { FormControl } from './styles';
+import { CustomLabel, FormControl, InputContainer } from "./styles";
 import { useDebouncedState } from '../../../core/hooks';
 
 interface Props {
@@ -13,6 +13,8 @@ interface Props {
   label?: string;
   optionLabel: string;
   multiple?: boolean;
+  optionalText?: string;
+  isRequiredField?: boolean;
   loadOptions: (params?: any) => Promise<any[]>;
   onChange?: (value?: any) => any;
 }
@@ -29,6 +31,8 @@ export default function Suggest({
   margin = 'dense',
   fullWidth = true,
   value: originalValue,
+  isRequiredField = false,
+  optionalText = 'opcional',
   loadOptions,
   onChange,
   placeholder,
@@ -126,7 +130,10 @@ export default function Suggest({
 
   return (
     <FormControl error={!!error}>
-      {label && <label htmlFor={fieldName}>{label}</label>}
+      <InputContainer>
+        {label && <label htmlFor={fieldName}>{label}</label>}
+        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+      </InputContainer>
 
       <Autocomplete
         {...other}

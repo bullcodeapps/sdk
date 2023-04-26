@@ -2,17 +2,19 @@ import React, { useRef, useState, useEffect } from 'react';
 import MaskInput, { Props } from 'react-input-mask';
 import { useField } from '@unform/core';
 import { TextField, FormHelperText } from '@material-ui/core';
-import { FormControl } from './styles';
+import { FormControl, InputContainer, CustomLabel } from './styles';
 
 export interface MaskInputProps extends Props {
   name: string;
   label?: string;
   mask: string;
   helperText?: string;
+  optionalText?: string;
+  isRequiredField?: boolean;
 }
 
 export default function InputMask({
-  label, name, mask, helperText, ...other
+  label, name, mask, helperText, isRequiredField = false, optionalText = 'opcional', ...other
 }: MaskInputProps) {
   const inputRef: any = useRef(null);
   const {
@@ -41,7 +43,10 @@ export default function InputMask({
 
   return (
     <FormControl error={!!error}>
-      {label && <label htmlFor={fieldName}>{label}</label>}
+      <InputContainer>
+          {label && <label htmlFor={fieldName}>{label}</label>}
+          {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+      </InputContainer>
 
       <MaskInput
         name={fieldName}

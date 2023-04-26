@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { KeyboardTimePicker as MUITimePicker } from '@material-ui/pickers';
 
 import { useField } from '@unform/core';
-import { FormControl } from './styles';
+import { CustomLabel, FormControl, InputContainer } from "./styles";
 
 
 interface Props {
@@ -13,6 +13,8 @@ interface Props {
   clearable?: boolean;
   disabled?: boolean;
   disablePast?: boolean;
+  optionalText?: string;
+  isRequiredField?: boolean;
 }
 
 export default function Picker({
@@ -22,6 +24,8 @@ export default function Picker({
   autoOk = true,
   clearable = false,
   disabled = false,
+  isRequiredField = false,
+  optionalText = 'opcional',
   ...other
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,7 +61,10 @@ export default function Picker({
 
   return (
     <FormControl error={!!error}>
-      {label && <label htmlFor={fieldName}>{label}</label>}
+      <InputContainer>
+        {label && <label htmlFor={fieldName}>{label}</label>}
+        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+      </InputContainer>
 
       <MUITimePicker
         autoOk={autoOk}

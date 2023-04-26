@@ -10,7 +10,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import { TextFieldProps } from '@material-ui/core/TextField';
 import throttle from 'lodash/throttle';
 import parse from 'autosuggest-highlight/parse';
-import { FormControl } from './styles';
+import { CustomLabel, FormControl, InputContainer } from "./styles";
 import { useDebouncedState } from '../../../core/hooks';
 
 const autocompleteService = { current: null };
@@ -20,6 +20,8 @@ interface CustomProps {
   label?: string;
   loadingText?: string;
   noOptionsText?: string;
+  optionalText?: string;
+  isRequiredField?: boolean;
 }
 
 export interface GooglePlace {
@@ -43,6 +45,8 @@ export default function SuggestGooglePlace({
   loadingText,
   noOptionsText,
   fullWidth = true,
+  isRequiredField = false,
+  optionalText = 'opcional',
   ...other
 }: InputProps) {
   const [selected, setSelected] = useState<GooglePlace | null>(null);
@@ -167,7 +171,10 @@ export default function SuggestGooglePlace({
 
   return (
     <FormControl error={!!error}>
-      {label && <label htmlFor={fieldName}>{label}</label>}
+      <InputContainer>
+        {label && <label htmlFor={fieldName}>{label}</label>}
+        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+      </InputContainer>
 
       <Autocomplete
         getOptionLabel={(option: GooglePlace) => option.description}

@@ -3,7 +3,7 @@ import { KeyboardDatePicker as MUIDateTimePicker } from "@material-ui/pickers";
 
 import { useField } from "@unform/core";
 import { parse, isWithinInterval, isBefore, isAfter } from "date-fns";
-import { FormControl } from "./styles";
+import { CustomLabel, FormControl, InputContainer } from "./styles";
 
 interface Props {
   name: string;
@@ -14,6 +14,8 @@ interface Props {
   disabled?: boolean;
   disableFuture?: boolean;
   disablePast?: boolean;
+  optionalText?: string;
+  isRequiredField?: boolean;
   value?: any;
   maxDate?: Date;
   minDate?: Date;
@@ -29,6 +31,8 @@ export default function DateTimePicker({
   disabled = false,
   disableFuture = false,
   disablePast = false,
+  isRequiredField = false,
+  optionalText = 'opcional',
   value,
   maxDate,
   minDate,
@@ -94,7 +98,10 @@ export default function DateTimePicker({
 
   return (
     <FormControl error={!!error}>
-      {label && <label htmlFor={fieldName}>{label}</label>}
+      <InputContainer>
+        {label && <label htmlFor={fieldName}>{label}</label>}
+        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+      </InputContainer>
 
       <MUIDateTimePicker
         autoOk={autoOk}

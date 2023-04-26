@@ -6,7 +6,7 @@ import {
 } from '@material-ui/core';
 import { SelectProps as MUISelectProps } from '@material-ui/core/Select';
 import _ from 'lodash';
-import { FormControl } from './styles';
+import { CustomLabel, FormControl, InputContainer } from "./styles";
 
 export interface SelectOption {
   id: string;
@@ -19,6 +19,8 @@ interface SelectProps extends MUISelectProps {
   label?: string;
   helperText?: string;
   options: SelectOption[];
+  optionalText?: string;
+  isRequiredField?: boolean;
   value?: any;
   onChange?: (value?: any) => any;
 }
@@ -32,6 +34,8 @@ export default function Select({
   multiple,
   margin = 'dense',
   fullWidth = true,
+  isRequiredField = false,
+  optionalText = 'opcional',
   onChange,
   value: originalValue,
   ...other
@@ -105,7 +109,10 @@ export default function Select({
 
   return (
     <FormControl error={!!error}>
-      {label && <label htmlFor={fieldName}>{label}</label>}
+      <InputContainer>
+        {label && <label htmlFor={fieldName}>{label}</label>}
+        {!isRequiredField && <CustomLabel>({optionalText})</CustomLabel>}
+      </InputContainer>
       <MUISelect
         {...props}
         variant="outlined"
