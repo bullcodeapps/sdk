@@ -81,6 +81,7 @@ export default function Picker({
         cancelLabel="Cancelar"
         okLabel="Confirmar"
         ampm={false}
+        required={required}
         {...other}
       />
     </FormControl>

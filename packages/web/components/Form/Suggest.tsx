@@ -166,6 +166,7 @@ export default function Suggest({
             margin="dense"
             error={!!error}
             placeholder={placeholder}
+            required={required}
             InputProps={{
               ...params.InputProps,
               endAdornment: (

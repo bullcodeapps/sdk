@@ -120,6 +120,7 @@ export default function DateTimePicker({
         size="small"
         margin="dense"
         helperText={error || helperText}
+        required={required}
         {...other}
       />
     </FormControl>

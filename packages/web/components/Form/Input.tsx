@@ -75,6 +75,7 @@ export default function Input({
             startAdornment: startAdornment && <InputAdornment position="start">{startAdornment}</InputAdornment>,
             endAdornment: endAdornment && <InputAdornment position="end">{endAdornment}</InputAdornment>,
           }}
+          required={required}
           {...other}
           variant="outlined"
           onChange={(e: any) => onChange && onChange(e.target.value)}

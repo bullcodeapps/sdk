@@ -73,6 +73,7 @@ export default function InternationalPhoneMask({ name, label, required = false, 
         labels={pt}
         inputComponent={Input}
         error={error}
+        required={required}
       />
     </FormControl>
   );

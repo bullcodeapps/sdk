@@ -120,6 +120,7 @@ export default function Select({
         fullWidth={fullWidth}
         error={!!error}
         value={value}
+        required={required}
       >
         {options.map(({ id, title, disabled = false }) => {
           if (native) {

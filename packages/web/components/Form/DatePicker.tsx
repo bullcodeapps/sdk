@@ -101,6 +101,7 @@ export default function DatePicker({
         size="small"
         margin="dense"
         helperText={error || helperText}
+        required={required}
         {...other}
       />
     </FormControl>
