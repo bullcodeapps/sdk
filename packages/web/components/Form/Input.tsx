@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { useField } from '@unform/core';
 import { TextField, InputAdornment } from '@material-ui/core';
 import { TextFieldProps } from '@material-ui/core/TextField';
-import { FormControl, InputContainer, CustomLabel } from './styles';
+import { FormControl, LabelContainer, CustomLabel } from './styles';
 
 interface Props {
   name: string;
@@ -56,10 +56,10 @@ export default function Input({
 
   return (
     <FormControl error={!!error} fullWidth={fullWidth}>
-        <InputContainer>
+        <LabelContainer>
           {label && type !== 'hidden' && <label htmlFor={fieldName}>{label}</label>}
           {!required && <CustomLabel>({optionalText})</CustomLabel>}
-        </InputContainer>
+        </LabelContainer>
 
         <TextField
           id={fieldName}

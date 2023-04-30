@@ -5,7 +5,7 @@ import pt from "react-phone-number-input/locale/pt.json";
 import { useField } from "@unform/core";
 import { TextField } from "@material-ui/core";
 
-import { CustomLabel, FormControl, InputContainer } from "./styles";
+import { CustomLabel, FormControl, LabelContainer } from "./styles";
 
 const Input: React.ForwardRefExoticComponent<
   React.InputHTMLAttributes<HTMLInputElement> & React.RefAttributes<any>
@@ -59,10 +59,10 @@ export default function InternationalPhoneMask({ name, label, required = false, 
 
   return (
     <FormControl error={!!error}>
-      <InputContainer>
+      <LabelContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
         {!required && <CustomLabel>({optionalText})</CustomLabel>}
-      </InputContainer>
+      </LabelContainer>
       <PhoneInput
         ref={inputRef}
         international

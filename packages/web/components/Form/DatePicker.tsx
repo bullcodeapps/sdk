@@ -6,7 +6,7 @@ import {
 
 import { useField } from "@unform/core";
 import { parse } from "date-fns";
-import { CustomLabel, FormControl, InputContainer } from "./styles";
+import { CustomLabel, FormControl, LabelContainer } from "./styles";
 
 type Props = {
   name: string;
@@ -81,10 +81,10 @@ export default function DatePicker({
 
   return (
     <FormControl error={!!error}>
-      <InputContainer>
+      <LabelContainer>
         {label && <label htmlFor={fieldName}>{label}</label>}
         {!required && <CustomLabel>({optionalText})</CustomLabel>}
-      </InputContainer>
+      </LabelContainer>
 
       <MUIDatePicker
         autoOk={autoOk}

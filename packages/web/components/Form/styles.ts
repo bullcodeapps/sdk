@@ -52,7 +52,7 @@ export const Chip = styled(MUIChip)`
   }
 `;
 
-export const InputContainer = styled.div`
+export const LabelContainer = styled.div`
   position: relative;
   height: auto;
   width: 100%;
