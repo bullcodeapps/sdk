@@ -201,6 +201,7 @@ export default function SuggestGooglePlace({
             variant="outlined"
             margin="dense"
             error={!!error}
+            required={required}
             InputProps={{
               ...params.InputProps,
               endAdornment: (

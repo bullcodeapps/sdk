@@ -60,6 +60,7 @@ export default function InputMask({
         {(inputProps: any) => (
           <TextField
             {...inputProps}
+            required={required}
             variant="outlined"
             size="small"
             margin="dense"
