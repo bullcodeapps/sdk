@@ -54,7 +54,6 @@ export default function InputMask({
         value={inputMask}
         onChange={(e) => handleMask(e)}
         ref={inputRef}
-        required={required}
         {...other}
       >
         {(inputProps: any) => (
