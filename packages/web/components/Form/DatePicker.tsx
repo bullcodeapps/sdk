@@ -6,7 +6,7 @@ import {
 
 import { useField } from "@unform/core";
 import { parse } from "date-fns";
-import { FormControl } from "./styles";
+import { CustomLabel, FormControl, LabelContainer } from "./styles";
 
 type Props = {
   name: string;
@@ -19,6 +19,8 @@ type Props = {
   disableFuture?: boolean;
   disablePast?: boolean;
   value?: string | Date;
+  optionalText?: string;
+  required?: boolean;
   onChange?: (value: Date) => void;
 } & Omit<DatePickerProps, "value" | "onChange">;
 
@@ -32,6 +34,8 @@ export default function DatePicker({
   disableFuture = false,
   disablePast = false,
   nullable = false,
+  required = false,
+  optionalText = 'opcional',
   value,
   onChange,
   ...other
@@ -77,7 +81,10 @@ export default function DatePicker({
 
   return (
     <FormControl error={!!error}>
-      {label && <label htmlFor={fieldName}>{label}</label>}
+      <LabelContainer>
+        {label && <label htmlFor={fieldName}>{label}</label>}
+        {!required && <CustomLabel>({optionalText})</CustomLabel>}
+      </LabelContainer>
 
       <MUIDatePicker
         autoOk={autoOk}
@@ -94,6 +101,7 @@ export default function DatePicker({
         size="small"
         margin="dense"
         helperText={error || helperText}
+        required={required}
         {...other}
       />
     </FormControl>

@@ -3,12 +3,14 @@ import React, { useEffect, useRef } from 'react';
 import { useField } from '@unform/core';
 import { TextField, InputAdornment } from '@material-ui/core';
 import { TextFieldProps } from '@material-ui/core/TextField';
-import { FormControl } from './styles';
+import { FormControl, LabelContainer, CustomLabel } from './styles';
 
 interface Props {
   name: string;
   label?: string;
   maxLength?: number;
+  optionalText?: string;
+  required?: boolean;
   step?: string;
   startAdornment?: string | React.ReactNode;
   endAdornment?: string | React.ReactNode | JSX.Element;
@@ -27,6 +29,8 @@ export default function Input({
   size = 'small',
   margin = 'dense',
   fullWidth = true,
+  required = false,
+  optionalText = 'opcional',
   startAdornment,
   endAdornment,
   onChange,
@@ -52,26 +56,30 @@ export default function Input({
 
   return (
     <FormControl error={!!error} fullWidth={fullWidth}>
-      {label && type !== 'hidden' && <label htmlFor={fieldName}>{label}</label>}
+        <LabelContainer>
+          {label && type !== 'hidden' && <label htmlFor={fieldName}>{label}</label>}
+          {!required && <CustomLabel>({optionalText})</CustomLabel>}
+        </LabelContainer>
 
-      <TextField
-        id={fieldName}
-        type={type}
-        defaultValue={defaultValue}
-        size={size}
-        margin={margin}
-        fullWidth={fullWidth}
-        error={!!error}
-        helperText={type !== 'hidden' && (error || helperText)}
-        inputProps={{ ref: inputRef, maxLength, step }}
-        InputProps={{
-          startAdornment: startAdornment && <InputAdornment position="start">{startAdornment}</InputAdornment>,
-          endAdornment: endAdornment && <InputAdornment position="end">{endAdornment}</InputAdornment>,
-        }}
-        {...other}
-        variant="outlined"
-        onChange={(e: any) => onChange && onChange(e.target.value)}
-      />
+        <TextField
+          id={fieldName}
+          type={type}
+          defaultValue={defaultValue}
+          size={size}
+          margin={margin}
+          fullWidth={fullWidth}
+          error={!!error}
+          helperText={type !== 'hidden' && (error || helperText)}
+          inputProps={{ ref: inputRef, maxLength, step }}
+          InputProps={{
+            startAdornment: startAdornment && <InputAdornment position="start">{startAdornment}</InputAdornment>,
+            endAdornment: endAdornment && <InputAdornment position="end">{endAdornment}</InputAdornment>,
+          }}
+          required={required}
+          {...other}
+          variant="outlined"
+          onChange={(e: any) => onChange && onChange(e.target.value)}
+        />
     </FormControl>
   );
 }
